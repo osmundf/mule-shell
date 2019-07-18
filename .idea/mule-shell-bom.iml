@@ -3,8 +3,9 @@
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
     <output url="file://$MODULE_DIR$/mule-shell-bom/_target/main-classes" />
     <output-test url="file://$MODULE_DIR$/mule-shell-bom/_target/test-classes" />
-    <exclude-output />
-    <content url="file://$MODULE_DIR$/mule-shell-bom" />
+    <content url="file://$MODULE_DIR$/mule-shell-bom">
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-bom/_target" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

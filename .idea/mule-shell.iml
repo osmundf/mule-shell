@@ -3,13 +3,13 @@
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
     <output url="file://$MODULE_DIR$/_target/main-classes" />
     <output-test url="file://$MODULE_DIR$/_target/test-classes" />
-    <exclude-output />
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-bom" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-client" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-model" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-server" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-universe" />
+      <excludeFolder url="file://$MODULE_DIR$/_target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
