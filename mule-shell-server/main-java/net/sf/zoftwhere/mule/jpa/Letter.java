@@ -13,9 +13,9 @@ import javax.persistence.NamedQuery;
 
 @Entity
 @NamedQuery(name = "Letter.All", query = "select o from Letter o")
-@Accessors(chain = true)
 @Getter
 @Setter
+@Accessors(chain = true)
 public class Letter extends AbstractEntity<Integer> {
 
 	@Id
@@ -23,7 +23,7 @@ public class Letter extends AbstractEntity<Integer> {
 
 	@Column(name = "name")
 	private String name;
-	
+
 	public static LetterModel asLetterModel(Letter letter) {
 		LetterModel model = new LetterModel();
 		model.setId(letter.getId().toString());
