@@ -1,0 +1,8 @@
+git init --separate-git-dir ../mule-shell.git
+
+# SSH: (multiple account with SSH config)
+# git remote add github git@<ssh-alias>:osmundf/mule-shell.git
+git remote add github git@osmundf_github.com:osmundf/mule-shell.git
+
+# HTTPS:
+git remote add github https://github.com/osmundf/mule-shell.git

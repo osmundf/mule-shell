@@ -1,0 +1,5 @@
+{
+  "dateLibrary": "java8",
+  "interfaceOnly": true,
+  "returnResponse": true
+}

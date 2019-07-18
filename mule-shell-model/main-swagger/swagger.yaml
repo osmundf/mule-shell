@@ -1,0 +1,183 @@
+swagger: '2.0'
+info:
+  title: Mule Shell API
+  version: "1.0.0"
+# the domain of the service
+host: com.stackoverflow
+# array of all schemes that your API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /question
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /hello:
+    get:
+      operationId: getHelloWorlds
+      produces:
+        - application/json
+      responses:
+        200:
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/HelloWorldObject'
+        400:
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/HelloWorldObject'
+    put:
+      operationId: putHelloWorld
+      produces:
+        - application/json
+      parameters:
+        - name: request
+          in: body
+          schema:
+            $ref: '#/definitions/HelloWorldObject'
+
+  /session:
+    get:
+      operationId: getSession
+      responses:
+        200:
+          summary: 'Done.'
+          schema:
+            type: object
+            $ref: '#/definitions/Session'
+
+  /expression:
+    put:
+      operationId: putExpression
+      parameters:
+        - name: sessionId
+          in: query
+          type: string
+          required: false
+        - name: expression
+          description: Expression
+          in: body
+          schema:
+            $ref: '#/definitions/Expression'
+          required: false
+        - name: expressionType
+          in: query
+          type: string
+          default: 'expression'
+          required: false
+      responses:
+        200:
+          description:
+          schema:
+            $ref: '#/definitions/ExpressionResult'
+
+  /letter:
+    get:
+      operationId: getLetter
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Letter'
+
+  /report:
+    get:
+      operationId: getReport
+      produces:
+        - application/json
+      parameters:
+        - name: name
+          in: path
+          type: string
+          required: true
+        - name: period
+          in: query
+          type: string
+          required: false
+        - name: format
+          in: query
+          type: string
+          required: false
+          default: csv
+        - name: delimiter
+          in: query
+          type: string
+          required: false
+          default: ","
+
+definitions:
+  HelloWorldObject:
+    type: object
+    properties:
+      hello:
+        type: string
+      world:
+        type: string
+
+  Letter:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+
+  Expression:
+    type: object
+    properties:
+      input:
+        type: string
+      output:
+        type: string
+
+  ExpressionResult:
+    type: object
+    properties:
+      input:
+        type: string
+      output:
+        type: string
+
+  Session:
+    type: object
+    properties:
+      variableCount:
+        type: integer
+        format: int32
+      createdAt:
+        type: string
+        format: date-time
+      suspendedAt:
+        type: string
+        format: date-time
+      closedAt:
+        type: string
+        format: date-time
+
+  Variable:
+    type: object
+    properties:
+      id:
+        type: string
+      type:
+        type: string
+      stringValue:
+        type: string
+      arrayValue:
+        type: array
+        items:
+          type: string
+      serialized:
+        type: string

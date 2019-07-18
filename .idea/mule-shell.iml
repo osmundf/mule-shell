@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
+    <output url="file://$MODULE_DIR$/target/classes" />
+    <output-test url="file://$MODULE_DIR$/target/test-classes" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-bom" />
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-client" />
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-model" />
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-server" />
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-universe" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

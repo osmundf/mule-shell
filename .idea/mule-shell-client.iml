@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
+    <output url="file://$MODULE_DIR$/mule-shell-client/_target/main-classes" />
+    <output-test url="file://$MODULE_DIR$/mule-shell-client/_target/test-classes" />
+    <content url="file://$MODULE_DIR$/mule-shell-client">
+      <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/main-java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/main-resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/test-java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/test-resources" type="java-test-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-client/_target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-api:5.2.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.apiguardian:apiguardian-api:1.0.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.opentest4j:opentest4j:1.1.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.junit.platform:junit-platform-commons:1.2.0" level="project" />
+  </component>
+</module>

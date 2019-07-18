@@ -1,0 +1,54 @@
+# Logging settings.
+logging:
+  level: INFO
+  loggers:
+    com.example.app: DEBUG
+    org.hibernate.SQL:
+      level: DEBUG
+  appenders:
+    - type: console
+      threshold: ALL
+      queueSize: 512
+      discardingThreshold: 0
+      timeZone: UTC
+      target: stdout
+      logFormat: "%-5p [%d{ISO8601,CAT}] %c: %m%n%rEx"
+    - type: file
+      threshold: INFO
+      currentLogFilename: /tmp/application.log
+      archivedLogFilenamePattern: /tmp/application-%d{yyyy-MM-dd}-%i.log.gz
+      archivedFileCount: 7
+      timeZone: UTC
+      maxFileSize: 10MiB
+      logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
+
+server:
+  type: simple
+  connector:
+    type: http
+    port: 8080
+
+#database:
+#  driverClass: org.h2.Driver
+#  url: jdbc:h2:./target/example
+#  user: sa
+#  password: sa
+database:
+  driverClass: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5432/mule?currentSchema=public
+  user: mule-admin
+  password: 
+
+# the key needs to match the configuration key of the renderer (ViewRenderer::getConfigurationKey)
+viewRendererConfiguration:
+  freemarker:
+    strict_syntax: yes
+    whitespace_stripping: yes
+
+#metrics:
+#  reporters:
+#    - type: graphite
+#      host: localhost
+#      port: 2003
+#      prefix: example
+#      frequency: 1m
