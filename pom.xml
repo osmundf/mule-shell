@@ -8,24 +8,6 @@
     <version>1.0.0-S</version>
     <packaging>pom</packaging>
 
-    <profiles>
-        <profile>
-            <id>all-modules</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <modules>
-                <module>mule-shell-bom</module>
-                <module>mule-shell-model</module>
-                <module>mule-shell-client</module>
-                <module>mule-shell-server</module>
-            </modules>
-        </profile>
-    </profiles>
-    
-    <modules>
-    </modules>
-
     <properties>
         <!-- Settings: maven-resource-plugin -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -66,6 +48,25 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+        <directory>_target</directory>
+
+        <sourceDirectory>main-java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>main-resources</directory>
+            </resource>
+        </resources>
+        <outputDirectory>_target/main-classes</outputDirectory>
+
+        <testSourceDirectory>test-java</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>test-resources</directory>
+            </testResource>
+        </testResources>
+        <testOutputDirectory>_target/test-classes</testOutputDirectory>
+
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -84,6 +85,16 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <!--<source>${maven.compiler.source}</source>-->
+                        <!--<target>${maven.compiler.target}</target>-->
+                        <release>${maven.compiler.release}</release>
+                        <compilerArgs>
+                            <arg>-Xlint:all,-processing,-cast,-serial,-try</arg>
+                        </compilerArgs>
+                        <showWarnings>true</showWarnings>
+                        <showDeprecation>true</showDeprecation>
+                    </configuration>
                 </plugin>
 
                 <plugin>
@@ -125,6 +136,21 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!--<source>${maven.compiler.source}</source>-->
+                    <!--<target>${maven.compiler.target}</target>-->
+                    <release>${maven.compiler.release}</release>
+                    <compilerArgs>
+                        <arg>-Xlint:all,-processing,-cast,-serial,-try</arg>
+                    </compilerArgs>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>

@@ -7,6 +7,7 @@
         <artifactId>mule-shell</artifactId>
         <version>1.0.0-S</version>
     </parent>
+
     <artifactId>mule-shell-universe</artifactId>
     <version>1.0.0-S</version>
 
@@ -81,42 +82,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}-${project.version}</finalName>
-        <directory>_target</directory>
-
-        <sourceDirectory>main-java</sourceDirectory>
-        <resources>
-            <resource>
-                <directory>main-resources</directory>
-            </resource>
-        </resources>
-        <outputDirectory>_target/main-classes</outputDirectory>
-
-        <testSourceDirectory>test-java</testSourceDirectory>
-        <testResources>
-            <testResource>
-                <directory>test-resources</directory>
-            </testResource>
-        </testResources>
-        <testOutputDirectory>_target/test-classes</testOutputDirectory>
-
-        <pluginManagement>
-
-        </pluginManagement>
-
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>${maven-antrun-plugin.version}</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>${maven-clean-plugin.version}</version>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -131,18 +97,6 @@
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>${maven-dependency-plugin.version}</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>${maven-deploy-plugin.version}</version>
             </plugin>
 
             <plugin>
@@ -182,15 +136,6 @@
                             <Dependencies/>
                         </manifestEntries>
                     </archive>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
-                <configuration>
-                    <overwrite>false</overwrite>
                 </configuration>
             </plugin>
         </plugins>
