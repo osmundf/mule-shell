@@ -83,7 +83,7 @@ class JShellManagerTest {
 			}
 
 			try {
-				Thread.currentThread().sleep(10);
+				Thread.sleep(10);
 			} catch (IllegalStateException | InterruptedException e) {
 				e.printStackTrace();
 			}
