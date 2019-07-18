@@ -17,13 +17,13 @@
       <module name="mule-shell-bom" target="11" />
       <module name="mule-shell-client" target="11" />
       <module name="mule-shell-model" target="11" />
-      <module name="mule-shell-parent" target="11" />
       <module name="mule-shell-server" target="11" />
       <module name="mule-shell-universe" target="11" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="mule-shell-bom" options="" />
       <module name="mule-shell-client" options="-Xlint:all,-processing,-cast,-serial,-try" />
       <module name="mule-shell-model" options="-Xlint:all,-processing,-cast,-serial,-try" />
       <module name="mule-shell-server" options="-Xlint:all,-processing,-cast,-serial,-try" />

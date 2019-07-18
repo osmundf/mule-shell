@@ -3,12 +3,12 @@
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/mule-shell-client/pom.xml" />
-        <option value="$PROJECT_DIR$/mule-shell-universe/pom.xml" />
-        <option value="$PROJECT_DIR$/mule-shell-server/pom.xml" />
-        <option value="$PROJECT_DIR$/mule-shell-bom/pom.xml" />
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/mule-shell-bom/pom.xml" />
+        <option value="$PROJECT_DIR$/mule-shell-client/pom.xml" />
         <option value="$PROJECT_DIR$/mule-shell-model/pom.xml" />
+        <option value="$PROJECT_DIR$/mule-shell-server/pom.xml" />
+        <option value="$PROJECT_DIR$/mule-shell-universe/pom.xml" />
       </list>
     </option>
   </component>
