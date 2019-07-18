@@ -23,10 +23,14 @@ logging:
       logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
 
 server:
-  type: simple
-  connector:
-    type: http
-    port: 8080
+  applicationContextPath: /mule-shell
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminContextPath: /mule-shell
+  adminConnectors:
+    - type: http
+      port: 8081
 
 #database:
 #  driverClass: org.h2.Driver

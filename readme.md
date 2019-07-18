@@ -1,16 +1,22 @@
-# To compile the project with Apache Maven:
+# Mule Shell
+A cloud-based JDK JShell.
 
-# (Re-)Generate model:
-mvn clean process-sources -Dswagger.io.generate.phase=process-sources -pl=../mule-shell-model -f mule-shell-universe/modules.pom.xml
+## To compile the project with Apache Maven:
 
-# Compile model:
-mvn compile package -pl=../mule-shell-model -f mule-shell-universe/modules.pom.xml
+### Rebuild entire project:
+mvn clean compile package -Dswagger.io.generate.phase=process-sources -f mule-shell-universe/pom.universe.xml
 
-# Compile client:
-mvn clean compile package -pl=../mule-shell-client -f mule-shell-universe/modules.pom.xml
+### Generate model:
+mvn clean process-sources -Dswagger.io.generate.phase=process-sources -pl=../mule-shell-model -f mule-shell-universe/pom.modules.xml
 
-# Compile server:
-mvn clean compile package -pl=../mule-shell-server -f mule-shell-universe/modules.pom.xml
+### Compile model:
+mvn compile package -pl=../mule-shell-model -f mule-shell-universe/pom.modules.xml
 
-# Compile universe:
-mvn clean compile package -pl=../mule-shell-universe -f mule-shell-universe/universe.pom.xml
+### Compile client:
+mvn clean compile package -pl=../mule-shell-client -f mule-shell-universe/pom.modules.xml
+
+### Compile server:
+mvn clean compile package -pl=../mule-shell-server -f mule-shell-universe/pom.modules.xml
+
+### Compile universe:
+mvn clean compile package -pl=../mule-shell-universe -f mule-shell-universe/pom.universe.xml

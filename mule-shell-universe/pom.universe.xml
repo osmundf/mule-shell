@@ -6,6 +6,7 @@
         <groupId>net.sf.zoftwhere.mule</groupId>
         <artifactId>mule-shell</artifactId>
         <version>1.0.0-S</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>mule-shell</artifactId>
@@ -17,6 +18,7 @@
         <module>../mule-shell-model</module>
         <module>../mule-shell-client</module>
         <module>../mule-shell-server</module>
+        <module>../mule-shell-universe</module>
     </modules>
 
     <properties>

@@ -10,7 +10,6 @@ import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
-import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
@@ -20,20 +19,18 @@ import net.sf.zoftwhere.mule.shell.JShellManager;
 import org.dom4j.tree.AbstractEntity;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.jdbi.v3.core.Jdbi;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 
 public class MuleApplication extends Application<MuleConfiguration> {
 
 	private final HibernateBundle<MuleConfiguration> hibernateBundle = getHibernateBundle();
-	private Jdbi jdbi = null;
 
 	public static void main(String[] args) throws Exception {
 		new MuleApplication().run(args);
 	}
 
 	public static <T extends DatabaseConfiguration> HibernateBundle<T> getHibernateBundle() {
-		return new HibernateBundle<T>(AbstractEntity.class, persistenceEntities()) {
+		return new HibernateBundle<>(AbstractEntity.class, persistenceEntities()) {
 			@Override
 			public DataSourceFactory getDataSourceFactory(T configuration) {
 				return configuration.getDataSourceFactory();
@@ -99,13 +96,6 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 			@Provides
 			@Singleton
-			public Jdbi getJdbi(MuleConfiguration configuration, Environment environment) {
-				return jdbi = new JdbiFactory()
-						.build(environment, configuration.getDataSourceFactory(), "postgresql");
-			}
-
-			@Provides
-			@Singleton
 			public JShellManager getJShell() {
 				return new JShellManager();
 			}
@@ -114,13 +104,9 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	@Override
 	public void run(MuleConfiguration configuration, Environment environment) {
-		// System.out.println("Setting JDBI field.");
-		// jdbi = new JdbiFactory().build(environment, configuration.getDataSourceFactory(), "postgresql");
-
 		environment.jersey().register(AssetResource.class);
 		environment.jersey().register(ExpressionResource.class);
 		environment.jersey().register(HelloWorldResource.class);
 		environment.jersey().register(LetterResource.class);
-		environment.jersey().register(UserResource.class);
 	}
 }

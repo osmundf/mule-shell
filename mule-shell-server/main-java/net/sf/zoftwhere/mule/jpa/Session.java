@@ -15,9 +15,9 @@ import java.util.UUID;
 
 @Entity
 @NamedQuery(name = "Session.All", query = "select o from Session o")
-@Accessors(chain = true)
 @Getter
 @Setter
+@Accessors(chain = true)
 public class Session extends AbstractEntity<UUID> {
 
 	@Id
