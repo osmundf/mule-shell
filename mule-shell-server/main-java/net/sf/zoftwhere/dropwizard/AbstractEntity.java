@@ -26,10 +26,6 @@ public abstract class AbstractEntity<ID extends Serializable> {
 		this.createdAt = requireNonNull(createdAt);
 	}
 
-	public static OffsetDateTime toUTCOffsetDateTime(Instant instant) {
-		return instant != null ? instant.atOffset(ZoneOffset.UTC) : null;
-	}
-
 	public abstract ID getId();
 
 	public Instant getCreatedAt() {
@@ -55,5 +51,9 @@ public abstract class AbstractEntity<ID extends Serializable> {
 	@Override
 	public int hashCode() {
 		return Objects.hash(getId());
+	}
+
+	public static OffsetDateTime toUTCOffsetDateTime(Instant instant) {
+		return instant != null ? instant.atOffset(ZoneOffset.UTC) : null;
 	}
 }

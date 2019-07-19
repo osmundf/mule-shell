@@ -5,11 +5,12 @@ import jdk.jshell.JShell;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class JShellManager {
 
-	private final Map<String, JShell> shellMap;
+	private final Map<UUID, JShell> shellMap;
 	private final Supplier<JShell> supplier;
 
 	public JShellManager() {
@@ -17,7 +18,7 @@ public class JShellManager {
 		this.supplier = JShell::create;
 	}
 
-	public JShellManager(Map<String, JShell> shellMap) {
+	public JShellManager(Map<UUID, JShell> shellMap) {
 		this.shellMap = shellMap;
 		this.supplier = JShell::create;
 	}
@@ -27,16 +28,16 @@ public class JShellManager {
 		this.supplier = supplier;
 	}
 
-	public JShellManager(Map<String, JShell> shellMap, Supplier<JShell> supplier) {
+	public JShellManager(Map<UUID, JShell> shellMap, Supplier<JShell> supplier) {
 		this.shellMap = shellMap;
 		this.supplier = supplier;
 	}
 
-	public JShell getJShell(String key) {
+	public JShell getJShell(UUID key) {
 		return shellMap.get(key);
 	}
 
-	public Map.Entry<String, JShell> newJShell(Supplier<String> generator) {
+	public Map.Entry<UUID, JShell> newJShell(Supplier<UUID> generator) {
 		final var key = generator.get();
 
 		if (shellMap.containsKey(key)) {
@@ -64,7 +65,7 @@ public class JShellManager {
 		return shellMap.remove(key) != null;
 	}
 
-	synchronized public boolean putJShell(String key, JShell shell) {
+	synchronized public boolean putJShell(UUID key, JShell shell) {
 		if (key == null) {
 			return false;
 		}

@@ -13,12 +13,12 @@ import javax.persistence.NamedQuery;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
+@Entity(name = "Session")
 @NamedQuery(name = "Session.All", query = "select o from Session o")
 @Getter
 @Setter
 @Accessors(chain = true)
-public class Session extends AbstractEntity<UUID> {
+public class ShellSession extends AbstractEntity<UUID> {
 
 	@Id
 	private UUID id;
@@ -26,7 +26,7 @@ public class Session extends AbstractEntity<UUID> {
 	@Column(name = "name")
 	private String name;
 
-	public static SessionModel asSessionModel(Session session) {
+	public static SessionModel asSessionModel(ShellSession session) {
 		SessionModel model = new SessionModel();
 		model.setCreatedAt(toUTCOffsetDateTime(session.getCreatedAt()));
 		model.setClosedAt(toUTCOffsetDateTime(session.getDeletedAt()));

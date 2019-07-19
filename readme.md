@@ -4,10 +4,10 @@ A cloud-based JDK JShell.
 ## To compile the project with Apache Maven:
 
 ### Rebuild entire project:
-mvn clean compile package -Dswagger.io.generate.phase=process-sources -f mule-shell-universe/pom.universe.xml
+mvn clean compile package -Dswagger.io.generate.phase=generate-sources -f mule-shell-universe/pom.universe.xml
 
 ### Generate model:
-mvn clean process-sources -Dswagger.io.generate.phase=process-sources -pl=../mule-shell-model -f mule-shell-universe/pom.modules.xml
+mvn clean process-sources -Dswagger.io.generate.phase=generate-sources -pl=../mule-shell-model -f mule-shell-universe/pom.modules.xml
 
 ### Compile model:
 mvn compile package -pl=../mule-shell-model -f mule-shell-universe/pom.modules.xml
