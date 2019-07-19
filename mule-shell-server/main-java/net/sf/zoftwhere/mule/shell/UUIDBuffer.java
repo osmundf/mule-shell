@@ -4,7 +4,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public class UUIDBuffer implements Supplier<String> {
+public class UUIDBuffer implements Supplier<UUID> {
 
 	private final Random random;
 
@@ -13,8 +13,8 @@ public class UUIDBuffer implements Supplier<String> {
 	}
 
 	@Override
-	public String get() {
-		return getUUID().toString();
+	public UUID get() {
+		return getUUID();
 	}
 
 	synchronized private UUID getUUID() {

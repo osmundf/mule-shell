@@ -8,38 +8,12 @@ host: com.stackoverflow
 schemes:
   - https
 # will be prefixed to all paths
-basePath: /question
+basePath: /
 consumes:
   - application/json
 produces:
   - application/json
 paths:
-  /hello:
-    get:
-      operationId: getHelloWorlds
-      produces:
-        - application/json
-      responses:
-        200:
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/HelloWorldObject'
-        400:
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/HelloWorldObject'
-    put:
-      operationId: putHelloWorld
-      produces:
-        - application/json
-      parameters:
-        - name: request
-          in: body
-          schema:
-            $ref: '#/definitions/HelloWorldObject'
-
   /session:
     get:
       operationId: getSession
@@ -50,14 +24,78 @@ paths:
             type: object
             $ref: '#/definitions/Session'
 
-  /expression:
-    put:
-      operationId: putExpression
+  /session/snippet:
+    get:
+      operationId: getSessionSnippetArray
+      description: Retrieves all the snippets for the session.
       parameters:
         - name: sessionId
           in: query
           type: string
-          required: false
+          required: true
+      responses:
+        200:
+          summary: 'Successfully retrieved all session snippets.'
+          schema:
+            type: array
+            $ref: '#/definitions/Snippet'
+
+  /session/import:
+    get:
+      operationId: getSessionImportArray
+      description: Retrieves the import snippets for the session.
+      parameters:
+        - name: sessionId
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          summary: 'Successfully retrieved all session snippets.'
+          schema:
+            type: array
+            $ref: '#/definitions/ImportSnippet'
+
+  /session/variable:
+    get:
+      operationId: getSessionVariableArray
+      description: Retrieves the variable snippets for the session.
+      parameters:
+        - name: sessionId
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          summary: 'Successfully retrieved all session snippets.'
+          schema:
+            type: array
+            $ref: '#/definitions/VariableSnippet'
+
+  /session/method:
+    get:
+      operationId: getSessionMethodArray
+      description: Retrieves the method snippets for the session.
+      parameters:
+        - name: sessionId
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          summary: 'Successfully retrieved all session snippets.'
+          schema:
+            type: array
+            $ref: '#/definitions/MethodSnippet'
+
+  /expression:
+    post:
+      operationId: postExpression
+      parameters:
+        - name: sessionId
+          in: query
+          type: string
+          required: true
         - name: expression
           description: Expression
           in: body
@@ -68,72 +106,14 @@ paths:
           in: query
           type: string
           default: 'expression'
-          required: false
+          required: true
       responses:
         200:
           description:
           schema:
             $ref: '#/definitions/ExpressionResult'
 
-  /letter:
-    get:
-      operationId: getLetter
-      produces:
-        - application/json
-      parameters:
-        - name: id
-          in: path
-          type: string
-          required: true
-      responses:
-        200:
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Letter'
-
-  /report:
-    get:
-      operationId: getReport
-      produces:
-        - application/json
-      parameters:
-        - name: name
-          in: path
-          type: string
-          required: true
-        - name: period
-          in: query
-          type: string
-          required: false
-        - name: format
-          in: query
-          type: string
-          required: false
-          default: csv
-        - name: delimiter
-          in: query
-          type: string
-          required: false
-          default: ","
-
 definitions:
-  HelloWorldObject:
-    type: object
-    properties:
-      hello:
-        type: string
-      world:
-        type: string
-
-  Letter:
-    type: object
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-
   Expression:
     type: object
     properties:
@@ -153,9 +133,12 @@ definitions:
   Session:
     type: object
     properties:
+      id:
+        type: string
+        format: uuid
       variableCount:
         type: integer
-        format: int32
+        format: int64
       createdAt:
         type: string
         format: date-time
@@ -166,18 +149,63 @@ definitions:
         type: string
         format: date-time
 
-  Variable:
+  Snippet:
+    type: object
+    description: 'Basic Snippet'
+    properties:
+      id:
+        type: string
+      index:
+        type: string
+      type:
+        type: string
+      name:
+        type: string
+      source:
+        type: string
+
+  ImportSnippet:
     type: object
     properties:
       id:
         type: string
+      index:
+        type: string
+      name:
+        type: string
+      fullName:
+        type: string
+      source:
+        type: string
+
+  VariableSnippet:
+    type: object
+    properties:
+      id:
+        type: string
+      index:
+        type: string
+      name:
+        type: string
       type:
         type: string
-      stringValue:
+      value:
         type: string
-      arrayValue:
-        type: array
-        items:
-          type: string
-      serialized:
+      source:
+        type: string
+
+  MethodSnippet:
+    type: object
+    properties:
+      id:
+        type: string
+      index:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      signature:
+        type: string
+      source:
         type: string

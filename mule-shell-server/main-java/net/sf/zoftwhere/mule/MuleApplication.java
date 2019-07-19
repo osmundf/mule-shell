@@ -12,46 +12,29 @@ import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
-import net.sf.zoftwhere.mule.jpa.Letter;
-import net.sf.zoftwhere.mule.resource.*;
+import net.sf.zoftwhere.mule.jpa.ShellSession;
+import net.sf.zoftwhere.mule.resource.AssetResource;
+import net.sf.zoftwhere.mule.resource.ExpressionResource;
+import net.sf.zoftwhere.mule.resource.SessionResource;
 import net.sf.zoftwhere.mule.shell.JShellManager;
-import org.dom4j.tree.AbstractEntity;
+import net.sf.zoftwhere.mule.shell.UUIDBuffer;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 
-public class MuleApplication extends Application<MuleConfiguration> {
+import java.util.Random;
 
-	private final HibernateBundle<MuleConfiguration> hibernateBundle = getHibernateBundle();
+//import org.dom4j.tree.AbstractEntity;
+
+public class MuleApplication extends Application<MuleConfiguration> {
 
 	public static void main(String[] args) throws Exception {
 		new MuleApplication().run(args);
 	}
 
-	public static <T extends DatabaseConfiguration> HibernateBundle<T> getHibernateBundle() {
-		return new HibernateBundle<>(AbstractEntity.class, persistenceEntities()) {
-			@Override
-			public DataSourceFactory getDataSourceFactory(T configuration) {
-				return configuration.getDataSourceFactory();
-			}
-
-			@Override
-			protected void configure(org.hibernate.cfg.Configuration configuration) {
-				for (Class<?> clazz : persistenceEntities()) {
-					configuration.addAnnotatedClass(clazz);
-				}
-
-				configuration.setProperty("hibernate.hbm2ddl.auto", "update");
-			}
-		};
-	}
-
-	public static Class<?>[] persistenceEntities() {
-		return new Class<?>[]{
-				Letter.class
-		};
-	}
+	private final HibernateBundle<MuleConfiguration> hibernateBundle = getHibernateBundle();
 
 	@Override
 	public String getName() {
@@ -99,6 +82,12 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			public JShellManager getJShell() {
 				return new JShellManager();
 			}
+
+			@Provides
+			@Singleton
+			public UUIDBuffer getUUIDBuffer() {
+				return new UUIDBuffer(new Random());
+			}
 		};
 	}
 
@@ -106,7 +95,30 @@ public class MuleApplication extends Application<MuleConfiguration> {
 	public void run(MuleConfiguration configuration, Environment environment) {
 		environment.jersey().register(AssetResource.class);
 		environment.jersey().register(ExpressionResource.class);
-		environment.jersey().register(HelloWorldResource.class);
-		environment.jersey().register(LetterResource.class);
+		environment.jersey().register(SessionResource.class);
+	}
+
+	public static <T extends DatabaseConfiguration> HibernateBundle<T> getHibernateBundle() {
+		return new HibernateBundle<>(AbstractEntity.class, persistenceEntities()) {
+			@Override
+			public DataSourceFactory getDataSourceFactory(T configuration) {
+				return configuration.getDataSourceFactory();
+			}
+
+			@Override
+			protected void configure(org.hibernate.cfg.Configuration configuration) {
+				for (Class<?> clazz : persistenceEntities()) {
+					configuration.addAnnotatedClass(clazz);
+				}
+
+				configuration.setProperty("hibernate.hbm2ddl.auto", "update");
+			}
+		};
+	}
+
+	public static Class<?>[] persistenceEntities() {
+		return new Class<?>[]{
+				ShellSession.class
+		};
 	}
 }

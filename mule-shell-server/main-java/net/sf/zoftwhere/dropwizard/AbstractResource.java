@@ -10,7 +10,7 @@ import java.util.Optional;
 public abstract class AbstractResource {
 
 	public final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-	
+
 	public Optional<Integer> tryAsInteger(String value) {
 		if (Strings.isNullOrEmpty(value)) {
 			return Optional.empty();

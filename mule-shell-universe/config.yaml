@@ -41,7 +41,7 @@ database:
   driverClass: org.postgresql.Driver
   url: jdbc:postgresql://localhost:5432/mule?currentSchema=public
   user: mule-admin
-  password: 
+  password:
 
 # the key needs to match the configuration key of the renderer (ViewRenderer::getConfigurationKey)
 viewRendererConfiguration:

@@ -5,13 +5,21 @@
       <profile default="true" name="Default">
         <processorPath useClasspath="false" />
       </profile>
+      <profile name="Annotation profile for mule-shell-server" enabled="true">
+        <sourceOutputDir name="_target/generated-sources/annotations" />
+        <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="/Library/Apache/Maven-Repository-ZoftWhere/org/projectlombok/lombok/1.18.8/lombok-1.18.8.jar" />
+        </processorPath>
+        <module name="mule-shell-server" />
+      </profile>
       <profile name="Annotation profile for mule-shell-model" enabled="true">
         <sourceOutputDir name="_target/generated-sources/annotations" />
         <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="mule-shell-client" />
-        <module name="mule-shell-server" />
         <module name="mule-shell-model" />
+        <module name="mule-shell-client" />
         <module name="mule-shell-universe" />
       </profile>
     </annotationProcessing>
