@@ -90,7 +90,7 @@ class SessionResourceTest {
 	 */
 	public void testCodeAnalysis() {
 		JShellManager manager = new JShellManager();
-		final var jshell = manager.newJShell(new UUIDBuffer(new Random(0))).getValue();
+		final var jshell = manager.newJShell(new UUIDBuffer(new Random(0))).orElseThrow().getValue();
 
 		final var inputList = new ArrayList<String>();
 //		inputList.add("int a = 10;");

@@ -8,6 +8,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> {
 
@@ -23,10 +24,14 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> {
 		this.sessionProvider = sessionProvider;
 	}
 
-	public E getById(I id) {
-		return super.get(id);
+	public Optional<E> getById(I id) {
+		return Optional.of(super.get(id));
 	}
 
+	protected Session session() {
+		return sessionProvider.get();
+	}
+	
 	@Override
 	protected Session currentSession() {
 		return sessionProvider.get();

@@ -9,19 +9,20 @@ import jdk.jshell.Snippet;
 import jdk.jshell.VarSnippet;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.mule.api.SessionApi;
-import net.sf.zoftwhere.mule.jpa.SessionLocator;
+import net.sf.zoftwhere.mule.jpa.ShellSession;
+import net.sf.zoftwhere.mule.jpa.ShellSessionLocator;
 import net.sf.zoftwhere.mule.model.ImportSnippetModel;
 import net.sf.zoftwhere.mule.model.MethodSnippetModel;
-import net.sf.zoftwhere.mule.model.SessionModel;
 import net.sf.zoftwhere.mule.model.SnippetModel;
 import net.sf.zoftwhere.mule.model.VariableSnippetModel;
 import net.sf.zoftwhere.mule.shell.JShellManager;
-import net.sf.zoftwhere.mule.shell.UUIDBuffer;
 import org.hibernate.Session;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,21 +34,31 @@ import java.util.stream.Stream;
 
 public class SessionResource extends AbstractResource implements SessionApi {
 
-	private final SessionLocator sessionLocator;
-	@Inject
-	private JShellManager manager;
-	@Inject
-	private UUIDBuffer buffer;
+	private final Provider<Session> sessionProvider;
+	private final ShellSessionLocator shellLocator;
+	private final JShellManager manager;
 
 	@Inject
-	public SessionResource(Provider<Session> sessionProvider) {
-		this.sessionLocator = new SessionLocator(sessionProvider);
+	public SessionResource(Provider<Session> sessionProvider, JShellManager manager) {
+		this.sessionProvider = sessionProvider;
+		this.shellLocator = new ShellSessionLocator(sessionProvider);
+		this.manager = manager;
 	}
 
 	public SessionResource() {
-		this.sessionLocator = null;
+		this.sessionProvider = null;
+		this.shellLocator = null;
+		this.manager = null;
 	}
 
+	@RolesAllowed({ "ADMIN" })
+	@GET
+	@Path("/time")
+	public Response getRequestShell(Request request) {
+		return Response.ok().build();
+	}
+
+	@RolesAllowed({ "CLIENT" })
 	@GET
 	@Path("/{id}")
 	public Response getShellSession(@PathParam("id") String id) {
@@ -59,15 +70,15 @@ public class SessionResource extends AbstractResource implements SessionApi {
 
 	@Override
 	public Response getSession() {
-		final var entry = manager.newJShell(buffer);
-		final var uuid = entry.getKey();
-		final var jshell = entry.getValue();
+//		 shellLocator.g
+//		final var entry = manager.newJShell(buffer).orElseThrow();
+//		final var uuid = entry.getKey();
+//		final var jshell = entry.getValue();
+		final Session session = session();
+		final ShellSession shellSession = new ShellSession();
+		session.persist(shellSession);
 
-		final var entity = new SessionModel();
-		entity.setId(uuid);
-		entity.setVariableCount(jshell.variables().count());
-
-		return Response.ok(entity).build();
+		return Response.ok(ShellSession.asSessionModel(shellSession)).build();
 	}
 
 	@Override
@@ -158,4 +169,8 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		return result;
 	}
 
+	@Override
+	protected Session session() {
+		return sessionProvider.get();
+	}
 }
