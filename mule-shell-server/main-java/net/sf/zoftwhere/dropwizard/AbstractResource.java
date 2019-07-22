@@ -3,6 +3,7 @@ package net.sf.zoftwhere.dropwizard;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.hibernate.Session;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
@@ -26,4 +27,6 @@ public abstract class AbstractResource {
 	public EntityNotFoundException entityNotFound(String name, String id) {
 		return new EntityNotFoundException(String.format("Could not find %s entity with id (%s).", name, id));
 	}
+	
+	protected abstract Session session();
 }

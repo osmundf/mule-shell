@@ -10,12 +10,9 @@ import java.util.function.Function;
 
 class JShellManagerTest {
 
-	private final Consumer<JShell> shutdownListener = new Consumer<JShell>() {
-		@Override
-		public void accept(JShell jShell) {
-			String id = jShell.toString();
-			System.out.println("Shutdown: " + id);
-		}
+	private final Consumer<JShell> shutdownListener = jShell -> {
+		String id = jShell.toString();
+		System.out.println("Shutdown: " + id);
 	};
 
 	@Disabled
@@ -39,16 +36,19 @@ class JShellManagerTest {
 						int i = 0;
 						while (i < 10) {
 							try {
-								final var e = manager.newJShell(buffer);
-								if (e == null) {
+								final var option = manager.newJShell(buffer);
+								if (option.isEmpty()) {
 									continue;
 								}
 
-								e.getValue().onShutdown(shutdownListener);
-								e.getValue().close();
+								final var uuid = option.get().getKey();
+								final var shell = option.get().getValue();
+								
+								shell.onShutdown(shutdownListener);
+								shell.close();
 								++i;
 								buffer = new UUIDBuffer(new Random(0));
-								System.out.println(id + ": " + e.getKey());
+								System.out.println(id + ": " + uuid);
 								try {
 									Thread.sleep(i * 100);
 								} catch (InterruptedException ex) {

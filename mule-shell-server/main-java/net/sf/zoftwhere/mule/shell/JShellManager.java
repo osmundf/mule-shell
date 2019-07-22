@@ -5,6 +5,7 @@ import jdk.jshell.JShell;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -37,20 +38,20 @@ public class JShellManager {
 		return shellMap.get(key);
 	}
 
-	public Map.Entry<UUID, JShell> newJShell(Supplier<UUID> generator) {
+	public Optional<Map.Entry<UUID, JShell>> newJShell(Supplier<UUID> generator) {
 		final var key = generator.get();
 
 		if (shellMap.containsKey(key)) {
-			return null;
+			return Optional.empty();
 		}
 
 		final var shell = supplier.get();
 
 		if (!putJShell(key, shell)) {
-			return null;
+			return Optional.empty();
 		}
 
-		return new AbstractMap.SimpleEntry<>(key, shell);
+		return Optional.of(new AbstractMap.SimpleEntry<>(key, shell));
 	}
 
 	public boolean removeJShell(String key) {

@@ -39,7 +39,7 @@ public class ExpressionResource implements ExpressionApi {
 		int i = 0;
 		while (i < 100) {
 			try {
-				final var a1 = manager.newJShell(new UUIDBuffer(new Random(0)));
+				final var a1 = manager.newJShell(new UUIDBuffer(new Random(0))).orElseThrow();
 				++i;
 				System.out.printf("k:%s (%s) %n", a1.getKey(), manager.size());
 			} catch (RuntimeException e) {
@@ -47,7 +47,7 @@ public class ExpressionResource implements ExpressionApi {
 			}
 		}
 
-		JShell shell = manager.newJShell(buffer).getValue();
+		JShell shell = manager.newJShell(buffer).orElseThrow().getValue();
 
 		return Response.ok("{'size':" + manager.size() + " }", MediaType.APPLICATION_JSON_TYPE).build();
 	}
