@@ -204,6 +204,7 @@
     <orderEntry type="library" name="Maven: com.pivovarit:throwing-function:1.5.0" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-simple:1.7.25" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.apache.maven.surefire:surefire-logger-api:2.22.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.h2database:h2:1.4.199" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-core:2.23.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy-agent:1.9.0" level="project" />
