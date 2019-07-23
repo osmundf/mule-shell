@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -44,9 +46,11 @@ import org.hibernate.SessionFactory;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.UUID;
 
 public class MuleApplication extends Application<MuleConfiguration> {
 
@@ -134,6 +138,17 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 			@Provides
 			@Singleton
+			public Cache<UUID, AccountPrincipal> getLoginAccountCache() {
+				Cache<UUID, AccountPrincipal> cache = CacheBuilder.newBuilder()
+						.maximumSize(10000)
+						.expireAfterWrite(Duration.ofMinutes(30))
+						.build();
+
+				return cache;
+			}
+
+			@Provides
+			@Singleton
 			public JWTVerifier getJWTVerifier() {
 				return JWT.require(algorithm)
 						.withIssuer(issuer)
@@ -182,7 +197,6 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			}
 		};
 	}
-
 
 	public static <T extends DatabaseConfiguration> HibernateBundle<T> getHibernateBundle() {
 		return new HibernateBundle<>(AbstractEntity.class, persistenceEntities()) {
