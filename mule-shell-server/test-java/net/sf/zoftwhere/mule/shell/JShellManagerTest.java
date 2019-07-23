@@ -43,7 +43,7 @@ class JShellManagerTest {
 
 								final var uuid = option.get().getKey();
 								final var shell = option.get().getValue();
-								
+
 								shell.onShutdown(shutdownListener);
 								shell.close();
 								++i;

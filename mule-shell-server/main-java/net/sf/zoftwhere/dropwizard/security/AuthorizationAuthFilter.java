@@ -9,7 +9,6 @@ import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Optional;
@@ -21,7 +20,7 @@ public class AuthorizationAuthFilter<P extends Principal> extends AuthFilter<Str
 	}
 
 	@Override
-	public void filter(ContainerRequestContext requestContext) throws IOException {
+	public void filter(ContainerRequestContext requestContext) {
 		final var authorizationHeader = requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 		final var credentials = getCredentials(authorizationHeader).orElse(null);
 
@@ -31,7 +30,7 @@ public class AuthorizationAuthFilter<P extends Principal> extends AuthFilter<Str
 	}
 
 	/**
-	 * Parses a value of the `Authorization` header in the form of `Bearer a892bf3e284da9bb40648ab10`.
+	 * Parses a value of the `Authorization` header in the form of `&lt;scheme&gt; a892bf3e284da9bb40648ab10`.
 	 *
 	 * @param header the value of the `Authorization` header
 	 * @return a token
@@ -62,10 +61,10 @@ public class AuthorizationAuthFilter<P extends Principal> extends AuthFilter<Str
 	 * @param <P> the type of the principal
 	 */
 	public static class Builder<P extends Principal>
-			extends AuthFilterBuilder<String, P, AuthFilter<String, P>> {
+			extends AuthFilterBuilder<String, P, AuthorizationAuthFilter<P>> {
 
 		@Override
-		protected AuthFilter<String, P> newInstance() {
+		protected AuthorizationAuthFilter<P> newInstance() {
 			return new AuthorizationAuthFilter<>();
 		}
 	}

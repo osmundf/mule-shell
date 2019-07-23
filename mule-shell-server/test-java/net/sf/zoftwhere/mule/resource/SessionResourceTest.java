@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 class SessionResourceTest {
 
-	private SessionResource resource = new SessionResource();
+	private SessionResource resource = new SessionResource(null, null);
 
 	@Disabled
 	@Test
@@ -83,11 +83,12 @@ class SessionResourceTest {
 		//jshell.snippets().
 	}
 
-	@Disabled
-	@Test
 	/**
 	 * Debug code to compare snippet entries with those listing in JShell executed in terminal.
+	 *
 	 */
+	@Disabled
+	@Test
 	public void testCodeAnalysis() {
 		JShellManager manager = new JShellManager();
 		final var jshell = manager.newJShell(new UUIDBuffer(new Random(0))).orElseThrow().getValue();

@@ -1,5 +1,7 @@
 package net.sf.zoftwhere.dropwizard;
 
+import lombok.Getter;
+
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
@@ -13,10 +15,14 @@ import static java.util.Objects.requireNonNull;
 @MappedSuperclass
 public abstract class AbstractEntity<ID extends Serializable> {
 
+	@SuppressWarnings("JpaDataSourceORMInspection")
 	@Column(nullable = false, name = "created_at")
+	@Getter
 	private Instant createdAt = Instant.now();
 
+	@SuppressWarnings("JpaDataSourceORMInspection")
 	@Column(name = "deleted_at")
+	@Getter
 	private Instant deletedAt;
 
 	protected AbstractEntity() {
@@ -28,16 +34,8 @@ public abstract class AbstractEntity<ID extends Serializable> {
 
 	public abstract ID getId();
 
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getDeletedAt() {
-		return deletedAt;
-	}
-
 	public void delete() {
-		this.deletedAt = Instant.now();
+		this.deletedAt = Instant.now().atOffset(ZoneOffset.UTC).toInstant();
 	}
 
 	@Override
@@ -55,5 +53,11 @@ public abstract class AbstractEntity<ID extends Serializable> {
 
 	public static OffsetDateTime toUTCOffsetDateTime(Instant instant) {
 		return instant != null ? instant.atOffset(ZoneOffset.UTC) : null;
+	}
+
+	public static OffsetDateTime withZoneOffset(Instant instant, ZoneOffset zoneOffset) {
+		return instant != null
+				? zoneOffset != null ? instant.atOffset(zoneOffset) : instant.atOffset(ZoneOffset.UTC)
+				: null;
 	}
 }

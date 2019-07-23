@@ -1,14 +1,10 @@
 package net.sf.zoftwhere.mule;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.JWTVerifier;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -30,14 +26,11 @@ import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
 import net.sf.zoftwhere.mule.jpa.AccessToken;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.ShellSession;
-import net.sf.zoftwhere.mule.resource.AccessResource;
-import net.sf.zoftwhere.mule.resource.AssetResource;
-import net.sf.zoftwhere.mule.resource.ExpressionResource;
-import net.sf.zoftwhere.mule.resource.SessionResource;
 import net.sf.zoftwhere.mule.security.AccountAuthenticator;
 import net.sf.zoftwhere.mule.security.AccountAuthorizer;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.JWTSigner;
+import net.sf.zoftwhere.mule.security.SecureModule;
 import net.sf.zoftwhere.mule.shell.JShellManager;
 import net.sf.zoftwhere.mule.shell.UUIDBuffer;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
@@ -45,10 +38,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 
-import java.io.IOException;
 import java.time.Duration;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.UUID;
 
@@ -60,6 +50,10 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	private final HibernateBundle<MuleConfiguration> hibernateBundle = getHibernateBundle();
 
+	private final Cache<UUID, AccountPrincipal> cache = getLoginAccountCache();
+
+	private JWTVerifier verifier;
+
 	@Override
 	public String getName() {
 		return "mule-shell-server";
@@ -67,20 +61,12 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	@Override
 	public void run(MuleConfiguration configuration, Environment environment) {
-		environment.jersey().register(new AuthDynamicFeature(
-				new AuthorizationAuthFilter.Builder<AccountPrincipal>()
-						.setAuthenticator(new AccountAuthenticator())
-						.setAuthorizer(new AccountAuthorizer())
-						.setRealm("mule-shell-public")
-						.buildAuthFilter()));
+		// Handle dates correctly in the json ser/deser
+		environment.getObjectMapper().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		environment.getObjectMapper().registerModule(new JavaTimeModule());
 
-		updateObjectMapper(environment.getObjectMapper());
-
-		environment.jersey().register(RolesAllowedDynamicFeature.class);
-		environment.jersey().register(AccessResource.class);
-		environment.jersey().register(AssetResource.class);
-		environment.jersey().register(ExpressionResource.class);
-		environment.jersey().register(SessionResource.class);
+		// Add AuthFilters and Roles.
+		addSecurity(environment);
 	}
 
 	@Override
@@ -93,77 +79,49 @@ public class MuleApplication extends Application<MuleConfiguration> {
 				)
 		);
 
-		bootstrap.addBundle(hibernateBundle);
+		// TODO: Retrieve from database.
+		final var algorithm = Algorithm.HMAC256("secret");
+		final var signer = new JWTSigner(algorithm);
+		final var issuer = "mule-shell";
+
+		this.verifier = JWT.require(algorithm)
+				.withIssuer(issuer)
+				.acceptIssuedAt(0)
+				.acceptNotBefore(0)
+				.acceptExpiresAt(0)
+				.build();
 
 		GuiceBundle<MuleConfiguration> guiceBundle = this.<MuleConfiguration>setupGuice()
-				.modules(secureModule(Algorithm.HMAC256("secret"), "mule-shel"))
+				.modules(new SecureModule(verifier, signer))
 				.modules(serverModule())
 				.modules(muleModule())
 				.build();
 
 		bootstrap.addBundle(guiceBundle);
-	}
 
-	public ObjectMapper updateObjectMapper(ObjectMapper objectMapper) {
-
-		final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ");
-
-		SimpleModule module = new SimpleModule();
-		module.addSerializer(OffsetDateTime.class, new JsonSerializer<>() {
-			@Override
-			public void serialize(OffsetDateTime dateTime, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-				jsonGenerator.writeString(dateTimeFormatter.format(dateTime));
-			}
-		});
-
-		objectMapper.registerModule(new JavaTimeModule());
-		objectMapper.registerModule(module);
-
-		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-		return objectMapper;
+		bootstrap.addBundle(hibernateBundle);
 	}
 
 	public <T extends Configuration> GuiceBundle.Builder<T> setupGuice() {
 		return GuiceBundle.<T>builder().enableAutoConfig(getClass().getPackage().getName());
 	}
 
-	private AbstractModule secureModule(final Algorithm algorithm, final String issuer) {
-		return new AbstractModule() {
-			@Override
-			protected void configure() {
-				super.configure();
-			}
+	private Cache<UUID, AccountPrincipal> getLoginAccountCache() {
+		return CacheBuilder.newBuilder()
+				.maximumSize(10000)
+				.expireAfterWrite(Duration.ofMinutes(30))
+				.build();
+	}
 
-			@Provides
-			@Singleton
-			public Cache<UUID, AccountPrincipal> getLoginAccountCache() {
-				Cache<UUID, AccountPrincipal> cache = CacheBuilder.newBuilder()
-						.maximumSize(10000)
-						.expireAfterWrite(Duration.ofMinutes(30))
-						.build();
-
-				return cache;
-			}
-
-			@Provides
-			@Singleton
-			public JWTVerifier getJWTVerifier() {
-				return JWT.require(algorithm)
-						.withIssuer(issuer)
-						.acceptIssuedAt(0)
-						.acceptExpiresAt(0)
-						.acceptNotBefore(0)
-						.build();
-			}
-
-			@Provides
-			@Singleton
-			public JWTSigner getJWTSigner() {
-				return new JWTSigner(algorithm);
-			}
-		};
+	private void addSecurity(Environment environment) {
+		environment.jersey().register(new AuthDynamicFeature(
+				new AuthorizationAuthFilter.Builder<AccountPrincipal>()
+						.setAuthorizer(new AccountAuthorizer())
+						.setAuthenticator(new AccountAuthenticator(cache, verifier))
+						.setPrefix("bearer")
+						.setRealm("mule-shell-public")
+						.buildAuthFilter()));
+		environment.jersey().register(RolesAllowedDynamicFeature.class);
 	}
 
 	private AbstractModule serverModule() {
@@ -178,6 +136,12 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			@Provides
 			public ObjectMapper getObjectMapper(Environment environment) {
 				return environment.getObjectMapper();
+			}
+
+			@Provides
+			@Singleton
+			public Cache<UUID, AccountPrincipal> getLoginCache() {
+				return cache;
 			}
 		};
 	}

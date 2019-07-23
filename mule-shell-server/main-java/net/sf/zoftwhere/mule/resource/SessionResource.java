@@ -21,11 +21,11 @@ import org.hibernate.Session;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -45,72 +45,67 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		this.manager = manager;
 	}
 
-	public SessionResource() {
-		this.sessionProvider = null;
-		this.shellLocator = null;
-		this.manager = null;
-	}
-
-	@RolesAllowed({ "ADMIN" })
-	@GET
 	@Path("/time")
-	public Response getRequestShell(Request request) {
-		return Response.ok().build();
-	}
-
-	@RolesAllowed({ "CLIENT" })
 	@GET
-	@Path("/{id}")
-	public Response getShellSession(@PathParam("id") String id) {
-//		Letter letter = tryAsInteger(id).map(letterLocator::getById).orElseThrow(() -> entityNotFound("Letter", id));
-//		LetterModel model = Letter.asLetterModel(letter);
-//		return Response.ok().entity(model).build();
-		return Response.ok().build();
+	public Response getTime() {
+		return Response.ok(Instant.now().atOffset(ZoneOffset.UTC)).build();
 	}
 
+	@RolesAllowed({"CLIENT"})
 	@Override
-	public Response getSession() {
-//		 shellLocator.g
-//		final var entry = manager.newJShell(buffer).orElseThrow();
-//		final var uuid = entry.getKey();
-//		final var jshell = entry.getValue();
-		final Session session = session();
+	public Response newSession() {
 		final ShellSession shellSession = new ShellSession();
-		session.persist(shellSession);
+		shellSession.setName("");
 
-		return Response.ok(ShellSession.asSessionModel(shellSession)).build();
+		final Session session = session();
+		session.beginTransaction();
+		session.persist(shellSession);
+		session.getTransaction().commit();
+
+		return Response.ok(ShellSession.asSessionModel(shellSession, ZoneOffset.UTC)).build();
+	}
+
+	@RolesAllowed({"CLIENT"})
+	@Override
+	public Response getSession(String id, String tz) {
+		final var shellSession = getFromMap("ShellSession", id, this::tryAsUUID, shellLocator::getById);
+		final var zoneOffset = tryAsZoneOffset(tz).orElse(ZoneOffset.UTC);
+		final var model = ShellSession.asSessionModel(shellSession, zoneOffset);
+		return Response.ok().entity(model).build();
 	}
 
 	@Override
 	public Response getSessionSnippetArray(String sessionId) {
-		return this.transform(sessionId, JShell::snippets, this::generalSnippet);
+		return this.transform(sessionId, JShell::snippets, Objects::toString, this::generalSnippet);
 	}
 
 	@Override
 	public Response getSessionImportArray(String sessionId) {
-		return this.transform(sessionId, JShell::imports, this::importSnippet);
+		return this.transform(sessionId, JShell::imports, Objects::toString, this::importSnippet);
 	}
 
 	@Override
 	public Response getSessionVariableArray(String sessionId) {
-		return this.transform(sessionId, JShell::variables, this::variableSnippet);
+		return this.transform(sessionId, JShell::variables, Objects::toString, this::variableSnippet);
 	}
 
 	@Override
 	public Response getSessionMethodArray(String sessionId) {
-		return this.transform(sessionId, JShell::methods, this::methodSnippet);
+		return this.transform(sessionId, JShell::methods, Objects::toString, this::methodSnippet);
 	}
 
-	public <S, M> Response transform(String sessionId, Function<JShell, Stream<S>> getSnippetList, BiFunction<S, String, M> populateModel) {
-		final var jshell = manager.getJShell(UUID.fromString(sessionId));
-		final var entity = new ArrayList<M>();
+	public <S, I, M> Response transform(String id, Function<JShell, Stream<S>> getList, Function<Integer, I> indexer, BiFunction<S, I, M> combiner) {
+		final var jshell = manager.getJShell(UUID.fromString(id));
+		final var modelList = new ArrayList<M>();
+		final var snippetList = getList.apply(jshell).collect(Collectors.toList());
 
-		List<S> snippetList = getSnippetList.apply(jshell).collect(Collectors.toList());
 		for (int i = 0, size = snippetList.size(); i < size; i++) {
-			entity.add(populateModel.apply(snippetList.get(i), Integer.toString(i)));
+			final var snippet = snippetList.get(i);
+			final var index = indexer.apply(i);
+			modelList.add(combiner.apply(snippet, index));
 		}
 
-		return Response.ok(entity).build();
+		return Response.ok(modelList).build();
 	}
 
 	public SnippetModel generalSnippet(final Snippet snippet, final String index) {
@@ -171,6 +166,6 @@ public class SessionResource extends AbstractResource implements SessionApi {
 
 	@Override
 	protected Session session() {
-		return sessionProvider.get();
+		return this.sessionProvider.get();
 	}
 }

@@ -4,9 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -22,13 +26,22 @@ import java.util.UUID;
 public class Account extends AbstractEntity<UUID> {
 
 	@Id
-	private UUID id = UUID.randomUUID();
+	@Generated(value = GenerationTime.INSERT)
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(insertable = false)
+	private UUID id = null;
 
-	@Column(nullable = false)
+	@Column(nullable = false, length = 20)
 	private String userName;
 
-	@Column(nullable = false)
+	@Column(nullable = false, length = 80)
 	private String emailAddress;
+
+	@Column(nullable = false, length = 16)
+	private byte[] salt;
+
+	@Column(nullable = false, length = 16)
+	private byte[] hash;
 
 	@OneToMany(mappedBy = "account")
 	private List<AccessToken> accessTokenList = new ArrayList<>();

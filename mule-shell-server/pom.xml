@@ -319,7 +319,7 @@
             <version>${org.hibernate.version}</version>
         </dependency>
 
-        <dependency>
+        <!--<dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-envers</artifactId>
             <version>${org.hibernate.version}</version>
@@ -329,7 +329,7 @@
                     <artifactId>hibernate-core</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>org.postgresql</groupId>
