@@ -161,9 +161,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			}
 
 			@Provides
-//			@Singleton
 			public ObjectMapper getObjectMapper(Environment environment) {
-				return updateObjectMapper(environment.getObjectMapper());
+				return environment.getObjectMapper();
 			}
 		};
 	}
