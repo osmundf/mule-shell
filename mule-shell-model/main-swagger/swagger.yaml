@@ -54,13 +54,31 @@ paths:
 
   /session:
     get:
-      operationId: getSession
+      operationId: newSession
       responses:
         200:
-          summary: 'Done.'
           schema:
             type: object
             $ref: '#/definitions/Session'
+
+  /session/{id}:
+    get:
+      operationId: getSession
+      parameters:
+        - name: id
+          in: path
+          type: string
+        - name: tz
+          in: query
+          type: string
+          required: false
+      responses:
+        200:
+          schema:
+            type: object
+            $ref: '#/definitions/Session'
+        401:
+          summary: 'Unauthorized session retrieval'
 
   /session/snippet:
     get:
@@ -188,9 +206,6 @@ definitions:
       id:
         type: string
         format: uuid
-      variableCount:
-        type: integer
-        format: int64
       createdAt:
         type: string
         format: date-time

@@ -11,7 +11,7 @@ public class AccountLocator extends AbstractLocator<Account, UUID> {
 
 	@Inject
 	public AccountLocator(Provider<Session> sessionProvider) {
-		super(sessionProvider);
+		super("Account", sessionProvider);
 	}
 
 	public Account newAccount(final String userName, final String emailAddress) {

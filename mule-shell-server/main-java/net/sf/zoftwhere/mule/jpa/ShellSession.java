@@ -5,43 +5,52 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.mule.model.SessionModel;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
-@Entity(name = "Shell")
-@NamedQuery(name = "Shell.All", query = "select o from Shell o")
-@Getter
-@Setter
+@Entity(name = "ShellSession")
+@NamedQuery(name = "ShellSession.All", query = "select o from ShellSession o")
 @Accessors(chain = true)
 public class ShellSession extends AbstractEntity<UUID> {
 
 	@Id
-	private UUID id = UUID.randomUUID();
+	@Generated(value = GenerationTime.INSERT)
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(insertable = false)
+	@Getter
+	private UUID id = null;
 
-	@Column(name = "name")
+	@Column(name = "name", length = 20)
+	@Getter
+	@Setter
 	private String name;
 
-	public static SessionModel asSessionModel(ShellSession session) {
-		final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+	@Column(name = "suspended_at")
+	@Getter
+	@Setter
+	private Instant suspendedAt = getCreatedAt();
+
+	public ShellSession() {
+	}
+
+	public static SessionModel asSessionModel(ShellSession session, ZoneOffset zoneOffset) {
 		SessionModel model = new SessionModel();
 		model.setId(session.getId());
-		model.setCreatedAt(toUTCOffsetDateTime(session.getCreatedAt()));
-		model.setClosedAt(toUTCOffsetDateTime(session.getDeletedAt()));
-		model.setSuspendedAt(toUTCOffsetDateTime(Instant.now()));
 
-//		model.setCreatedAt(new Date(session.getCreatedAt().getEpochSecond()));
-//		model.setClosedAt(new Date(session.getDeletedAt().getEpochSecond()));
-//		model.setSuspendedAt(new Date(Instant.now().getEpochSecond()));
-
-//		model.setCreatedAt(DateTime.parse(session.getCreatedAt().toString()));
+		model.setCreatedAt(withZoneOffset(session.getCreatedAt(), zoneOffset));
+		model.setClosedAt(withZoneOffset(session.getDeletedAt(), zoneOffset));
+		model.setSuspendedAt(withZoneOffset(session.getSuspendedAt(), zoneOffset));
 
 		return model;
 	}
-
 }
