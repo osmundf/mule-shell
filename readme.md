@@ -1,4 +1,4 @@
-# Mule Shell
+# Mule Shell (Still in Development)
 A cloud-based JDK JShell.
 
 ## To compile the project with Apache Maven:
