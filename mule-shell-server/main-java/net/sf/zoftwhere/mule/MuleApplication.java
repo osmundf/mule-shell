@@ -97,9 +97,9 @@ public class MuleApplication extends Application<MuleConfiguration> {
 				.modules(muleModule())
 				.build();
 
-		bootstrap.addBundle(guiceBundle);
-
 		bootstrap.addBundle(hibernateBundle);
+
+		bootstrap.addBundle(guiceBundle);
 	}
 
 	public <T extends Configuration> GuiceBundle.Builder<T> setupGuice() {
