@@ -5,15 +5,19 @@ import com.google.common.cache.Cache;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
-import net.sf.zoftwhere.mule.api.SecureApi;
+import net.sf.zoftwhere.mule.api.AccountApi;
 import net.sf.zoftwhere.mule.jpa.AccessToken;
-import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
 import net.sf.zoftwhere.mule.model.BasicUserModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
+import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.JWTSigner;
 import org.hibernate.Session;
 
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -24,11 +28,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class AccessResource extends AbstractResource implements SecureApi {
+public class AccountResource extends AbstractResource implements AccountApi {
 
 	private final Provider<Session> sessionProvider;
-
-	private final AccountLocator accountLocator;
 
 	@Inject
 	private Cache<UUID, AccountPrincipal> cache;
@@ -37,9 +39,25 @@ public class AccessResource extends AbstractResource implements SecureApi {
 	private JWTSigner signer;
 
 	@Inject
-	public AccessResource(Provider<Session> sessionProvider) {
+	private AccountSigner accountSigner;
+
+	private final AccountLocator accountLocator;
+
+	@Inject
+	public AccountResource(Provider<Session> sessionProvider) {
 		this.sessionProvider = sessionProvider;
 		this.accountLocator = new AccountLocator(sessionProvider);
+	}
+
+	/**
+	 * System only: register user.
+	 */
+	@RolesAllowed({"SYSTEM"})
+	@POST
+	@Path("/register")
+	public Response register(@QueryParam("user") String username, @QueryParam("email") String emailAddress) {
+		BasicUserModel model = new BasicUserModel();
+		return Response.ok(model).build();
 	}
 
 	@Override
@@ -68,36 +86,66 @@ public class AccessResource extends AbstractResource implements SecureApi {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		final byte[] decoded = Base64.getDecoder().decode(detail);
-		final Optional<String> username = getUserName(decoded);
+		final var basicByteArray = Base64.getDecoder().decode(detail);
+		final var usernameOption = getUsername(basicByteArray);
 
-		if (username.isEmpty()) {
+		if (usernameOption.isEmpty()) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		final var session = sessionProvider.get();
-		session.beginTransaction();
-		final var userAccount = new Account()
-				.setUserName(username.get())
-				.setEmailAddress("")
-				.setSalt(new byte[]{}) // TODO: Fix salt.
-				.setHash(new byte[]{}); // TODO: Fix hash.
-		session.persist(userAccount);
-		session.getTransaction().commit();
+		final var username = usernameOption.get();
+		final var accountOption = tryFetchEntity(username, Optional::of, accountLocator::getByUsername);
 
-		session.beginTransaction();
-		final var accessToken = new AccessToken().setAccount(userAccount);
-		session.save(accessToken);
-		session.getTransaction().commit();
+		if (accountOption.isEmpty()) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		final var account = accountOption.get();
+		final var data = getPassword(basicByteArray).orElse(null);
+
+		if (data == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		if (codePointCount(data) < 6) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		if (!accountSigner.validate(data, account.getSalt(), account.getHash())) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		try (var session = sessionProvider.get()) {
+			final var salt = accountSigner.generateSalt(512);
+			final var hash = accountSigner.getHash(salt, data);
+
+			account.setSalt(salt);
+			account.setHash(hash);
+
+			session.beginTransaction();
+			session.save(account);
+			session.getTransaction().commit();
+			session.close();
+		}
+
+		final var accessToken = new AccessToken().setAccount(account);
+
+		try (var session = sessionProvider.get()) {
+			session.beginTransaction();
+			session.save(accessToken);
+			session.getTransaction().commit();
+			session.close();
+		}
 
 		final var tokenBuilder = JWT.create()
 				.withJWTId(accessToken.getId().toString())
-				.withIssuer("mule-shell")
 				.withExpiresAt(new Date(Instant.now().plus(Duration.ofMinutes(10)).toEpochMilli()));
 
 		final var jwtToken = signer.sign(tokenBuilder);
 
-		final var principal = new AccountPrincipal(username.get(), "CLIENT");
+		final var principal = new AccountPrincipal(usernameOption.get(), "CLIENT");
+
+		// Place in active cache.
 		cache.put(accessToken.getId(), principal);
 
 		return Response.ok(jwtToken).build();
@@ -127,15 +175,31 @@ public class AccessResource extends AbstractResource implements SecureApi {
 		return Optional.of(split);
 	}
 
-	private Optional<String> getUserName(final byte[] input) {
+	private Optional<String> getUsername(final byte[] input) {
 		final int size = input != null ? input.length : 0;
 
 		for (int i = 0; i < size; i++) {
 			if (input[i] == ':') {
-				return Optional.of(new String(input, 0, i + 1, StandardCharsets.UTF_8));
+				return Optional.of(new String(input, 0, i, StandardCharsets.UTF_8));
 			}
 		}
 
 		return Optional.empty();
 	}
+
+	private Optional<byte[]> getPassword(final byte[] input) {
+		final int size = input != null ? input.length : 0;
+
+		for (int i = 0; i < size; i++) {
+			if (input[i] == ':') {
+				int dataSize = size - i - 1;
+				byte[] data = new byte[dataSize];
+				System.arraycopy(input, i + 1, data, 0, dataSize);
+				return Optional.of(data);
+			}
+		}
+
+		return Optional.empty();
+	}
+
 }

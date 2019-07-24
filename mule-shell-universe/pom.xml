@@ -6,6 +6,7 @@
         <groupId>net.sf.zoftwhere.mule</groupId>
         <artifactId>mule-shell</artifactId>
         <version>1.0.0-S</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>mule-shell-universe</artifactId>
@@ -67,6 +68,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.4.3.Final</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
@@ -80,7 +87,7 @@
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -35,10 +35,10 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> {
 		return sessionProvider.get();
 	}
 
-	@Override
-	protected Query<E> namedQuery(String subQueryName) throws HibernateException {
+	//	@Override
+	protected Query<E> namedQuery(Session session, String subQueryName) throws HibernateException {
 		final String namedQuery = prefix + "." + subQueryName;
-		return session().createNamedQuery(namedQuery, super.getEntityClass());
+		return session.createNamedQuery(namedQuery, super.getEntityClass());
 	}
 
 	@Override

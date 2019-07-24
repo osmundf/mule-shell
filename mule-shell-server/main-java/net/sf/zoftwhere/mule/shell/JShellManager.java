@@ -59,11 +59,13 @@ public class JShellManager {
 			return false;
 		}
 
-		if (!shellMap.containsKey(key)) {
+		final var uuid = UUID.fromString(key);
+
+		if (!shellMap.containsKey(uuid)) {
 			return false;
 		}
 
-		return shellMap.remove(key) != null;
+		return shellMap.remove(uuid) != null;
 	}
 
 	synchronized public boolean putJShell(UUID key, JShell shell) {

@@ -18,7 +18,8 @@ import javax.persistence.NamedQuery;
 import java.util.UUID;
 
 @Entity(name = "Token")
-@NamedQuery(name = "Token.All", query = "select o from Token o")
+@NamedQuery(name = "AccessToken.all", query = "select o from Token o")
+@NamedQuery(name = "AccessToken.byAccountId", query = "select o from Token o where o.account.id = :accountId")
 @Getter
 @Setter
 @Accessors(chain = true)

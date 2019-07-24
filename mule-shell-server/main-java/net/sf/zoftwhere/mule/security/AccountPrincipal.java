@@ -5,12 +5,12 @@ import java.util.Optional;
 
 public class AccountPrincipal implements Principal {
 
-	private final String userName;
+	private final String username;
 
 	private final String role;
 
-	public AccountPrincipal(String userName, String role) {
-		this.userName = userName;
+	public AccountPrincipal(String username, String role) {
+		this.username = username;
 		this.role = role;
 	}
 
@@ -19,8 +19,8 @@ public class AccountPrincipal implements Principal {
 		throw new NullPointerException();
 	}
 
-	public Optional<String> getUserName() {
-		return Optional.ofNullable(userName);
+	public Optional<String> getUsername() {
+		return Optional.ofNullable(username);
 	}
 
 	public Optional<String> getRole() {
