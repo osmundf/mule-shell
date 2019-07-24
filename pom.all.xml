@@ -6,18 +6,19 @@
         <groupId>net.sf.zoftwhere.mule</groupId>
         <artifactId>mule-shell</artifactId>
         <version>1.0.0-S</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>pom.xml</relativePath>
     </parent>
 
-    <artifactId>mule-shell</artifactId>
+    <artifactId>mule-shell-all</artifactId>
     <version>1.0.0-S</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>../mule-shell-bom</module>
-        <module>../mule-shell-model</module>
-        <module>../mule-shell-client</module>
-        <module>../mule-shell-server</module>
+        <module>mule-shell-bom</module>
+        <module>mule-shell-model</module>
+        <module>mule-shell-client</module>
+        <module>mule-shell-server</module>
+        <module>mule-shell-universe</module>
     </modules>
 
     <properties>
