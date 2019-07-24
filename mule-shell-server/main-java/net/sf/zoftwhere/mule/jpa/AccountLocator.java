@@ -14,12 +14,21 @@ public class AccountLocator extends AbstractLocator<Account, UUID> {
 		super("Account", sessionProvider);
 	}
 
-	public Account newAccount(final String userName, final String emailAddress) {
+	public Account newAccount(final String username, final String emailAddress) {
 		final var user = new Account();
-		user.setUserName(userName);
+		user.setUsername(username);
 		user.setEmailAddress(emailAddress);
 		session().persist(user);
 		return user;
+	}
+
+	public Account getByUsername(final String username) {
+		// return namedQuery("byUsername").setParameter("username", username).getSingleResult();
+		try (var session = session()) {
+			return namedQuery(session, "byUsername")
+					.setParameter("username", username)
+					.getSingleResult();
+		}
 	}
 
 	void persistCollection(ShellSession session) {

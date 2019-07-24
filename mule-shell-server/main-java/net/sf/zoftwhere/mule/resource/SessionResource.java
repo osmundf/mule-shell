@@ -19,9 +19,11 @@ import net.sf.zoftwhere.mule.shell.JShellManager;
 import org.hibernate.Session;
 
 import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -34,8 +36,16 @@ import java.util.stream.Stream;
 
 public class SessionResource extends AbstractResource implements SessionApi {
 
+	@Inject
+	Provider<HttpServletRequest> requestProvider;
+
+	@Inject
+	Provider<SecurityContext> securityContextProvider;
+
 	private final Provider<Session> sessionProvider;
+
 	private final ShellSessionLocator shellLocator;
+
 	private final JShellManager manager;
 
 	@Inject
@@ -54,6 +64,8 @@ public class SessionResource extends AbstractResource implements SessionApi {
 	@RolesAllowed({"CLIENT"})
 	@Override
 	public Response newSession() {
+		final var security = securityContextProvider.get();
+
 		final ShellSession shellSession = new ShellSession();
 		shellSession.setName("");
 
@@ -68,8 +80,17 @@ public class SessionResource extends AbstractResource implements SessionApi {
 	@RolesAllowed({"CLIENT"})
 	@Override
 	public Response getSession(String id, String tz) {
-		final var shellSession = getFromMap("ShellSession", id, this::tryAsUUID, shellLocator::getById);
-		final var zoneOffset = tryAsZoneOffset(tz).orElse(ZoneOffset.UTC);
+		final var security = securityContextProvider.get();
+
+		// Get zone offset may throw a date time exception for invalid time zone.
+		final var zoneOffset = getZoneOffset(tz).orElse(ZoneOffset.UTC);
+		final var shellSession = tryFetchEntity(id, this::tryAsUUID, shellLocator::getById).orElse(null);
+
+		// TODO: Add shell session access tokens (owner, user, visitor)
+		if (shellSession == null) {
+			return Response.ok(Response.Status.BAD_REQUEST).entity("Session unavailable.").build();
+		}
+
 		final var model = ShellSession.asSessionModel(shellSession, zoneOffset);
 		return Response.ok().entity(model).build();
 	}

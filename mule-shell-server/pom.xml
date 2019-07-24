@@ -6,6 +6,7 @@
         <groupId>net.sf.zoftwhere.mule</groupId>
         <artifactId>mule-shell</artifactId>
         <version>1.0.0-S</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>mule-shell-server</artifactId>

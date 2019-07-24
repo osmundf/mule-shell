@@ -9,7 +9,6 @@ import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
-import java.io.IOException;
 import java.security.Principal;
 import java.util.Optional;
 

@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity(name = "Account")
-@NamedQuery(name = "Account.All", query = "select o from Account o")
+@NamedQuery(name = "Account.all", query = "select o from Account o")
+@NamedQuery(name = "Account.byUsername", query = "select o from Account o where o.username = :username")
 @Getter
 @Setter
 @Accessors(chain = true)
@@ -32,15 +33,15 @@ public class Account extends AbstractEntity<UUID> {
 	private UUID id = null;
 
 	@Column(nullable = false, length = 20)
-	private String userName;
+	private String username;
 
 	@Column(nullable = false, length = 80)
 	private String emailAddress;
 
-	@Column(nullable = false, length = 16)
+	@Column(nullable = false, length = 512)
 	private byte[] salt;
 
-	@Column(nullable = false, length = 16)
+	@Column(nullable = false, length = 512)
 	private byte[] hash;
 
 	@OneToMany(mappedBy = "account")

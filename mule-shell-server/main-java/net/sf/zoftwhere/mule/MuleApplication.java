@@ -23,12 +23,14 @@ import io.dropwizard.setup.Environment;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
+import net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy;
 import net.sf.zoftwhere.mule.jpa.AccessToken;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.ShellSession;
 import net.sf.zoftwhere.mule.security.AccountAuthenticator;
 import net.sf.zoftwhere.mule.security.AccountAuthorizer;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
+import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.JWTSigner;
 import net.sf.zoftwhere.mule.security.SecureModule;
 import net.sf.zoftwhere.mule.shell.JShellManager;
@@ -36,16 +38,26 @@ import net.sf.zoftwhere.mule.shell.UUIDBuffer;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
 public class MuleApplication extends Application<MuleConfiguration> {
 
+	private static final Logger logger = LoggerFactory.getLogger(MuleApplication.class);
+
 	public static void main(String[] args) throws Exception {
+		long time = -System.nanoTime();
 		new MuleApplication().run(args);
+		time += System.nanoTime();
+		logger.info("Started: " + ((time / 1_000) / 1e3) + " ms");
 	}
 
 	private final HibernateBundle<MuleConfiguration> hibernateBundle = getHibernateBundle();
@@ -61,7 +73,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	@Override
 	public void run(MuleConfiguration configuration, Environment environment) {
-		// Handle dates correctly in the json ser/deser
+		// Handle dates correctly in the json serializer/deserializer.
 		environment.getObjectMapper().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		environment.getObjectMapper().registerModule(new JavaTimeModule());
 
@@ -80,9 +92,9 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		);
 
 		// TODO: Retrieve from database.
-		final var algorithm = Algorithm.HMAC256("secret");
-		final var signer = new JWTSigner(algorithm);
 		final var issuer = "mule-shell";
+		final var algorithm = Algorithm.HMAC256("secret");
+		final var signer = new JWTSigner(issuer, algorithm);
 
 		this.verifier = JWT.require(algorithm)
 				.withIssuer(issuer)
@@ -106,14 +118,14 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		return GuiceBundle.<T>builder().enableAutoConfig(getClass().getPackage().getName());
 	}
 
-	private Cache<UUID, AccountPrincipal> getLoginAccountCache() {
+	protected Cache<UUID, AccountPrincipal> getLoginAccountCache() {
 		return CacheBuilder.newBuilder()
 				.maximumSize(10000)
 				.expireAfterWrite(Duration.ofMinutes(30))
 				.build();
 	}
 
-	private void addSecurity(Environment environment) {
+	protected void addSecurity(Environment environment) {
 		environment.jersey().register(new AuthDynamicFeature(
 				new AuthorizationAuthFilter.Builder<AccountPrincipal>()
 						.setAuthorizer(new AccountAuthorizer())
@@ -124,7 +136,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		environment.jersey().register(RolesAllowedDynamicFeature.class);
 	}
 
-	private AbstractModule serverModule() {
+	protected AbstractModule serverModule() {
 		return new AbstractModule() {
 
 			@Override
@@ -139,6 +151,15 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			}
 
 			@Provides
+			public AccountSigner getAccountSigner() {
+				try {
+					return new AccountSigner(MessageDigest.getInstance("SHA-256"));
+				} catch (NoSuchAlgorithmException e) {
+					return null;
+				}
+			}
+
+			@Provides
 			@Singleton
 			public Cache<UUID, AccountPrincipal> getLoginCache() {
 				return cache;
@@ -146,7 +167,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		};
 	}
 
-	private AbstractModule muleModule() {
+	protected AbstractModule muleModule() {
 		return new AbstractModule() {
 			@Provides
 			@Singleton
@@ -171,10 +192,17 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 			@Override
 			protected void configure(org.hibernate.cfg.Configuration configuration) {
-				for (Class<?> clazz : persistenceEntities()) {
-					configuration.addAnnotatedClass(clazz);
-				}
+				List.of(persistenceEntities()).forEach(configuration::addAnnotatedClass);
 
+				// hibernate.globally_quoted_identifiers=true
+				configuration.setProperty("hibernate.globally_quoted_identifiers", "true");
+
+				configuration.setProperty("hibernate.dialect", org.hibernate.dialect.PostgresPlusDialect.class.getName());
+				configuration.setProperty("hibernate.show_sql", "true");
+				configuration.setProperty("hibernate.format_sql", "true");
+
+				configuration.setProperty("hibernate.physical_naming_strategy", SnakeCaseNamingStrategy.class.getName());
+				configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
 				configuration.setProperty("hibernate.hbm2ddl.auto", "update");
 			}
 		};

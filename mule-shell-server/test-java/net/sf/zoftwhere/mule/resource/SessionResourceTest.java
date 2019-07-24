@@ -85,7 +85,6 @@ class SessionResourceTest {
 
 	/**
 	 * Debug code to compare snippet entries with those listing in JShell executed in terminal.
-	 *
 	 */
 	@Disabled
 	@Test

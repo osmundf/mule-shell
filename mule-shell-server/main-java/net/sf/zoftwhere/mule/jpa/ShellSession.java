@@ -30,12 +30,14 @@ public class ShellSession extends AbstractEntity<UUID> {
 	@Getter
 	private UUID id = null;
 
-	@Column(name = "name", length = 20)
+	//	@Column(name = "name", length = 20)
+	@Column(length = 20)
 	@Getter
 	@Setter
 	private String name;
 
-	@Column(name = "suspended_at")
+	//	@Column(name = "suspended_at")
+	@Column()
 	@Getter
 	@Setter
 	private Instant suspendedAt = getCreatedAt();

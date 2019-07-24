@@ -16,7 +16,7 @@ public class AccountAuthorizer implements Authorizer<AccountPrincipal> {
 			return false;
 		}
 
-		if (user.getUserName().isEmpty()) {
+		if (user.getUsername().isEmpty()) {
 			return false;
 		}
 

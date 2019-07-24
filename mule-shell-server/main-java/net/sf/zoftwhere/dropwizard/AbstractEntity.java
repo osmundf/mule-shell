@@ -15,13 +15,11 @@ import static java.util.Objects.requireNonNull;
 @MappedSuperclass
 public abstract class AbstractEntity<ID extends Serializable> {
 
-	@SuppressWarnings("JpaDataSourceORMInspection")
-	@Column(nullable = false, name = "created_at")
+	@Column(nullable = false)
 	@Getter
 	private Instant createdAt = Instant.now();
 
-	@SuppressWarnings("JpaDataSourceORMInspection")
-	@Column(name = "deleted_at")
+	@Column()
 	@Getter
 	private Instant deletedAt;
 
@@ -49,10 +47,6 @@ public abstract class AbstractEntity<ID extends Serializable> {
 	@Override
 	public int hashCode() {
 		return Objects.hash(getId());
-	}
-
-	public static OffsetDateTime toUTCOffsetDateTime(Instant instant) {
-		return instant != null ? instant.atOffset(ZoneOffset.UTC) : null;
 	}
 
 	public static OffsetDateTime withZoneOffset(Instant instant, ZoneOffset zoneOffset) {

@@ -14,7 +14,7 @@ consumes:
 produces:
   - application/json
 paths:
-  /secure/login:
+  /account/login:
     post:
       operationId: login
       summary: 'Login point.'
@@ -34,7 +34,7 @@ paths:
           schema:
             $ref: JsonWebToken
 
-  /secure/logout:
+  /account/logout:
     post:
       summary: 'Logout point.'
       operationId: logout
