@@ -23,6 +23,7 @@ import io.dropwizard.setup.Environment;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
+import net.sf.zoftwhere.hibernate.MacroCaseNamingStrategy;
 import net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy;
 import net.sf.zoftwhere.mule.jpa.AccessToken;
 import net.sf.zoftwhere.mule.jpa.Account;
@@ -45,7 +46,6 @@ import ru.vyarus.dropwizard.guice.GuiceBundle;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -185,6 +185,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	public static <T extends DatabaseConfiguration> HibernateBundle<T> getHibernateBundle() {
 		return new HibernateBundle<>(AbstractEntity.class, persistenceEntities()) {
+
 			@Override
 			public DataSourceFactory getDataSourceFactory(T configuration) {
 				return configuration.getDataSourceFactory();
@@ -192,18 +193,13 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 			@Override
 			protected void configure(org.hibernate.cfg.Configuration configuration) {
-				List.of(persistenceEntities()).forEach(configuration::addAnnotatedClass);
+				final String namingStrategy = configuration.getProperty("hibernate.physical_naming_strategy");
 
-				// hibernate.globally_quoted_identifiers=true
-				configuration.setProperty("hibernate.globally_quoted_identifiers", "true");
-
-				configuration.setProperty("hibernate.dialect", org.hibernate.dialect.PostgresPlusDialect.class.getName());
-				configuration.setProperty("hibernate.show_sql", "true");
-				configuration.setProperty("hibernate.format_sql", "true");
-
-				configuration.setProperty("hibernate.physical_naming_strategy", SnakeCaseNamingStrategy.class.getName());
-				configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
-				configuration.setProperty("hibernate.hbm2ddl.auto", "update");
+				if (SnakeCaseNamingStrategy.class.getName().equals(namingStrategy)) {
+					configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
+				} else if (MacroCaseNamingStrategy.class.getName().equals(namingStrategy)) {
+					configuration.setPhysicalNamingStrategy(new MacroCaseNamingStrategy());
+				}
 			}
 		};
 	}

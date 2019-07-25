@@ -42,6 +42,13 @@ database:
   url: jdbc:postgresql://localhost:5432/mule?currentSchema=public
   user: mule-admin
   password:
+  properties:
+    hibernate.dialect: org.hibernate.dialect.PostgreSQL10Dialect
+    hibernate.physical_naming_strategy: net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy
+    hibernate.globally_quoted_identifiers: true
+    hibernate.hbm2ddl.auto: update
+    hibernate.show_sql: false
+    hibernate.format_sql: false
 
 # the key needs to match the configuration key of the renderer (ViewRenderer::getConfigurationKey)
 viewRendererConfiguration:
