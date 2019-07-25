@@ -31,15 +31,17 @@ public class SnakeCaseNamingStrategy implements PhysicalNamingStrategy {
 		return convertToSnakeCase(identifier);
 	}
 
-	private Identifier convertToSnakeCase(final Identifier identifier) {
-		final String regex = "([a-z])([A-Z])";
-		final String replacement = "$1_$2";
-		final String newName = identifier != null
-				? identifier.getText().replaceAll(regex, replacement).toLowerCase()
-				: "";
-		final boolean quoted = identifier != null && identifier.isQuoted();
+	protected Identifier convertToSnakeCase(final Identifier identifier) {
+		if (identifier == null) {
+			return null;
+		}
 
-		return Identifier.toIdentifier(newName, quoted);
+		return Identifier.toIdentifier(snakeCase(identifier.getText()), identifier.isQuoted());
 	}
 
+	protected String snakeCase(String input) {
+		return input.replaceAll("([a-z])([A-Z])", "$1_$2")
+				.replaceAll("([A-Z])([A-Z][a-z])", "$1_$2")
+				.toLowerCase();
+	}
 }
