@@ -20,9 +20,9 @@ public class HibernateLoader {
 		configuration.setProperty("hibernate.connection.url", "jdbc:h2:mem:test;mode=PostgreSQL;database_to_lower=true");
 		configuration.getProperties().setProperty("hibernate.connection.username", "admin");
 		configuration.getProperties().setProperty("hibernate.connection.password", "");
-		configuration.setProperty("hibernate.connection.driver_class", "org.h2.Driver");
-		configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQL10Dialect");
-		configuration.setProperty("hibernate.hbm2ddl.auto", "update");
+		configuration.setProperty("hibernate.connection.driver_class", org.h2.Driver.class.getName());
+		configuration.setProperty("hibernate.dialect", org.hibernate.dialect.PostgreSQL10Dialect.class.getName());
+		configuration.setProperty("hibernate.hbm2ddl.auto", "create");
 		configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
 		return configuration;
 	}

@@ -14,17 +14,6 @@ public class AccessTokenLocator extends AbstractLocator<AccessToken, UUID> {
 		super("AccessToken", sessionProvider);
 	}
 
-	public AccessToken newToken(final Account account) {
-		final var token = new AccessToken();
-		token.setAccount(account);
-		session().persist(token);
-		return token;
-	}
-
-	protected Session session() {
-		return currentSession();
-	}
-
 	void persistCollection(ShellSession session) {
 		currentSession().persist(session);
 	}

@@ -3,7 +3,10 @@ package net.sf.zoftwhere.dropwizard;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.inject.Provider;
 import org.hibernate.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
@@ -11,11 +14,24 @@ import java.time.DateTimeException;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class AbstractResource {
+public abstract class AbstractResource implements TransactionalSession {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
 
 	protected final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+
+	private final Provider<Session> sessionProvider;
+
+	public AbstractResource(Provider<Session> sessionProvider) {
+		this.sessionProvider = sessionProvider;
+	}
+
+	protected void wrapTransaction(Consumer<Session> action) {
+		TransactionalSession.wrapTransaction(sessionProvider, action);
+	}
 
 	public Optional<Integer> tryAsInteger(String value) {
 		if (Strings.isNullOrEmpty(value)) {
@@ -57,6 +73,7 @@ public abstract class AbstractResource {
 		try {
 			return Optional.of(ZoneOffset.of(tz));
 		} catch (DateTimeException e) {
+			logger.warn("DateTimeException thrown for timezone(" + tz + ")");
 			return Optional.empty();
 		}
 	}
@@ -74,6 +91,7 @@ public abstract class AbstractResource {
 		try {
 			return parser.apply(value).map(fetcher);
 		} catch (NoResultException ignore) {
+			logger.warn("No entity was found for tryFetchEntity()");
 			return Optional.empty();
 		}
 	}
@@ -81,8 +99,6 @@ public abstract class AbstractResource {
 	public EntityNotFoundException entityNotFound(String name, String id) {
 		return new EntityNotFoundException(String.format("Could not find %s entity with id (%s).", name, id));
 	}
-
-	protected abstract Session session();
 
 	public static int codePointCount(final byte[] input) {
 		int count = 0;

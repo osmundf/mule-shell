@@ -2,7 +2,7 @@ package net.sf.zoftwhere.hibernate;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MacroCaseNamingStrategyTest extends MacroCaseNamingStrategy {
 

@@ -32,7 +32,7 @@ public class Account extends AbstractEntity<UUID> {
 	@Column(insertable = false)
 	private UUID id = null;
 
-	@Column(nullable = false, length = 20)
+	@Column(unique = true, nullable = false, length = 20)
 	private String username;
 
 	@Column(nullable = false, length = 80)
