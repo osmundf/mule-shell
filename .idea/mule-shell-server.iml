@@ -8,7 +8,9 @@
         <datasource-mapping>
           <factory-entry name="Entities" value="67676f33-37bd-40c3-9347-20178c5994d8" />
         </datasource-mapping>
-        <naming-strategy-map />
+        <naming-strategy-map>
+          <unit-entry name="Entities" value="net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy" />
+        </naming-strategy-map>
       </configuration>
     </facet>
   </component>

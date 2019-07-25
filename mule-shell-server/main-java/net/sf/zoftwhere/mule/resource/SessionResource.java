@@ -36,23 +36,21 @@ import java.util.stream.Stream;
 
 public class SessionResource extends AbstractResource implements SessionApi {
 
-	@Inject
-	Provider<HttpServletRequest> requestProvider;
+	//	@Inject
+	private Provider<HttpServletRequest> requestProvider;
+
+	//	@Inject
+	private Provider<SecurityContext> securityContextProvider;
 
 	@Inject
-	Provider<SecurityContext> securityContextProvider;
-
-	private final Provider<Session> sessionProvider;
+	private JShellManager manager;
 
 	private final ShellSessionLocator shellLocator;
 
-	private final JShellManager manager;
-
 	@Inject
-	public SessionResource(Provider<Session> sessionProvider, JShellManager manager) {
-		this.sessionProvider = sessionProvider;
+	public SessionResource(Provider<Session> sessionProvider) {
+		super(sessionProvider);
 		this.shellLocator = new ShellSessionLocator(sessionProvider);
-		this.manager = manager;
 	}
 
 	@Path("/time")
@@ -69,10 +67,7 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		final ShellSession shellSession = new ShellSession();
 		shellSession.setName("");
 
-		final Session session = session();
-		session.beginTransaction();
-		session.persist(shellSession);
-		session.getTransaction().commit();
+		wrapTransaction(session -> session.persist(shellSession));
 
 		return Response.ok(ShellSession.asSessionModel(shellSession, ZoneOffset.UTC)).build();
 	}
@@ -183,10 +178,5 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		result.setName(snippet.name() + " " + snippet.signature());
 		result.setSource(snippet.source());
 		return result;
-	}
-
-	@Override
-	protected Session session() {
-		return this.sessionProvider.get();
 	}
 }

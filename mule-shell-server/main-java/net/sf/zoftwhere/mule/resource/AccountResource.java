@@ -30,8 +30,6 @@ import java.util.UUID;
 
 public class AccountResource extends AbstractResource implements AccountApi {
 
-	private final Provider<Session> sessionProvider;
-
 	@Inject
 	private Cache<UUID, AccountPrincipal> cache;
 
@@ -45,7 +43,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 	@Inject
 	public AccountResource(Provider<Session> sessionProvider) {
-		this.sessionProvider = sessionProvider;
+		super(sessionProvider);
 		this.accountLocator = new AccountLocator(sessionProvider);
 	}
 
@@ -115,27 +113,18 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		try (var session = sessionProvider.get()) {
+		wrapTransaction(session -> {
 			final var salt = accountSigner.generateSalt(512);
 			final var hash = accountSigner.getHash(salt, data);
 
 			account.setSalt(salt);
 			account.setHash(hash);
-
-			session.beginTransaction();
-			session.save(account);
-			session.getTransaction().commit();
-			session.close();
-		}
+			session.update(account);
+		});
 
 		final var accessToken = new AccessToken().setAccount(account);
 
-		try (var session = sessionProvider.get()) {
-			session.beginTransaction();
-			session.save(accessToken);
-			session.getTransaction().commit();
-			session.close();
-		}
+		wrapTransaction(session -> session.save(accessToken));
 
 		final var tokenBuilder = JWT.create()
 				.withJWTId(accessToken.getId().toString())
@@ -154,11 +143,6 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	@Override
 	public Response logout(BasicUserModel body) {
 		return Response.ok().build();
-	}
-
-	@Override
-	protected Session session() {
-		return sessionProvider.get();
 	}
 
 	private Optional<String[]> splitHeader(final String header) {

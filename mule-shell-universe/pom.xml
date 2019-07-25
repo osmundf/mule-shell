@@ -50,6 +50,13 @@
         </dependency>
 
         <dependency>
+            <groupId>net.sf.zoftwhere.mule</groupId>
+            <artifactId>mule-shell-server</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>4.2.0</version>
