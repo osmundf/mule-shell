@@ -31,6 +31,7 @@ public class SnakeCaseNamingStrategy implements PhysicalNamingStrategy {
 		return convertToSnakeCase(identifier);
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	protected Identifier convertToSnakeCase(final Identifier identifier) {
 		if (identifier == null) {
 			return null;
@@ -39,6 +40,7 @@ public class SnakeCaseNamingStrategy implements PhysicalNamingStrategy {
 		return Identifier.toIdentifier(snakeCase(identifier.getText()), identifier.isQuoted());
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	protected String snakeCase(String input) {
 		return input.replaceAll("([a-z])([A-Z])", "$1_$2")
 				.replaceAll("([A-Z])([A-Z][a-z])", "$1_$2")

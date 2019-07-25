@@ -30,6 +30,7 @@ public class MacroCaseNamingStrategy extends SnakeCaseNamingStrategy {
 		return convertToMacroCase(identifier);
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	protected Identifier convertToMacroCase(final Identifier identifier) {
 		if (identifier == null) {
 			return null;
@@ -38,6 +39,7 @@ public class MacroCaseNamingStrategy extends SnakeCaseNamingStrategy {
 		return Identifier.toIdentifier(macroCase(identifier.getText()), identifier.isQuoted());
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	protected String macroCase(String input) {
 		return snakeCase(input).toUpperCase();
 	}
