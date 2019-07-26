@@ -118,7 +118,7 @@ class SessionResourceTest extends TestResource<SessionResource> {
 				.sourceToSnippets("int b = 13; int c = 15; String getName() { return \"test.import\" }; ")
 				.forEach(line -> System.out.println(line));
 
-//		var d = jshell.varValue(jshell.variables().collect(Collectors.toList()).get(2));
+//		var d = jshell.varValue(jshell.variables().collect(Collectors.toList()).getByIdId(2));
 //		System.out.println(d.length());
 //		System.out.println(d);
 

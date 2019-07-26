@@ -31,6 +31,12 @@
 
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
+                <artifactId>mule-shell-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -47,6 +53,15 @@
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-client</artifactId>
+                <version>${project.version}</version>
+                <type>jar</type>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.zoftwhere.mule</groupId>
+                <artifactId>mule-shell-common</artifactId>
                 <version>${project.version}</version>
                 <type>jar</type>
                 <classifier>tests</classifier>

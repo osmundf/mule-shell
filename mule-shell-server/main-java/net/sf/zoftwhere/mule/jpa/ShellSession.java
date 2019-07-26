@@ -18,6 +18,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+import static net.sf.zoftwhere.time.Instants.withZoneOffset;
+
 @Entity(name = "ShellSession")
 @NamedQuery(name = "ShellSession.All", query = "select o from ShellSession o")
 @Accessors(chain = true)

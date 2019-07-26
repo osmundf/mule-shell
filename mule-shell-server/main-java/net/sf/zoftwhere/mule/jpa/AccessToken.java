@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Entity(name = "Token")
 @NamedQuery(name = "AccessToken.all", query = "select o from Token o")
-@NamedQuery(name = "AccessToken.byAccountId", query = "select o from Token o where o.account.id = :accountId")
+@NamedQuery(name = "AccessToken.byAccountId", query = "select o from Token o where o.accountRole.account.id = :accountId")
 @Getter
 @Setter
 @Accessors(chain = true)
@@ -32,5 +32,5 @@ public class AccessToken extends AbstractEntity<UUID> {
 	UUID id = UUID.randomUUID();
 
 	@ManyToOne(cascade = CascadeType.ALL)
-	private Account account;
+	private AccountRole accountRole;
 }

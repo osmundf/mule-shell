@@ -9,7 +9,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>mule-shell-client</artifactId>
+    <artifactId>mule-shell-common</artifactId>
     <version>1.0.0-S</version>
 
     <properties>
@@ -32,12 +32,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-model</artifactId>
-            <version>1.0.0-S</version>
         </dependency>
 
         <dependency>

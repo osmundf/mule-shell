@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/mule-shell-model/pom.xml" />
         <option value="$PROJECT_DIR$/mule-shell-server/pom.xml" />
         <option value="$PROJECT_DIR$/mule-shell-universe/pom.xml" />
+        <option value="$PROJECT_DIR$/mule-shell-common/pom.xml" />
       </list>
     </option>
   </component>

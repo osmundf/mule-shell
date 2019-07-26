@@ -13,9 +13,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity(name = "Account")
@@ -32,18 +29,15 @@ public class Account extends AbstractEntity<UUID> {
 	@Column(insertable = false)
 	private UUID id = null;
 
-	@Column(unique = true, nullable = false, length = 20)
+	@Column(unique = true, nullable = false, length = 39)
 	private String username;
 
-	@Column(nullable = false, length = 80)
+	@Column(unique = true, nullable = false, length = 100)
 	private String emailAddress;
 
-	@Column(nullable = false, length = 512)
+	@Column(nullable = false, length = 64)
 	private byte[] salt;
 
-	@Column(nullable = false, length = 512)
+	@Column(nullable = false, length = 64)
 	private byte[] hash;
-
-	@OneToMany(mappedBy = "account")
-	private List<AccessToken> accessTokenList = new ArrayList<>();
 }

@@ -13,6 +13,7 @@
     <version>1.0.0-S</version>
 
     <properties>
+        <com.h2database.h2.version>1.4.199</com.h2database.h2.version>
     </properties>
 
     <dependencyManagement>
@@ -90,6 +91,13 @@
             <artifactId>mule-shell-server</artifactId>
             <type>jar</type>
             <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${com.h2database.h2.version}</version>
             <scope>test</scope>
         </dependency>
 

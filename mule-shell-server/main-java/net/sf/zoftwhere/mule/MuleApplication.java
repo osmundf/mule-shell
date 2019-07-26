@@ -25,8 +25,10 @@ import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
 import net.sf.zoftwhere.hibernate.MacroCaseNamingStrategy;
 import net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy;
+import net.sf.zoftwhere.mule.jpa.AccessRole;
 import net.sf.zoftwhere.mule.jpa.AccessToken;
 import net.sf.zoftwhere.mule.jpa.Account;
+import net.sf.zoftwhere.mule.jpa.AccountRole;
 import net.sf.zoftwhere.mule.jpa.ShellSession;
 import net.sf.zoftwhere.mule.security.AccountAuthenticator;
 import net.sf.zoftwhere.mule.security.AccountAuthorizer;
@@ -78,7 +80,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		environment.getObjectMapper().registerModule(new JavaTimeModule());
 
 		// Add AuthFilters and Roles.
-		addSecurity(environment);
+		addSecurity(environment, hibernateBundle.getSessionFactory());
 	}
 
 	@Override
@@ -125,11 +127,11 @@ public class MuleApplication extends Application<MuleConfiguration> {
 				.build();
 	}
 
-	protected void addSecurity(Environment environment) {
+	protected void addSecurity(Environment environment, SessionFactory sessionFactory) {
 		environment.jersey().register(new AuthDynamicFeature(
 				new AuthorizationAuthFilter.Builder<AccountPrincipal>()
 						.setAuthorizer(new AccountAuthorizer())
-						.setAuthenticator(new AccountAuthenticator(cache, verifier))
+						.setAuthenticator(new AccountAuthenticator(cache, verifier, sessionFactory::openSession))
 						.setPrefix("bearer")
 						.setRealm("mule-shell-public")
 						.buildAuthFilter()));
@@ -141,8 +143,9 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 			@Override
 			protected void configure() {
-				bind(SessionFactory.class).toProvider(hibernateBundle::getSessionFactory).in(Singleton.class);
-				bind(Session.class).toProvider(() -> hibernateBundle.getSessionFactory().openSession());
+				final var sessionFactory = hibernateBundle.getSessionFactory();
+				bind(SessionFactory.class).toProvider(() -> sessionFactory).in(Singleton.class);
+				bind(Session.class).toProvider(sessionFactory::openSession);
 			}
 
 			@Provides
@@ -153,7 +156,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			@Provides
 			public AccountSigner getAccountSigner() {
 				try {
-					return new AccountSigner(MessageDigest.getInstance("SHA-256"));
+					return new AccountSigner(MessageDigest.getInstance("SHA-256"), 6);
 				} catch (NoSuchAlgorithmException e) {
 					return null;
 				}
@@ -206,8 +209,10 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	public static Class<?>[] persistenceEntities() {
 		return new Class<?>[]{
-				Account.class,
+				AccessRole.class,
 				AccessToken.class,
+				Account.class,
+				AccountRole.class,
 				ShellSession.class,
 		};
 	}
