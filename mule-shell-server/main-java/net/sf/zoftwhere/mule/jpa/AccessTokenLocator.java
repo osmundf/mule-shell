@@ -11,7 +11,7 @@ public class AccessTokenLocator extends AbstractLocator<AccessToken, UUID> {
 
 	@Inject
 	public AccessTokenLocator(Provider<Session> sessionProvider) {
-		super("AccessToken", sessionProvider);
+		super(sessionProvider);
 	}
 
 	void persistCollection(ShellSession session) {

@@ -6,7 +6,6 @@ import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Objects;
 
@@ -47,11 +46,5 @@ public abstract class AbstractEntity<ID extends Serializable> {
 	@Override
 	public int hashCode() {
 		return Objects.hash(getId());
-	}
-
-	public static OffsetDateTime withZoneOffset(Instant instant, ZoneOffset zoneOffset) {
-		return instant != null
-				? zoneOffset != null ? instant.atOffset(zoneOffset) : instant.atOffset(ZoneOffset.UTC)
-				: null;
 	}
 }

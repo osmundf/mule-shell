@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/mule-shell.iml" filepath="$PROJECT_DIR$/.idea/mule-shell.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/mule-shell-bom.iml" filepath="$PROJECT_DIR$/.idea/mule-shell-bom.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/mule-shell-client.iml" filepath="$PROJECT_DIR$/.idea/mule-shell-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/mule-shell-common.iml" filepath="$PROJECT_DIR$/.idea/mule-shell-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/mule-shell-model.iml" filepath="$PROJECT_DIR$/.idea/mule-shell-model.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/mule-shell-server.iml" filepath="$PROJECT_DIR$/.idea/mule-shell-server.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/mule-shell-universe.iml" filepath="$PROJECT_DIR$/.idea/mule-shell-universe.iml" />

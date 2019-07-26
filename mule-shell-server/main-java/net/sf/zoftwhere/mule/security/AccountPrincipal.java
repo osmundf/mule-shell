@@ -16,7 +16,7 @@ public class AccountPrincipal implements Principal {
 
 	@Override
 	public String getName() {
-		throw new NullPointerException();
+		return username;
 	}
 
 	public Optional<String> getUsername() {

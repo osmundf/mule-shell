@@ -6,26 +6,31 @@ import net.sf.zoftwhere.mule.proxy.EmptyInterface;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.NoResultException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> implements TransactionalSession {
 
+	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
+
 	private final Provider<Session> sessionProvider;
 
 	private final String prefix;
 
-	public AbstractLocator(final String prefix, final Provider<Session> sessionProvider) {
+	public AbstractLocator(final Provider<Session> sessionProvider) {
 		super(EmptyInterface.create(
 				AbstractDAO.class.getClassLoader(),
 				new Class<?>[]{SessionFactory.class},
 				new NullPointerException("Do not use session factory here.")
 		));
 
-		this.prefix = prefix;
+		this.prefix = getEntityClass().getSimpleName();
 		this.sessionProvider = sessionProvider;
 	}
 
@@ -38,13 +43,34 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> i
 		return sessionProvider.get();
 	}
 
-	public Optional<E> tryFetchNamedQuery(String subName, Function<Query<E>, Query<E>> parameter) {
+	public Optional<E> tryFetchNamedQuery(String subName, Function<Query<E>, E> parameter) {
 		try (Session session = sessionProvider.get()) {
 			final var name = prefix + "." + subName;
-			Query<E> query = session.createNamedQuery(name, super.getEntityClass());
-			query = parameter.apply(query);
-			return Optional.of(query.getSingleResult());
+			final var result = parameter.apply(session.createNamedQuery(name, super.getEntityClass()));
+			return Optional.of(result);
 		} catch (RuntimeException e) {
+			logger.error("Error running named query (" + prefix + "." + subName + ").", e);
+			return Optional.empty();
+		}
+	}
+
+	public <T> Optional<T> tryFetchSingleResult(String subName, Function<Query<T>, Optional<T>> routine, Class<T> resultType) {
+		try (Session session = sessionProvider.get()) {
+			final var name = prefix + "." + subName;
+			return routine.apply(session.createNamedQuery(name, resultType));
+		} catch (RuntimeException e) {
+			logger.error("Error fetching single from named query (" + prefix + "." + subName + ").", e);
+			return Optional.empty();
+		}
+	}
+
+	public <T> Optional<List<T>> tryFetchResult(String subName, Function<Query<T>, Query<T>> routine, Class<T> resultType) {
+		try (Session session = sessionProvider.get()) {
+			final var name = prefix + "." + subName;
+			List<T> result = routine.apply(session.createNamedQuery(name, resultType)).getResultList();
+			return Optional.ofNullable(result);
+		} catch (RuntimeException e) {
+			logger.error("Error fetching list from named query (" + prefix + "." + subName + ").", e);
 			return Optional.empty();
 		}
 	}

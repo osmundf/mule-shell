@@ -5,10 +5,18 @@ import com.google.common.cache.Cache;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provider;
+import net.sf.zoftwhere.mule.data.Variable;
+import net.sf.zoftwhere.mule.jpa.AccessRole;
+import net.sf.zoftwhere.mule.jpa.AccessRoleLocator;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
+import net.sf.zoftwhere.mule.jpa.AccountRole;
+import net.sf.zoftwhere.mule.jpa.AccountRoleLocator;
+import net.sf.zoftwhere.mule.model.AccessRoleModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
+import net.sf.zoftwhere.mule.security.StaticSecurityContext;
+import net.sf.zoftwhere.text.UTF_8;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
@@ -28,6 +37,7 @@ import static com.google.common.collect.ImmutableMap.Builder;
 import static com.google.common.collect.ImmutableMap.Entry;
 import static net.sf.zoftwhere.dropwizard.AbstractLocator.tryFetchEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,6 +47,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	private static final Logger logger = LoggerFactory.getLogger(AccountResourceTest.class);
 
 	private static final Key<Cache<UUID, AccountPrincipal>> loginCacheKey = new Key<>() {};
+	private static final Key<Variable<SecurityContext>> securityKey = new Key<>() {};
 
 	private static final Map<String, String> accountSecretMap = new Builder<String, String>()
 			.put("test-bob", "test-bob-public-secret")
@@ -64,6 +75,31 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@BeforeEach
 	void prepare() {
+		populateAccessRoles();
+	}
+
+	private void populateAccessRoles() {
+		final Map<String, Integer> priority = new Builder<String, Integer>()
+				.put(AccessRoleModel.ADMIN.name(), 3)
+				.put(AccessRoleModel.SYSTEM.name(), 2)
+				.put(AccessRoleModel.CLIENT.name(), 1)
+				.put(AccessRoleModel.REGISTER.name(), 0)
+				.build();
+		final var roleArray = AccessRoleModel.values();
+		for (var role : roleArray) {
+			wrapSession(session -> {
+				final var key = AccessRole.getKey(role);
+				AccessRole accessRole = new AccessRole();
+				accessRole.setKey(key);
+				accessRole.setName(role.name());
+				accessRole.setValue(role.name().toLowerCase());
+				accessRole.setPriority(priority.get(accessRole.getName()));
+
+				session.beginTransaction();
+				session.persist(accessRole);
+				session.getTransaction().commit();
+			});
+		}
 	}
 
 	@AfterEach
@@ -121,11 +157,11 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertNotNull(accountPhase2.getSalt());
 			assertNotNull(accountPhase2.getHash());
 
-			assertTrue(!arraysEqual(accountPhase1.getSalt(), accountPhase2.getSalt()));
-			assertTrue(!arraysEqual(accountPhase1.getHash(), accountPhase2.getHash()));
+			assertFalse(arraysEqual(accountPhase1.getSalt(), accountPhase2.getSalt()));
+			assertFalse(arraysEqual(accountPhase1.getHash(), accountPhase2.getHash()));
 
 			assertEquals(username, cached.getUsername().orElse(null), "Username");
-			assertEquals("CLIENT", cached.getRole().orElse(null), "Role");
+			assertEquals("CLIENT", cached.getRole().orElse(null), "AccessRole");
 		}
 	}
 
@@ -154,12 +190,22 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@Test
 	void testLogoutFailure() {
-		registerTestAccountGroup();
+		final var interchange = guiceInjector.getInstance(securityKey);
+		interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
+
+		registerAccount("osmundf", "osmund.francis@gmail.com", "123456", AccessRoleModel.ADMIN);
 	}
 
 	@Test
 	void testLogoutSuccess() {
 		registerTestAccountGroup();
+	}
+
+	@Test
+	void registerAccountRoles() {
+		final var key = AccessRoleModel.CLIENT.getClass().getName();
+
+		System.out.println(key);
 	}
 
 	private void registerTestAccountGroup() {
@@ -172,42 +218,63 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertNotNull(password);
 			assertNotNull(email);
 
-			registerAccount(username, email, password);
+			registerAccount(username, email, password, AccessRoleModel.CLIENT);
 		}
 	}
 
-	private void registerAccount(String username, String emailAddress, String password) {
+	private void registerAccount(String username, String emailAddress, String password, AccessRoleModel role) {
 		final var accountSignerProvider = guiceInjector.getProvider(AccountSigner.class);
 		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
+		final var accountRoleLocator = guiceInjector.getInstance(AccountRoleLocator.class);
+		final var accessRoleLocator = guiceInjector.getInstance(AccessRoleLocator.class);
 
 		final var digest = accountSignerProvider.get();
-		final var salt = digest.generateSalt(512);
 		final var data = password.getBytes(StandardCharsets.UTF_8);
-		final var hash = digest.getHash(salt, data);
+
+		assertTrue(UTF_8.codePointCount(data) >= digest.getMinimumPasswordLength());
 
 		final var first = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
 		assertNull(first);
 
 		wrapSession(session -> {
-			session.beginTransaction();
 			Account account = new Account();
 			account.setUsername(username);
 			account.setEmailAddress(emailAddress);
-			account.setSalt(salt);
-			account.setHash(hash);
+			account.setSalt(new byte[0]);
+			account.setHash(new byte[0]);
+
+			session.beginTransaction();
 			session.persist(account);
 			session.getTransaction().commit();
 		});
 
 		final var account = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
 		assertNotNull(account);
+		final var accessRole = accessRoleLocator.getByKey(AccessRole.getKey(role));
+
+		// Add with role.
+		wrapSession(session -> {
+			AccountRole accountRole = new AccountRole();
+			session.beginTransaction();
+			accountRole.setAccount(session.get(Account.class, account.getId()));
+			accountRole.setAccessRole(session.get(AccessRole.class, accessRole.getId()));
+			accountRole.setValue(accessRole.getValue());
+			session.persist(accountRole);
+			session.getTransaction().commit();
+		});
+
+		final var accountRoleList = accountRoleLocator.getForAccount(account);
+
+		assertTrue(accountRoleList.size() == 1);
+
+		resource.updateAccountSaltHash(account, data);
 	}
 
 	/**
 	 * Checks to arrays for equality.
 	 *
-	 * @param a1
-	 * @param a2
+	 * @param a1 Array left.
+	 * @param a2 Array right.
 	 * @return Returns true if both the arrays contain the same data, false otherwise.
 	 */
 	private boolean arraysEqual(byte[] a1, byte[] a2) {

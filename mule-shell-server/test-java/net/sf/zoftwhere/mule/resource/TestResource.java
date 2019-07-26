@@ -15,6 +15,7 @@ import lombok.Getter;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.dropwizard.TransactionalSession;
 import net.sf.zoftwhere.mule.MuleApplication;
+import net.sf.zoftwhere.mule.data.Variable;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.JWTSigner;
@@ -24,6 +25,7 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.SecurityContext;
 import java.io.Closeable;
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -76,6 +78,7 @@ public abstract class TestResource<TestClass extends AbstractResource> implement
 
 	private static Injector newTestGuiceInjector(final SessionFactory sessionFactory) {
 
+		final var securityContext = new Variable<SecurityContext>();
 		final var algorithm = Algorithm.HMAC256("test-public-secret");
 		final var issuer = "mule-server-test";
 		final var signer = new JWTSigner(issuer, algorithm);
@@ -97,6 +100,10 @@ public abstract class TestResource<TestClass extends AbstractResource> implement
 				final var cacheKey = new Key<Cache<UUID, AccountPrincipal>>() {};
 				bind(cacheKey).toProvider(this::getLoginCache).in(Singleton.class);
 				bind(AccountSigner.class).toProvider(this::getAccountSigner);
+
+				final var securityKey = new Key<Variable<SecurityContext>>() {};
+				bind(securityKey).toInstance(securityContext);
+				bind(SecurityContext.class).toProvider(securityContext::get).in(Singleton.class);
 			}
 
 			private Cache<UUID, AccountPrincipal> getLoginCache() {
@@ -108,7 +115,7 @@ public abstract class TestResource<TestClass extends AbstractResource> implement
 
 			private AccountSigner getAccountSigner() {
 				try {
-					return new AccountSigner(MessageDigest.getInstance("SHA-256"));
+					return new AccountSigner(MessageDigest.getInstance("SHA-256"), 6);
 				} catch (NoSuchAlgorithmException e) {
 					return null;
 				}

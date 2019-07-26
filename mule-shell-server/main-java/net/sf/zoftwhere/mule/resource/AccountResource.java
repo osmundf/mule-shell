@@ -6,29 +6,48 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.mule.api.AccountApi;
+import net.sf.zoftwhere.mule.jpa.AccessRole;
+import net.sf.zoftwhere.mule.jpa.AccessRoleLocator;
 import net.sf.zoftwhere.mule.jpa.AccessToken;
+import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
-import net.sf.zoftwhere.mule.model.BasicUserModel;
+import net.sf.zoftwhere.mule.jpa.AccountRole;
+import net.sf.zoftwhere.mule.jpa.AccountRoleLocator;
+import net.sf.zoftwhere.mule.model.AccessRoleModel;
+import net.sf.zoftwhere.mule.model.BasicAccountModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.JWTSigner;
+import net.sf.zoftwhere.text.UTF_8;
 import org.hibernate.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 public class AccountResource extends AbstractResource implements AccountApi {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
+
+	private static final String BASIC_AUTHENTICATION_SCHEME = "basic";
+
+	@Inject
+	private Provider<SecurityContext> securityContextProvider;
 
 	@Inject
 	private Cache<UUID, AccountPrincipal> cache;
@@ -37,14 +56,20 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	private JWTSigner signer;
 
 	@Inject
-	private AccountSigner accountSigner;
+	private Provider<AccountSigner> accountSignerProvider;
 
 	private final AccountLocator accountLocator;
+
+	private final AccessRoleLocator accessRoleLocator;
+
+	private final AccountRoleLocator accountRoleLocator;
 
 	@Inject
 	public AccountResource(Provider<Session> sessionProvider) {
 		super(sessionProvider);
 		this.accountLocator = new AccountLocator(sessionProvider);
+		this.accessRoleLocator = new AccessRoleLocator(sessionProvider);
+		this.accountRoleLocator = new AccountRoleLocator(sessionProvider);
 	}
 
 	/**
@@ -54,8 +79,118 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	@POST
 	@Path("/register")
 	public Response register(@QueryParam("user") String username, @QueryParam("email") String emailAddress) {
-		BasicUserModel model = new BasicUserModel();
-		return Response.ok(model).build();
+		final var security = securityContextProvider.get();
+
+		// TODO: !security.isSecure()
+		if (security == null || security.getUserPrincipal() == null
+				|| !Objects.equals(username, security.getUserPrincipal().getName()))
+		{
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		final var first = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
+
+		if (first != null) {
+			return Response.ok(Response.Status.CONFLICT).build();
+		}
+
+		final var accessRole = tryFetchEntity(AccessRoleModel.REGISTER, Optional::of, accessRoleLocator::getByKey).orElse(null);
+
+		if (accessRole == null) {
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}
+
+		wrapSession(session -> {
+			Account account = new Account();
+			account.setUsername(username);
+			account.setEmailAddress(emailAddress);
+			account.setSalt(new byte[0]);
+			account.setHash(new byte[0]);
+
+			session.beginTransaction();
+			session.persist(account);
+			session.getTransaction().commit();
+		});
+
+		final var account = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
+
+		if (account == null) {
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}
+
+		final var accountRole = new AccountRole()
+				.setAccount(account)
+				.setAccessRole(accessRole)
+				.setValue(accessRole.getValue());
+
+		wrapSession(session -> {
+			session.beginTransaction();
+			session.save(accountRole);
+			session.getTransaction().commit();
+		});
+
+		final var accessToken = new AccessToken().setAccountRole(accountRole);
+
+		wrapSession(session -> {
+			session.beginTransaction();
+			session.save(accessToken);
+			session.getTransaction().commit();
+		});
+
+		final var tokenBuilder = JWT.create()
+				.withJWTId(accessToken.getId().toString())
+				.withExpiresAt(new Date(Instant.now().plus(Duration.ofMinutes(120)).toEpochMilli()));
+
+		final var jwtToken = signer.sign(tokenBuilder);
+
+		final var principal = new AccountPrincipal(username, accessRole.getName());
+
+		// Place in active cache.
+		cache.put(accessToken.getId(), principal);
+
+		return Response.ok(jwtToken).build();
+	}
+
+	/**
+	 * System only: register user.
+	 */
+	@RolesAllowed(value = {CLIENT_ROLE, REGISTER_ROLE})
+	@POST
+	@Path("/reset")
+	public Response reset(@QueryParam("user") String username, @QueryParam("password") String password) {
+		final var security = securityContextProvider.get();
+
+		// TODO: !security.isSecure()
+		if (security == null || security.getUserPrincipal() == null
+				|| !Objects.equals(username, security.getUserPrincipal().getName()) || password == null)
+		{
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		final var name = security.getUserPrincipal().getName();
+		final var account = accountLocator.getByUsername(name);
+		final var digest = accountSignerProvider.get();
+		final var data = password.getBytes(StandardCharsets.UTF_8);
+
+		if (UTF_8.codePointCount(data) < digest.getMinimumPasswordLength()) {
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+
+		if (!digest.validate(data, account.getSalt(), account.getHash())) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		updateAccountSaltHash(account, data);
+
+		if (security.isUserInRole(REGISTER_ROLE)) {
+			try {
+				setupRegisteredAccount(account, AccessRoleModel.CLIENT);
+			} catch (Exception e) {
+				logger.error("Error setting up registered account.", e);
+			}
+		}
+
+		return Response.ok().build();
 	}
 
 	@Override
@@ -80,7 +215,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		final String scheme = split.get()[0];
 		final String detail = split.get()[1];
 
-		if (!scheme.equalsIgnoreCase("basic")) {
+		if (!scheme.equalsIgnoreCase(BASIC_AUTHENTICATION_SCHEME)) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
@@ -92,45 +227,47 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		}
 
 		final var username = usernameOption.get();
-		final var accountOption = tryFetchEntity(username, Optional::of, accountLocator::getByUsername);
+		final var account = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
 
-		if (accountOption.isEmpty()) {
+		if (account == null) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		final var account = accountOption.get();
+		final var digest = accountSignerProvider.get();
 		final var data = getPassword(basicByteArray).orElse(null);
 
 		if (data == null) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		if (codePointCount(data) < 6) {
+		if (UTF_8.codePointCount(data) < digest.getMinimumPasswordLength()) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		if (!accountSigner.validate(data, account.getSalt(), account.getHash())) {
+		if (!digest.validate(data, account.getSalt(), account.getHash())) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		wrapSession(session -> {
-			final var salt = accountSigner.generateSalt(512);
-			final var hash = accountSigner.getHash(salt, data);
+		final var accountRoleList = accountRoleLocator.getForAccount(account);
 
-			account.setSalt(salt);
-			account.setHash(hash);
-			session.beginTransaction();
-			session.update(account);
-			session.getTransaction().commit();
-		});
+		if (accountRoleList.size() == 0) {
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		}
 
-		final var accessToken = new AccessToken().setAccount(account);
+		final var accountRole = accountRoleList.get(0);
+
+		final var accessToken = new AccessToken();
 
 		wrapSession(session -> {
+//			accessToken.setAccountRole(session.get(AccountRole.class, accountRole.getId()));
+			accessToken.setAccountRole(accountRole);
+
 			session.beginTransaction();
 			session.save(accessToken);
 			session.getTransaction().commit();
 		});
+
+		updateAccountSaltHash(account, data);
 
 		final var tokenBuilder = JWT.create()
 				.withJWTId(accessToken.getId().toString())
@@ -138,7 +275,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		final var jwtToken = signer.sign(tokenBuilder);
 
-		final var principal = new AccountPrincipal(usernameOption.get(), "CLIENT");
+		final var principal = new AccountPrincipal(username, accountRole.getAccessRole().getName());
 
 		// Place in active cache.
 		cache.put(accessToken.getId(), principal);
@@ -146,9 +283,55 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		return Response.ok(jwtToken).build();
 	}
 
+	@PermitAll
 	@Override
-	public Response logout(BasicUserModel body) {
+	public Response logout(BasicAccountModel body) {
+		final var context = securityContextProvider.get();
+
+		// TODO: !security.isSecure()
+		if (context == null || context.getAuthenticationScheme() == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
 		return Response.ok().build();
+	}
+
+	public void updateAccountSaltHash(Account account, byte[] data) {
+		final var digest = accountSignerProvider.get();
+		wrapSession(session -> {
+			final var entity = session.get(Account.class, account.getId());
+			final var salt = digest.generateSalt(64);
+			final var hash = digest.getHash(salt, data);
+
+			entity.setSalt(salt);
+			entity.setHash(hash);
+			session.beginTransaction();
+			session.persist(entity);
+			session.getTransaction().commit();
+		});
+	}
+
+	private void setupRegisteredAccount(Account account, AccessRoleModel role) {
+		// Delete register account role.
+		wrapSession(session -> {
+			final var registerRole = accountRoleLocator.getByRoleName(account, AccessRoleModel.REGISTER);
+			registerRole.delete();
+			session.beginTransaction();
+			session.save(registerRole);
+			session.getTransaction().commit();
+		});
+
+		// Add with role.
+		wrapSession(session -> {
+			final var accessRole = accessRoleLocator.getByKey(AccessRole.getKey(role));
+			AccountRole accountRole = new AccountRole();
+			accountRole.setAccount(account);
+			accountRole.setAccessRole(accessRole);
+
+			session.beginTransaction();
+			session.save(accessRole);
+			session.getTransaction().commit();
+		});
 	}
 
 	private Optional<String[]> splitHeader(final String header) {
@@ -191,5 +374,4 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		return Optional.empty();
 	}
-
 }

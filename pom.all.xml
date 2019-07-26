@@ -17,6 +17,7 @@
         <module>mule-shell-bom</module>
         <module>mule-shell-model</module>
         <module>mule-shell-client</module>
+        <module>mule-shell-common</module>
         <module>mule-shell-server</module>
         <module>mule-shell-universe</module>
     </modules>

@@ -13,12 +13,12 @@ public class AccountLocator extends AbstractLocator<Account, UUID> {
 
 	@Inject
 	public AccountLocator(Provider<Session> sessionProvider) {
-		super("Account", sessionProvider);
+		super(sessionProvider);
 	}
 
 	public Account getByUsername(final String username) {
-		Function<Query<Account>, Query<Account>> parameter;
-		parameter = query -> query.setParameter("username", username);
+		Function<Query<Account>, Account> parameter;
+		parameter = query -> query.setParameter("username", username).getSingleResult();
 		return tryFetchNamedQuery("byUsername", parameter).orElse(null);
 	}
 

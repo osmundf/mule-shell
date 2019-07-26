@@ -1,5 +1,7 @@
 package net.sf.zoftwhere.mule.security;
 
+import lombok.Getter;
+
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
@@ -7,8 +9,12 @@ public class AccountSigner {
 
 	private final MessageDigest algorithm;
 
-	public AccountSigner(final MessageDigest algorithm) {
+	@Getter
+	private final int minimumPasswordLength;
+
+	public AccountSigner(final MessageDigest algorithm, final int minimumPasswordLength) {
 		this.algorithm = algorithm;
+		this.minimumPasswordLength = minimumPasswordLength;
 	}
 
 	public byte[] generateSalt(final int size) {

@@ -40,10 +40,10 @@ paths:
       operationId: logout
       parameters:
         - name: body
-          description: BasicUser
+          description: BasicAccount
           in: body
           schema:
-            $ref: '#/definitions/BasicUser'
+            $ref: '#/definitions/BasicAccount'
           required: true
       responses:
         200:
@@ -176,13 +176,30 @@ definitions:
   JsonWebToken:
     type: string
 
-  BasicUser:
+  BasicAccount:
     type: object
+    description: 'BasicAccount'
     properties:
       sessionId:
         type: string
       username:
         type: string
+
+  AccessRole:
+    type: string
+    enum:
+      - admin
+      - client
+      - register
+      - system
+
+  AccountRole:
+    type: object
+    properties:
+      account:
+        schema: '#/definitions/BasicAccount'
+      role:
+        schmea: '#/definitions/AccessRole'
 
   Expression:
     type: object

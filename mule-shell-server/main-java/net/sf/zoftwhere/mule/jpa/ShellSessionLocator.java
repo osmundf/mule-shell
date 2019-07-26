@@ -11,7 +11,7 @@ public class ShellSessionLocator extends AbstractLocator<ShellSession, UUID> {
 
 	@Inject
 	public ShellSessionLocator(Provider<Session> sessionProvider) {
-		super("Shell", sessionProvider);
+		super(sessionProvider);
 	}
 
 	public ShellSession newShellSession() {
