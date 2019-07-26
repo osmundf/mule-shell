@@ -4,8 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.AbstractLocator;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import java.util.UUID;
+import java.util.function.Function;
 
 public class AccountLocator extends AbstractLocator<Account, UUID> {
 
@@ -15,7 +17,9 @@ public class AccountLocator extends AbstractLocator<Account, UUID> {
 	}
 
 	public Account getByUsername(final String username) {
-		return namedQuery("byUsername").setParameter("username", username).getSingleResult();
+		Function<Query<Account>, Query<Account>> parameter;
+		parameter = query -> query.setParameter("username", username);
+		return tryFetchNamedQuery("byUsername", parameter).orElse(null);
 	}
 
 	void persistCollection(ShellSession session) {

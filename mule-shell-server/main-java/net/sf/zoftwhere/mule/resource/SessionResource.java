@@ -67,7 +67,11 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		final ShellSession shellSession = new ShellSession();
 		shellSession.setName("");
 
-		wrapTransaction(session -> session.persist(shellSession));
+		wrapSession(session -> {
+			session.beginTransaction();
+			session.persist(shellSession);
+			session.getTransaction().commit();
+		});
 
 		return Response.ok(ShellSession.asSessionModel(shellSession, ZoneOffset.UTC)).build();
 	}

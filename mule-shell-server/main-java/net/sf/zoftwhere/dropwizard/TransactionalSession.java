@@ -9,33 +9,15 @@ import java.util.function.Function;
 
 public interface TransactionalSession {
 
-	static <E> Optional<E> wrapQuery(Provider<Session> sessionProvider, Function<Session, E> action) {
-		final var session = sessionProvider.get();
-		E result;
-		session.beginTransaction();
-		try {
-			result = action.apply(session);
-			session.getTransaction().commit();
-			return Optional.ofNullable(result);
-		} catch (RuntimeException e) {
-			session.getTransaction().rollback();
-			throw e;
-		} finally {
-			session.close();
+	static void wrapSession(Provider<Session> sessionProvider, Consumer<Session> consumer) {
+		try (var session = sessionProvider.get()) {
+			consumer.accept(session);
 		}
 	}
 
-	static void wrapTransaction(Provider<Session> sessionProvider, Consumer<Session> action) {
-		final var session = sessionProvider.get();
-		session.beginTransaction();
-		try {
-			action.accept(session);
-			session.getTransaction().commit();
-		} catch (RuntimeException e) {
-			session.getTransaction().rollback();
-			throw e;
-		} finally {
-			session.close();
+	static <E> Optional<E> wrapSession(Provider<Session> sessionProvider, Function<Session, E> function) {
+		try (var session = sessionProvider.get()) {
+			return Optional.ofNullable(function.apply(session));
 		}
 	}
 }

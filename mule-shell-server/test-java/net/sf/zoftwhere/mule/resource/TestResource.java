@@ -14,7 +14,6 @@ import com.google.inject.Singleton;
 import lombok.Getter;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.dropwizard.TransactionalSession;
-import net.sf.zoftwhere.hibernate.HibernateLoader;
 import net.sf.zoftwhere.mule.MuleApplication;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
@@ -22,7 +21,6 @@ import net.sf.zoftwhere.mule.security.JWTSigner;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +34,9 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class TestResource<C extends AbstractResource> implements Closeable, AutoCloseable {
+import static net.sf.zoftwhere.hibernate.HibernateLoader.getH2DatabaseConfiguration;
+
+public abstract class TestResource<TestClass extends AbstractResource> implements Closeable, AutoCloseable {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
 
@@ -50,19 +50,18 @@ public abstract class TestResource<C extends AbstractResource> implements Closea
 	private final Injector guiceInjector;
 
 	@Getter
-	private final C resource;
+	private final TestClass resource;
 
-	protected TestResource(Function<Provider<Session>, C> constructor) {
-		this.sessionFactory = newTestHibernateConfiguration().buildSessionFactory();
-//		this.sessionProvider = newSessionProvider(sessionFactory);
+	protected TestResource(Function<Provider<Session>, TestClass> constructor) {
+		this.sessionFactory = getH2DatabaseConfiguration(entityList).buildSessionFactory();
 		this.sessionProvider = sessionFactory::openSession;
-		this.resource = constructor.apply(sessionProvider);
 		this.guiceInjector = newTestGuiceInjector(sessionFactory);
-		this.guiceInjector.injectMembers(resource);
+		this.resource = constructor.apply(sessionProvider);
+		guiceInjector.injectMembers(resource);
 	}
 
-	public void wrapTransaction(Consumer<Session> action) {
-		TransactionalSession.wrapTransaction(sessionProvider, action);
+	protected void wrapSession(Consumer<Session> consumer) {
+		TransactionalSession.wrapSession(sessionProvider, consumer);
 	}
 
 	@Override
@@ -73,10 +72,6 @@ public abstract class TestResource<C extends AbstractResource> implements Closea
 			logger.warn("Exception occurred.", e);
 			throw new IOException(e);
 		}
-	}
-
-	private static Configuration newTestHibernateConfiguration() {
-		return HibernateLoader.defaultH2TestDatabase(entityList);
 	}
 
 	private static Injector newTestGuiceInjector(final SessionFactory sessionFactory) {
@@ -120,5 +115,4 @@ public abstract class TestResource<C extends AbstractResource> implements Closea
 			}
 		});
 	}
-
 }

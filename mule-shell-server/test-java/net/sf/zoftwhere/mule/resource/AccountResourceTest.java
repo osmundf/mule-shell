@@ -9,7 +9,6 @@ import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
-import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +30,7 @@ import static net.sf.zoftwhere.dropwizard.AbstractLocator.tryFetchEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AccountResourceTest extends TestResource<AccountResource> {
 
@@ -38,27 +38,28 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	private static final Key<Cache<UUID, AccountPrincipal>> loginCacheKey = new Key<>() {};
 
-	private Map<String, String> accountSecretMap = new Builder<String, String>()
+	private static final Map<String, String> accountSecretMap = new Builder<String, String>()
 			.put("test-bob", "test-bob-public-secret")
 			.put("test-cat", "test-cat-public-secret")
 			.put("test-dot", "test-dot-public-secret")
 			.put("test-egg", "test-egg-public-secret")
 			.build();
 
+	private static final Map<String, String> accountEmailMap = new Builder<String, String>()
+			.put("test-bob", "bob@test.test")
+			.put("test-cat", "cat@test.test")
+			.put("test-dot", "dot@test.test")
+			.put("test-egg", "egg@test.test")
+			.build();
+
 	private final AccountResource resource;
 
 	private final Injector guiceInjector;
 
-	private final AccountLocator accountLocator;
-
 	AccountResourceTest() {
 		super(AccountResource::new);
-		guiceInjector = super.getGuiceInjector();
 		resource = super.getResource();
-
-		// accountLocator = guiceInjector.getInstance(AccountLocator.class);
-		final var sp = guiceInjector.getProvider(Session.class);
-		accountLocator = new AccountLocator(sp);
+		guiceInjector = super.getGuiceInjector();
 	}
 
 	@BeforeEach
@@ -77,18 +78,18 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@Test
 	void testLoginSuccess() {
+		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
 		final var cacheProvider = guiceInjector.getProvider(loginCacheKey);
 		final var jwtVerifier = guiceInjector.getInstance(JWTVerifier.class);
 		final var cache = cacheProvider.get();
 
-		registerUser("test-bob", "bob@test.test", "test-bob-public-secret");
-		registerUser("test-cat", "cat@test.test", "test-cat-public-secret");
-		registerUser("test-dot", "dot@test.test", "test-dot-public-secret");
-		registerUser("test-egg", "egg@test.test", "test-egg-public-secret");
+		registerTestAccountGroup();
 
 		for (Entry<String, String> secretEntry : accountSecretMap.entrySet()) {
 			final var username = secretEntry.getKey();
 			final var password = secretEntry.getValue();
+
+			final var accountPhase1 = accountLocator.getByUsername(username);
 
 			final var scheme = "basic";
 			final var credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
@@ -109,9 +110,20 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			};
 			final AccountPrincipal cached = principalProvider.get().orElse(null);
 
+			final var accountPhase2 = accountLocator.getByUsername(username);
+
 			assertNotNull(login);
 			assertNotNull(cache);
 			assertNotNull(cached);
+
+			assertNotNull(accountPhase1.getSalt());
+			assertNotNull(accountPhase1.getHash());
+			assertNotNull(accountPhase2.getSalt());
+			assertNotNull(accountPhase2.getHash());
+
+			assertTrue(!arraysEqual(accountPhase1.getSalt(), accountPhase2.getSalt()));
+			assertTrue(!arraysEqual(accountPhase1.getHash(), accountPhase2.getHash()));
+
 			assertEquals(username, cached.getUsername().orElse(null), "Username");
 			assertEquals("CLIENT", cached.getRole().orElse(null), "Role");
 		}
@@ -119,11 +131,6 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@Test
 	void testLoginFail() {
-		registerUser("test-bob", "bob@test.test", "test-bob-public-secret");
-		registerUser("test-cat", "cat@test.test", "test-cat-public-secret");
-		registerUser("test-dot", "dot@test.test", "test-dot-public-secret");
-		registerUser("test-egg", "egg@test.test", "test-egg-public-secret");
-
 		final var scheme = "basic";
 		final var openJoin = new String[]{
 				"fake:thisPasswordIsLongEnough",
@@ -132,6 +139,8 @@ class AccountResourceTest extends TestResource<AccountResource> {
 				"spammer:This Password Is Long Enough To Cause The Encoder To Take Longer Than Needed To Decode And Check, " +
 						"so the limit is set to a feasible limit to stop spamming of long authorization headers.",
 		};
+
+		registerTestAccountGroup();
 
 		for (String string : openJoin) {
 			final var credentials = string.getBytes(StandardCharsets.UTF_8);
@@ -145,22 +154,31 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@Test
 	void testLogoutFailure() {
-		registerUser("test-bob", "bob@test.test", "test-bob-public-secret");
-		registerUser("test-cat", "cat@test.test", "test-cat-public-secret");
-		registerUser("test-dot", "dot@test.test", "test-dot-public-secret");
-		registerUser("test-egg", "egg@test.test", "test-egg-public-secret");
+		registerTestAccountGroup();
 	}
 
 	@Test
 	void testLogoutSuccess() {
-		registerUser("test-bob", "bob@test.test", "test-bob-public-secret");
-		registerUser("test-cat", "cat@test.test", "test-cat-public-secret");
-		registerUser("test-dot", "dot@test.test", "test-dot-public-secret");
-		registerUser("test-egg", "egg@test.test", "test-egg-public-secret");
+		registerTestAccountGroup();
 	}
 
-	private void registerUser(String username, String emailAddress, String password) {
-		Provider<AccountSigner> accountSignerProvider = guiceInjector.getProvider(AccountSigner.class);
+	private void registerTestAccountGroup() {
+		for (var e : accountSecretMap.entrySet()) {
+			final var username = e.getKey();
+			final var password = e.getValue();
+			final var email = accountEmailMap.get(username);
+
+			assertNotNull(username);
+			assertNotNull(password);
+			assertNotNull(email);
+
+			registerAccount(username, email, password);
+		}
+	}
+
+	private void registerAccount(String username, String emailAddress, String password) {
+		final var accountSignerProvider = guiceInjector.getProvider(AccountSigner.class);
+		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
 
 		final var digest = accountSignerProvider.get();
 		final var salt = digest.generateSalt(512);
@@ -170,16 +188,43 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		final var first = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
 		assertNull(first);
 
-		wrapTransaction(session -> {
+		wrapSession(session -> {
+			session.beginTransaction();
 			Account account = new Account();
 			account.setUsername(username);
 			account.setEmailAddress(emailAddress);
 			account.setSalt(salt);
 			account.setHash(hash);
 			session.persist(account);
+			session.getTransaction().commit();
 		});
 
 		final var account = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
 		assertNotNull(account);
+	}
+
+	/**
+	 * Checks to arrays for equality.
+	 *
+	 * @param a1
+	 * @param a2
+	 * @return Returns true if both the arrays contain the same data, false otherwise.
+	 */
+	private boolean arraysEqual(byte[] a1, byte[] a2) {
+		if (a1 == a2) {
+			return true;
+		}
+
+		if (a1 == null || a2 == null || a1.length != a2.length) {
+			return false;
+		}
+
+		for (int i = 0, size = a1.length; i < size; i++) {
+			if (a1[i] != a2[i]) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
