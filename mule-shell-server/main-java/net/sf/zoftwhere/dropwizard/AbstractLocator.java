@@ -3,7 +3,6 @@ package net.sf.zoftwhere.dropwizard;
 import com.google.inject.Provider;
 import io.dropwizard.hibernate.AbstractDAO;
 import net.sf.zoftwhere.mule.proxy.EmptyInterface;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -11,7 +10,6 @@ import org.hibernate.query.Query;
 import javax.persistence.NoResultException;
 import java.io.Serializable;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> implements TransactionalSession {
@@ -35,27 +33,20 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> i
 		return super.get(id);
 	}
 
-	protected Query<E> namedQuery(String subQueryName) throws HibernateException {
-		return namedQuery(sessionProvider.get(), subQueryName);
-	}
-
-	private Query<E> namedQuery(Session session, String subQueryName) throws HibernateException {
-		final String namedQuery = prefix + "." + subQueryName;
-		return session.createNamedQuery(namedQuery, super.getEntityClass());
-	}
-
-	protected void wrapTransaction(Consumer<Session> action) {
-		TransactionalSession.wrapTransaction(sessionProvider, action);
-	}
-
-	protected Optional<E> wrapQuery(Function<Session, E> query) {
-		return TransactionalSession.wrapQuery(sessionProvider, query);
-	}
-
 	@Override
 	protected Session currentSession() {
-		new Exception("Provider taken but possibly not returned?").printStackTrace();
 		return sessionProvider.get();
+	}
+
+	public Optional<E> tryFetchNamedQuery(String subName, Function<Query<E>, Query<E>> parameter) {
+		try (Session session = sessionProvider.get()) {
+			final var name = prefix + "." + subName;
+			Query<E> query = session.createNamedQuery(name, super.getEntityClass());
+			query = parameter.apply(query);
+			return Optional.of(query.getSingleResult());
+		} catch (RuntimeException e) {
+			return Optional.empty();
+		}
 	}
 
 	public <V> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser) {
@@ -73,5 +64,4 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> i
 			return Optional.empty();
 		}
 	}
-
 }

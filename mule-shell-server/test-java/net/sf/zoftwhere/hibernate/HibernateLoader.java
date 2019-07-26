@@ -14,7 +14,7 @@ public class HibernateLoader {
 		return configuration;
 	}
 
-	public static Configuration defaultH2TestDatabase(List<Class<?>> entityList) {
+	public static Configuration getH2DatabaseConfiguration(List<Class<?>> entityList) {
 		final Configuration configuration = new Configuration();
 		entityList.forEach(configuration::addAnnotatedClass);
 		configuration.setProperty("hibernate.connection.url", "jdbc:h2:mem:test;mode=PostgreSQL;database_to_lower=true");
@@ -22,7 +22,7 @@ public class HibernateLoader {
 		configuration.getProperties().setProperty("hibernate.connection.password", "");
 		configuration.setProperty("hibernate.connection.driver_class", org.h2.Driver.class.getName());
 		configuration.setProperty("hibernate.dialect", org.hibernate.dialect.PostgreSQL10Dialect.class.getName());
-		configuration.setProperty("hibernate.hbm2ddl.auto", "create");
+		configuration.setProperty("hibernate.hbm2ddl.auto", "update");
 		configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
 		return configuration;
 	}

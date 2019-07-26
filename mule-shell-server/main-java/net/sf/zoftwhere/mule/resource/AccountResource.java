@@ -113,18 +113,24 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		wrapTransaction(session -> {
+		wrapSession(session -> {
 			final var salt = accountSigner.generateSalt(512);
 			final var hash = accountSigner.getHash(salt, data);
 
 			account.setSalt(salt);
 			account.setHash(hash);
+			session.beginTransaction();
 			session.update(account);
+			session.getTransaction().commit();
 		});
 
 		final var accessToken = new AccessToken().setAccount(account);
 
-		wrapTransaction(session -> session.save(accessToken));
+		wrapSession(session -> {
+			session.beginTransaction();
+			session.save(accessToken);
+			session.getTransaction().commit();
+		});
 
 		final var tokenBuilder = JWT.create()
 				.withJWTId(accessToken.getId().toString())

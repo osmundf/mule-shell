@@ -29,8 +29,8 @@ public abstract class AbstractResource implements TransactionalSession {
 		this.sessionProvider = sessionProvider;
 	}
 
-	protected void wrapTransaction(Consumer<Session> action) {
-		TransactionalSession.wrapTransaction(sessionProvider, action);
+	protected void wrapSession(Consumer<Session> consumer) {
+		TransactionalSession.wrapSession(sessionProvider, consumer);
 	}
 
 	public Optional<Integer> tryAsInteger(String value) {
