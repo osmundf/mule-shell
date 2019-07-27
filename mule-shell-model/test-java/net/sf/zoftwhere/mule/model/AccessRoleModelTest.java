@@ -24,7 +24,7 @@ public class AccessRoleModelTest {
 		assertTrue(model != null, "Must not be null.");
 		assertEquals("net.sf.zoftwhere.mule.model", model.getClass().getPackage().getName(), "Constant package");
 		assertNotNull(model.name());
-		
+
 		logger.debug("Ensured access key model enum " + model.name());
 	}
 }

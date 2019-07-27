@@ -13,7 +13,7 @@
     <logger name="net.sf.zoftwhere" level="INFO"/>
 
     <root level="ERROR">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 
 </configuration>
