@@ -6,6 +6,7 @@
     <content url="file://$MODULE_DIR$/mule-shell-common">
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-common/main-java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-common/test-java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/mule-shell-common/test-resources" type="java-test-resource" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-common/_target" />
     </content>
     <orderEntry type="inheritedJdk" />

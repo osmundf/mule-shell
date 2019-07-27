@@ -55,12 +55,12 @@
 
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-common</artifactId>
+            <artifactId>mule-shell-model</artifactId>
         </dependency>
 
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-model</artifactId>
+            <artifactId>mule-shell-common</artifactId>
         </dependency>
 
         <dependency>
@@ -387,15 +387,11 @@
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
+            <groupId>net.sf.zoftwhere.mule</groupId>
+            <artifactId>mule-shell-common</artifactId>
+            <type>jar</type>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -475,6 +471,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven-jar-plugin.version}</version>
                 <configuration>
+                    <skip>false</skip>
                     <archive>
                         <manifest>
                             <addClasspath>false</addClasspath>
