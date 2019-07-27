@@ -20,6 +20,15 @@
     </properties>
 
     <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.sf.zoftwhere.mule</groupId>
+                <artifactId>mule-shell-bom</artifactId>
+                <version>1.0.0-S</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
     </dependencyManagement>
 
     <dependencies>
@@ -27,6 +36,14 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.zoftwhere.mule</groupId>
+            <artifactId>mule-shell-common</artifactId>
+            <type>jar</type>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -66,8 +83,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
             <scope>test</scope>
         </dependency>
 
@@ -125,7 +143,7 @@
                 <executions>
                     <execution>
                         <phase>${swagger.io.generate.phase}</phase>
-                        <!--<phase>process-sources</phase>-->
+                        <!--<phase>generate-sources</phase>-->
                         <goals>
                             <goal>generate</goal>
                         </goals>

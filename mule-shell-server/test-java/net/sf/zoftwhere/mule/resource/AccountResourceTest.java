@@ -78,30 +78,6 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		populateAccessRoles();
 	}
 
-	private void populateAccessRoles() {
-		final Map<String, Integer> priority = new Builder<String, Integer>()
-				.put(AccessRoleModel.ADMIN.name(), 3)
-				.put(AccessRoleModel.SYSTEM.name(), 2)
-				.put(AccessRoleModel.CLIENT.name(), 1)
-				.put(AccessRoleModel.REGISTER.name(), 0)
-				.build();
-		final var roleArray = AccessRoleModel.values();
-		for (var role : roleArray) {
-			wrapSession(session -> {
-				final var key = AccessRole.getKey(role);
-				AccessRole accessRole = new AccessRole();
-				accessRole.setKey(key);
-				accessRole.setName(role.name());
-				accessRole.setValue(role.name().toLowerCase());
-				accessRole.setPriority(priority.get(accessRole.getName()));
-
-				session.beginTransaction();
-				session.persist(accessRole);
-				session.getTransaction().commit();
-			});
-		}
-	}
-
 	@AfterEach
 	void tearDown() {
 		// Close the session factory when we are done.
@@ -204,8 +180,30 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	@Test
 	void registerAccountRoles() {
 		final var key = AccessRoleModel.CLIENT.getClass().getName();
+	}
 
-		System.out.println(key);
+	private void populateAccessRoles() {
+		final Map<String, Integer> priority = new Builder<String, Integer>()
+				.put(AccessRoleModel.ADMIN.name(), 3)
+				.put(AccessRoleModel.SYSTEM.name(), 2)
+				.put(AccessRoleModel.CLIENT.name(), 1)
+				.put(AccessRoleModel.REGISTER.name(), 0)
+				.build();
+		final var roleArray = AccessRoleModel.values();
+		for (var role : roleArray) {
+			wrapSession(session -> {
+				final var key = AccessRole.getKey(role);
+				AccessRole accessRole = new AccessRole();
+				accessRole.setKey(key);
+				accessRole.setName(role.name());
+				accessRole.setValue(role.name().toLowerCase());
+				accessRole.setPriority(priority.get(accessRole.getName()));
+
+				session.beginTransaction();
+				session.persist(accessRole);
+				session.getTransaction().commit();
+			});
+		}
 	}
 
 	private void registerTestAccountGroup() {

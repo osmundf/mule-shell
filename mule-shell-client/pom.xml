@@ -37,7 +37,6 @@
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
             <artifactId>mule-shell-model</artifactId>
-            <version>1.0.0-S</version>
         </dependency>
 
         <dependency>

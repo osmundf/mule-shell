@@ -49,7 +49,7 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> i
 			final var result = parameter.apply(session.createNamedQuery(name, super.getEntityClass()));
 			return Optional.of(result);
 		} catch (RuntimeException e) {
-			logger.error("Error running named query (" + prefix + "." + subName + ").", e);
+			logger.warn("Error running named query ({}.{})", prefix, subName);
 			return Optional.empty();
 		}
 	}
@@ -59,7 +59,7 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> i
 			final var name = prefix + "." + subName;
 			return routine.apply(session.createNamedQuery(name, resultType));
 		} catch (RuntimeException e) {
-			logger.error("Error fetching single from named query (" + prefix + "." + subName + ").", e);
+			logger.warn("Error running named query ({}.{})", prefix, subName);
 			return Optional.empty();
 		}
 	}
@@ -70,7 +70,7 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> i
 			List<T> result = routine.apply(session.createNamedQuery(name, resultType)).getResultList();
 			return Optional.ofNullable(result);
 		} catch (RuntimeException e) {
-			logger.error("Error fetching list from named query (" + prefix + "." + subName + ").", e);
+			logger.warn("Error running named query ({}.{})", prefix, subName);
 			return Optional.empty();
 		}
 	}

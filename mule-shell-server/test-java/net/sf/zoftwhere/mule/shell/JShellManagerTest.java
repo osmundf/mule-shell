@@ -88,7 +88,6 @@ class JShellManagerTest {
 			}
 		}
 
-
 		System.out.println(manager.size());
 	}
 

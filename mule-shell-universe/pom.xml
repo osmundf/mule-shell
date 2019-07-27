@@ -37,17 +37,17 @@
 
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf.zoftwhere.mule</groupId>
             <artifactId>mule-shell-model</artifactId>
         </dependency>
 
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
             <artifactId>mule-shell-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.zoftwhere.mule</groupId>
+            <artifactId>mule-shell-client</artifactId>
         </dependency>
 
         <dependency>
@@ -75,15 +75,18 @@
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
+            <groupId>net.sf.zoftwhere.mule</groupId>
+            <artifactId>mule-shell-common</artifactId>
+            <type>jar</type>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -115,8 +118,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <!--<source>${maven.compiler.source}</source>-->
-                    <!--<target>${maven.compiler.target}</target>-->
                     <release>${maven.compiler.release}</release>
                     <compilerArgs>
                         <arg>-Xlint:all,-processing,-cast,-serial,-try</arg>
