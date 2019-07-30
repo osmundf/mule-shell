@@ -8,7 +8,10 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="net.sf.zoftwhere" level="INFO"/>
+
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 
