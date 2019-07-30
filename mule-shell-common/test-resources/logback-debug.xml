@@ -9,12 +9,14 @@
         </encoder>
     </appender>
 
+    <logger name="com.mchange" level="INFO"/>
     <logger name="org.hibernate" level="INFO"/>
-    <logger name="net.sf.zoftwhere" level="INFO"/>
+    <logger name="org.jboss.logging" level="INFO"/>
 
-    <root level="ERROR">
+    <logger name="net.sf.zoftwhere" level="DEBUG"/>
+
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 
 </configuration>
-
