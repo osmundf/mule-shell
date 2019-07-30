@@ -1,15 +1,12 @@
-# Developer Server Configuration.
+# Production Server Configuration.
 
 # Logging settings.
 logging:
   level: INFO
   loggers:
-    net.sf.zoftwhere:
-      level: DEBUG
-    net.sf.zoftwhere.mule:
-      level: DEBUG
+    net.sf.zoftwhere.mule: INFO
     org.hibernate.SQL:
-      level: DEBUG
+      level: WARN
   appenders:
     - type: console
       threshold: ALL
@@ -27,7 +24,6 @@ logging:
       maxFileSize: 10MiB
       logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
 
-# Server Settings
 server:
   applicationContextPath: /mule-shell
   applicationConnectors:
@@ -38,7 +34,7 @@ server:
     - type: http
       port: 8081
 
-# Database Settings
+# Database settings.
 database:
   driverClass: org.postgresql.Driver
   url: jdbc:postgresql://localhost:5432/mule?currentSchema=public
