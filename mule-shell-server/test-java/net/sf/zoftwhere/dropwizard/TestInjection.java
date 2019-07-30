@@ -53,7 +53,7 @@ public abstract class TestInjection implements Closeable, AutoCloseable {
 
 				final var securityKey = new Key<Variable<SecurityContext>>() {};
 				bind(securityKey).toInstance(securityContext);
-				bind(SecurityContext.class).toProvider(securityContext::get).in(Singleton.class);
+				bind(SecurityContext.class).toProvider(securityContext::get);
 			}
 
 			private Cache<UUID, AccountPrincipal> getLoginCache() {

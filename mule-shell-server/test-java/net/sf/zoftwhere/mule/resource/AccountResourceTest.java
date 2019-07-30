@@ -178,6 +178,72 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	}
 
 	@Test
+	void testNewAccountRegistration() {
+		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
+		final var accountRoleLocator = guiceInjector.getInstance(AccountRoleLocator.class);
+
+		for (var e : accountSecretMap.entrySet()) {
+			final var username = e.getKey();
+			final var password = e.getValue();
+			final var email = accountEmailMap.get(username);
+
+			assertNotNull(username);
+			assertNotNull(password);
+			assertNotNull(email);
+
+			createAccount(username, email, password, RoleModel.REGISTER);
+
+			final var account = accountLocator.getByUsername(username);
+			final var accountRoleList = accountRoleLocator.getForAccount(account);
+
+			assertNotNull(account);
+			assertNotNull(accountRoleList);
+			assertEquals((1), accountRoleList.size());
+
+			final var accountRole = accountRoleList.get(0);
+
+			assertEquals(RoleModel.REGISTER.name(), accountRole.getRole().getName());
+		}
+
+		for (var e : accountSecretMap.entrySet()) {
+			final var interchange = guiceInjector.getInstance(securityKey);
+			interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
+
+			final var username = e.getKey();
+			final var password = e.getValue();
+			final var role = RoleModel.REGISTER.name();
+
+			final var principal = new AccountPrincipal(username, role);
+			final var security = StaticSecurityContext.withBuilder()
+					.secure(true)
+					.authenticationScheme("bearer")
+					.role(role)
+					.userPrincipal(principal).build();
+
+			interchange.accept(security);
+
+			final var reset = resource.reset(username, password);
+			final var status = reset.getStatus();
+
+			interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
+
+			assertNotNull(reset);
+			assertEquals(Status.OK.getStatusCode(), status);
+
+			final var account = accountLocator.getByUsername(username);
+			final var accountRoleList = accountRoleLocator.getForAccount(account);
+
+			assertNotNull(account);
+			assertNotNull(accountRoleList);
+			assertEquals((1), accountRoleList.size());
+
+			final var accountRole = accountRoleList.get(0);
+
+			assertEquals(RoleModel.CLIENT.name(), accountRole.getRole().getName());
+		}
+	}
+
+	@Test
 	void registerAccountRoles() {
 		final var key = RoleModel.CLIENT.getClass().getName();
 	}
