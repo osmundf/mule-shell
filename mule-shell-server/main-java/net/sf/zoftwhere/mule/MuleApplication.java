@@ -25,11 +25,11 @@ import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
 import net.sf.zoftwhere.hibernate.MacroCaseNamingStrategy;
 import net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy;
-import net.sf.zoftwhere.mule.jpa.AccessRole;
-import net.sf.zoftwhere.mule.jpa.AccessToken;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountRole;
+import net.sf.zoftwhere.mule.jpa.Role;
 import net.sf.zoftwhere.mule.jpa.ShellSession;
+import net.sf.zoftwhere.mule.jpa.Token;
 import net.sf.zoftwhere.mule.security.AccountAuthenticator;
 import net.sf.zoftwhere.mule.security.AccountAuthorizer;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
@@ -202,6 +202,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 					configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
 				} else if (MacroCaseNamingStrategy.class.getName().equals(namingStrategy)) {
 					configuration.setPhysicalNamingStrategy(new MacroCaseNamingStrategy());
+				} else {
+					logger.warn("The following naming strategy may not have been loaded: {}", new Object[]{namingStrategy});
 				}
 			}
 		};
@@ -209,8 +211,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	public static Class<?>[] persistenceEntities() {
 		return new Class<?>[]{
-				AccessRole.class,
-				AccessToken.class,
+				Role.class,
+				Token.class,
 				Account.class,
 				AccountRole.class,
 				ShellSession.class,
