@@ -7,7 +7,7 @@ import com.google.common.cache.Cache;
 import com.google.inject.Provider;
 import io.dropwizard.auth.Authenticator;
 import net.sf.zoftwhere.hibernate.TransactionalSession;
-import net.sf.zoftwhere.mule.jpa.AccessTokenLocator;
+import net.sf.zoftwhere.mule.jpa.TokenLocator;
 import org.hibernate.Session;
 
 import java.util.Optional;
@@ -39,23 +39,23 @@ public class AccountAuthenticator implements Authenticator<String, AccountPrinci
 				return Optional.of(accountPrincipal);
 			}
 
-			final var tokenLocator = new AccessTokenLocator(sessionProvider);
+			final var tokenLocator = new TokenLocator(sessionProvider);
 			final var accessToken = tokenLocator.getById(tokenUUID);
 			final var accountRole = accessToken.getAccountRole();
 			final var account = accountRole.getAccount();
-			final var accessRole = accountRole.getAccessRole();
+			final var role = accountRole.getRole();
 
 			// First check if the access token needs to be deleted.
 			if (accountRole.getDeletedAt() == null) {
 				// Check if the access token needs to be deleted.
-				if (account.getDeletedAt() != null || accessRole.getDeletedAt() != null
+				if (account.getDeletedAt() != null || role.getDeletedAt() != null
 						|| Strings.isNullOrEmpty(account.getUsername()))
 				{
 					// Delete the access token.
 					accountRole.delete();
 					try (var session = sessionProvider.get()) {
 						session.beginTransaction();
-						session.save(accountRole);
+						session.update(accountRole);
 						session.getTransaction().commit();
 					}
 					return Optional.empty();
@@ -68,7 +68,7 @@ public class AccountAuthenticator implements Authenticator<String, AccountPrinci
 			}
 
 			// Reinstate the cache entry for this access token.
-			final var entry = new AccountPrincipal(account.getUsername(), accessRole.getName());
+			final var entry = new AccountPrincipal(account.getUsername(), role.getName());
 			cache.put(accessToken.getId(), entry);
 			return Optional.of(entry);
 		} catch (Exception e) {

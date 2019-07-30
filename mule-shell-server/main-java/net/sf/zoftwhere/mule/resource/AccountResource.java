@@ -6,15 +6,15 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.mule.api.AccountApi;
-import net.sf.zoftwhere.mule.jpa.AccessRole;
-import net.sf.zoftwhere.mule.jpa.AccessRoleLocator;
-import net.sf.zoftwhere.mule.jpa.AccessToken;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
 import net.sf.zoftwhere.mule.jpa.AccountRole;
 import net.sf.zoftwhere.mule.jpa.AccountRoleLocator;
-import net.sf.zoftwhere.mule.model.AccessRoleModel;
+import net.sf.zoftwhere.mule.jpa.Role;
+import net.sf.zoftwhere.mule.jpa.RoleLocator;
+import net.sf.zoftwhere.mule.jpa.Token;
 import net.sf.zoftwhere.mule.model.BasicAccountModel;
+import net.sf.zoftwhere.mule.model.RoleModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.JWTSigner;
@@ -60,7 +60,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 	private final AccountLocator accountLocator;
 
-	private final AccessRoleLocator accessRoleLocator;
+	private final RoleLocator roleLocator;
 
 	private final AccountRoleLocator accountRoleLocator;
 
@@ -68,7 +68,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	public AccountResource(Provider<Session> sessionProvider) {
 		super(sessionProvider);
 		this.accountLocator = new AccountLocator(sessionProvider);
-		this.accessRoleLocator = new AccessRoleLocator(sessionProvider);
+		this.roleLocator = new RoleLocator(sessionProvider);
 		this.accountRoleLocator = new AccountRoleLocator(sessionProvider);
 	}
 
@@ -94,19 +94,17 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Response.ok(Response.Status.CONFLICT).build();
 		}
 
-		final var accessRole = tryFetchEntity(AccessRoleModel.REGISTER, Optional::of, accessRoleLocator::getByKey).orElse(null);
+		final var role = tryFetchEntity(RoleModel.REGISTER, Optional::of, roleLocator::getByKey).orElse(null);
 
-		if (accessRole == null) {
+		if (role == null) {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 
 		wrapSession(session -> {
 			Account account = new Account(username, emailAddress);
-			account.setSalt(new byte[0]);
-			account.setHash(new byte[0]);
 
 			session.beginTransaction();
-			session.persist(account);
+			session.save(account);
 			session.getTransaction().commit();
 		});
 
@@ -116,8 +114,8 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 
-		final var accountRole = new AccountRole(account, accessRole)
-				.setValue(accessRole.getValue());
+		final var accountRole = new AccountRole(account, role)
+				.setValue(role.getValue());
 
 		wrapSession(session -> {
 			session.beginTransaction();
@@ -125,7 +123,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			session.getTransaction().commit();
 		});
 
-		final var accessToken = new AccessToken(accountRole);
+		final var accessToken = new Token(accountRole);
 
 		wrapSession(session -> {
 			session.beginTransaction();
@@ -139,7 +137,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		final var jwtToken = signer.sign(tokenBuilder);
 
-		final var principal = new AccountPrincipal(username, accessRole.getName());
+		final var principal = new AccountPrincipal(username, role.getName());
 
 		// Place in active cache.
 		cache.put(accessToken.getId(), principal);
@@ -178,7 +176,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		if (security.isUserInRole(REGISTER_ROLE)) {
 			try {
-				setupRegisteredAccount(account, AccessRoleModel.CLIENT);
+				setupRegisteredAccount(account, RoleModel.CLIENT);
 			} catch (Exception e) {
 				logger.error("Error setting up registered account.", e);
 			}
@@ -252,7 +250,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		final var accountRole = accountRoleList.get(0);
 
-		final var accessToken = new AccessToken(accountRole);
+		final var accessToken = new Token(accountRole);
 
 		wrapSession(session -> {
 			session.beginTransaction();
@@ -268,7 +266,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		final var jwtToken = signer.sign(tokenBuilder);
 
-		final var principal = new AccountPrincipal(username, accountRole.getAccessRole().getName());
+		final var principal = new AccountPrincipal(username, accountRole.getRole().getName());
 
 		// Place in active cache.
 		cache.put(accessToken.getId(), principal);
@@ -292,37 +290,43 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	public void updateAccountSaltHash(final Account account, final byte[] data) {
 		final var digest = accountSignerProvider.get();
 		wrapSession(session -> {
-			final var salt = digest.generateSalt(64);
-			final var hash = digest.getHash(salt, data);
-			account.setSalt(salt);
-			account.setHash(hash);
+			account.updateHash(digest, data);
 
 			session.beginTransaction();
-			session.persist(entity);
+			session.update(account);
 			session.getTransaction().commit();
 		});
 	}
 
-	private void setupRegisteredAccount(Account account, AccessRoleModel role) {
-		// Delete register account role.
-		wrapSession(session -> {
-			final var registerRole = accountRoleLocator.getByRoleName(account, AccessRoleModel.REGISTER);
-			registerRole.delete();
+	private void setupRegisteredAccount(Account account, RoleModel roleModel) {
+		// Check if account has this as an active role.
+		final var currentAccountRole = accountRoleLocator.getByKey(account, roleModel);
 
-			session.beginTransaction();
-			session.save(registerRole);
-			session.getTransaction().commit();
-		});
+		if (currentAccountRole == null) {
+			// Add with role.
+			wrapSession(session -> {
+				final var role = roleLocator.getByKey(Role.getKey(roleModel));
+				final var accountRole = new AccountRole(account, role).setValue(role.getValue());
 
-		// Add with role.
-		wrapSession(session -> {
-			final var accessRole = accessRoleLocator.getByKey(AccessRole.getKey(role));
-			final var accountRole = new AccountRole(account, accessRole);
+				session.beginTransaction();
+				session.save(accountRole);
+				session.getTransaction().commit();
+			});
+		}
 
-			session.beginTransaction();
-			session.save(accessRole);
-			session.getTransaction().commit();
-		});
+		// Check if account has active register role.
+		final var registerRole = accountRoleLocator.getByRoleName(account, RoleModel.REGISTER);
+
+		if (registerRole != null) {
+			// Delete register account role.
+			wrapSession(session -> {
+				registerRole.delete();
+
+				session.beginTransaction();
+				session.update(registerRole);
+				session.getTransaction().commit();
+			});
+		}
 	}
 
 	private Optional<String[]> splitHeader(final String header) {

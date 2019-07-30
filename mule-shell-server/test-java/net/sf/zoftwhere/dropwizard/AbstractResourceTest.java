@@ -1,6 +1,6 @@
 package net.sf.zoftwhere.dropwizard;
 
-import net.sf.zoftwhere.mule.model.AccessRoleModel;
+import net.sf.zoftwhere.mule.model.RoleModel;
 import org.junit.jupiter.api.Test;
 
 import static net.sf.zoftwhere.dropwizard.AbstractResource.ADMIN_ROLE;
@@ -13,9 +13,9 @@ class AbstractResourceTest {
 
 	@Test
 	void ensureRoleNames() {
-		assertEquals(ADMIN_ROLE, AccessRoleModel.ADMIN.name());
-		assertEquals(CLIENT_ROLE, AccessRoleModel.CLIENT.name());
-		assertEquals(REGISTER_ROLE, AccessRoleModel.REGISTER.name());
-		assertEquals(SYSTEM_ROLE, AccessRoleModel.SYSTEM.name());
+		assertEquals(ADMIN_ROLE, RoleModel.ADMIN.name());
+		assertEquals(CLIENT_ROLE, RoleModel.CLIENT.name());
+		assertEquals(REGISTER_ROLE, RoleModel.REGISTER.name());
+		assertEquals(SYSTEM_ROLE, RoleModel.SYSTEM.name());
 	}
 }

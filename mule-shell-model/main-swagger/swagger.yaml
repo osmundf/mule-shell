@@ -185,7 +185,7 @@ definitions:
       username:
         type: string
 
-  AccessRole:
+  Role:
     type: string
     enum:
       - admin
@@ -199,7 +199,7 @@ definitions:
       account:
         schema: '#/definitions/BasicAccount'
       role:
-        schmea: '#/definitions/AccessRole'
+        schmea: '#/definitions/Role'
 
   Expression:
     type: object

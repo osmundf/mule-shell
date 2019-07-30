@@ -57,11 +57,11 @@ public abstract class TestResource<TestClass extends AbstractResource> implement
 		}
 	}
 
-	void wrapSession(Consumer<Session> consumer) {
+	void wrapConsumer(Consumer<Session> consumer) {
 		TransactionalSession.wrapSession(sessionProvider, consumer);
 	}
 
-	<E> Optional<E> wrapSession(Function<Session, E> function) {
+	<E> Optional<E> wrapFunction(Function<Session, E> function) {
 		return TransactionalSession.wrapSession(sessionProvider, function);
 	}
 }

@@ -6,13 +6,13 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.mule.data.Variable;
-import net.sf.zoftwhere.mule.jpa.AccessRole;
-import net.sf.zoftwhere.mule.jpa.AccessRoleLocator;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
 import net.sf.zoftwhere.mule.jpa.AccountRole;
 import net.sf.zoftwhere.mule.jpa.AccountRoleLocator;
-import net.sf.zoftwhere.mule.model.AccessRoleModel;
+import net.sf.zoftwhere.mule.jpa.Role;
+import net.sf.zoftwhere.mule.jpa.RoleLocator;
+import net.sf.zoftwhere.mule.model.RoleModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.StaticSecurityContext;
@@ -75,7 +75,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@BeforeEach
 	void prepare() {
-		populateAccessRoles();
+		populateRoles();
 	}
 
 	@AfterEach
@@ -137,7 +137,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertFalse(arraysEqual(accountPhase1.getHash(), accountPhase2.getHash()));
 
 			assertEquals(username, cached.getUsername().orElse(null), "Username");
-			assertEquals("CLIENT", cached.getRole().orElse(null), "AccessRole");
+			assertEquals("CLIENT", cached.getRole().orElse(null), "Role");
 		}
 	}
 
@@ -169,7 +169,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		final var interchange = guiceInjector.getInstance(securityKey);
 		interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
 
-		registerAccount("osmundf", "osmund.francis@gmail.com", "123456", AccessRoleModel.ADMIN);
+		createAccount("osmundf", "osmund.francis@gmail.com", "123456", RoleModel.ADMIN);
 	}
 
 	@Test
@@ -179,39 +179,39 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@Test
 	void registerAccountRoles() {
-		final var key = AccessRoleModel.CLIENT.getClass().getName();
+		final var key = RoleModel.CLIENT.getClass().getName();
 	}
 
-	private void populateAccessRoles() {
+	private void populateRoles() {
 		final Map<String, Integer> priority = new Builder<String, Integer>()
-				.put(AccessRoleModel.SYSTEM.name(), 100)
-				.put(AccessRoleModel.ADMIN.name(), 80)
-				.put(AccessRoleModel.CLIENT.name(), 60)
-				.put(AccessRoleModel.REGISTER.name(), 40)
+				.put(RoleModel.SYSTEM.name(), 100)
+				.put(RoleModel.ADMIN.name(), 80)
+				.put(RoleModel.CLIENT.name(), 60)
+				.put(RoleModel.REGISTER.name(), 40)
 				.build();
-		final var roleArray = AccessRoleModel.values();
-		for (var role : roleArray) {
-			wrapSession(session -> {
-				final var key = AccessRole.getKey(role);
-				final var name = role.name();
+		final var roleModelArray = RoleModel.values();
+		for (var roleModel : roleModelArray) {
+			wrapConsumer(session -> {
+				final var key = Role.getKey(roleModel);
+				final var name = roleModel.name();
 				final var value = name.toLowerCase();
 				final var priorityValue = priority.get(name);
-				final var accessRole = new AccessRole(key, name, value, priorityValue);
+				final var role = new Role(key, name, value, priorityValue);
 
 				session.beginTransaction();
-				session.persist(accessRole);
+				session.persist(role);
 				session.getTransaction().commit();
 			});
 		}
 
-		final var count = wrapSession(session -> {
-			final var select = "select count(o) from AccessRole o where o.deletedAt is null";
+		final var count = wrapFunction(session -> {
+			final var select = "select count(o) from Role o where o.deletedAt is null";
 			final var query = session.createQuery(select, Long.class);
 			return query.getSingleResult();
 		}).orElse(0L);
 
 		assertNotNull(count);
-		assertEquals((long) roleArray.length, (long) count, "");
+		assertEquals((long) roleModelArray.length, (long) count, "");
 	}
 
 	private void registerTestAccountGroup() {
@@ -224,43 +224,44 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertNotNull(password);
 			assertNotNull(email);
 
-			registerAccount(username, email, password, AccessRoleModel.CLIENT);
+			createAccount(username, email, password, RoleModel.CLIENT);
 		}
 	}
 
-	private void registerAccount(String username, String emailAddress, String password, AccessRoleModel role) {
+	private void createAccount(String username, String emailAddress, String password, RoleModel roleModel) {
 		final var accountSignerProvider = guiceInjector.getProvider(AccountSigner.class);
 		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
 		final var accountRoleLocator = guiceInjector.getInstance(AccountRoleLocator.class);
-		final var accessRoleLocator = guiceInjector.getInstance(AccessRoleLocator.class);
+		final var roleLocator = guiceInjector.getInstance(RoleLocator.class);
 
 		final var digest = accountSignerProvider.get();
 		final var data = password.getBytes(StandardCharsets.UTF_8);
 
 		assertTrue(UTF_8.codePointCount(data) >= digest.getMinimumPasswordLength());
 
+		// Ensure no other account with the same username.
 		final var first = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
 		assertNull(first);
 
-		wrapSession(session -> {
-			Account account = new Account(username, emailAddress);
-			account.setSalt(new byte[0]);
-			account.setHash(new byte[0]);
+		// Save new account.
+		wrapConsumer(session -> {
+			final var account = new Account(username, emailAddress).updateHash(digest, data);
 
 			session.beginTransaction();
 			session.save(account);
 			session.getTransaction().commit();
 		});
 
+		// Ensure account was saved.
 		final var account = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
 		assertNotNull(account);
-		final var accessRole = accessRoleLocator.getByKey(AccessRole.getKey(role));
 
 		// Add with role.
-		wrapSession(session -> {
-			AccountRole accountRole = new AccountRole(account, accessRole);
-			accountRole.setValue(accessRole.getValue());
+		final var role = roleLocator.getByKey(Role.getKey(roleModel));
+		final var accountRole = new AccountRole(account, role);
+		accountRole.setValue(role.getValue());
 
+		wrapConsumer(session -> {
 			session.beginTransaction();
 			session.save(accountRole);
 			session.getTransaction().commit();
@@ -268,9 +269,11 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 		final var accountRoleList = accountRoleLocator.getForAccount(account);
 
-		assertTrue(accountRoleList.size() == 1);
+		assertEquals((1), accountRoleList.size());
 
-		resource.updateAccountSaltHash(account, data);
+		final var currentAccountRole = accountRoleList.get(0);
+
+		assertEquals(roleModel.name(), currentAccountRole.getRole().getName());
 	}
 
 	/**

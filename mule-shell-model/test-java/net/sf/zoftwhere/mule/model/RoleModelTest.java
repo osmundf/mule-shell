@@ -8,19 +8,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AccessRoleModelTest {
+public class RoleModelTest {
 
-	private static Logger logger = LoggerFactory.getLogger(AccessRoleModelTest.class);
+	private static Logger logger = LoggerFactory.getLogger(RoleModelTest.class);
 
 	@Test
 	void ensureBasicRolesAreAvailable() {
-		ensureKey(AccessRoleModel.ADMIN);
-		ensureKey(AccessRoleModel.CLIENT);
-		ensureKey(AccessRoleModel.SYSTEM);
-		ensureKey(AccessRoleModel.REGISTER);
+		ensureKey(RoleModel.ADMIN);
+		ensureKey(RoleModel.CLIENT);
+		ensureKey(RoleModel.SYSTEM);
+		ensureKey(RoleModel.REGISTER);
 	}
 
-	private void ensureKey(AccessRoleModel model) {
+	private void ensureKey(RoleModel model) {
 		assertTrue(model != null, "Must not be null.");
 		assertEquals("net.sf.zoftwhere.mule.model", model.getClass().getPackage().getName(), "Constant package");
 		assertNotNull(model.name());

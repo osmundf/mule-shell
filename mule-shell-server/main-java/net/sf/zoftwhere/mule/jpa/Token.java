@@ -19,9 +19,9 @@ import java.util.UUID;
 
 @Entity(name = "Token")
 @NamedQuery(name = "AccessToken.all", query = "select o from Token o")
-@NamedQuery(name = "AccessToken.byAccountId", query = "select o from Token o where o.accountRole.account.id = :accountId")
+@NamedQuery(name = "Token.byAccountId", query = "select o from Token o where o.accountRole.account.id = :accountId")
 @Accessors(chain = true)
-public class AccessToken extends AbstractEntity<UUID> {
+public class Token extends AbstractEntity<UUID> {
 
 	@Id
 	@Generated(value = GenerationTime.INSERT)
@@ -35,10 +35,10 @@ public class AccessToken extends AbstractEntity<UUID> {
 	@Getter
 	private AccountRole accountRole;
 
-	public AccessToken() {
+	public Token() {
 	}
 
-	public AccessToken(AccountRole accountRole) {
+	public Token(AccountRole accountRole) {
 		this.accountRole = accountRole;
 	}
 }

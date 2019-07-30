@@ -21,10 +21,10 @@ import java.util.UUID;
 
 @Entity(name = "AccountRole")
 @NamedQuery(name = "AccountRole.all", query = "select o from AccountRole o")
-@NamedQuery(name = "AccountRole.byIdId", query = "select o from AccountRole o where o.account.id = :accountId and o.accessRole.id = :accessRoleId and o.deletedAt is null")
-@NamedQuery(name = "AccountRole.byAccountId", query = "select o from AccountRole o where o.account.id = :accountId and o.deletedAt is null order by o.accessRole.priority")
-@NamedQuery(name = "AccountRole.byAccountAndKey", query = "select o from AccountRole o where o.account.id = :accountId and o.accessRole.key = :key and o.deletedAt is null")
-@NamedQuery(name = "AccountRole.byAccountAndRoleName", query = "select o from AccountRole o where o.account.id = :accountId and o.accessRole.name = :roleName and o.deletedAt is null")
+@NamedQuery(name = "AccountRole.byIdId", query = "select o from AccountRole o where o.account.id = :accountId and o.role.id = :roleId and o.deletedAt is null")
+@NamedQuery(name = "AccountRole.byAccountId", query = "select o from AccountRole o where o.account.id = :accountId and o.deletedAt is null order by o.role.priority")
+@NamedQuery(name = "AccountRole.byAccountAndKey", query = "select o from AccountRole o where o.account.id = :accountId and o.role.key = :key and o.deletedAt is null")
+@NamedQuery(name = "AccountRole.byAccountAndRoleName", query = "select o from AccountRole o where o.account.id = :accountId and o.role.name = :roleName and o.deletedAt is null")
 @Accessors(chain = true)
 public class AccountRole extends AbstractEntity<UUID> {
 
@@ -43,7 +43,7 @@ public class AccountRole extends AbstractEntity<UUID> {
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn
 	@Getter
-	private AccessRole accessRole;
+	private Role role;
 
 	@Column(nullable = false, length = 40)
 	@Getter
@@ -53,8 +53,8 @@ public class AccountRole extends AbstractEntity<UUID> {
 	public AccountRole() {
 	}
 
-	public AccountRole(Account account, AccessRole accessRole) {
+	public AccountRole(Account account, Role role) {
 		this.account = account;
-		this.accessRole = accessRole;
+		this.role = role;
 	}
 }

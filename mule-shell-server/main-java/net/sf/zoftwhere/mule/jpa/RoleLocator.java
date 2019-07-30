@@ -3,29 +3,29 @@ package net.sf.zoftwhere.mule.jpa;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.AbstractLocator;
-import net.sf.zoftwhere.mule.model.AccessRoleModel;
+import net.sf.zoftwhere.mule.model.RoleModel;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
 import java.util.UUID;
 import java.util.function.Function;
 
-public class AccessRoleLocator extends AbstractLocator<AccessRole, UUID> {
+public class RoleLocator extends AbstractLocator<Role, UUID> {
 
 	@Inject
-	public AccessRoleLocator(Provider<Session> sessionProvider) {
+	public RoleLocator(Provider<Session> sessionProvider) {
 		super(sessionProvider);
 	}
 
-	public AccessRole getByKey(final AccessRoleModel role) {
+	public Role getByKey(final RoleModel role) {
 		final var packageName = role.getClass().getPackage().getName();
 		final var enumName = role.name();
 		final var key = packageName + ":" + enumName;
 		return getByKey(key);
 	}
 
-	public AccessRole getByKey(final String key) {
-		Function<Query<AccessRole>, AccessRole> parameter;
+	public Role getByKey(final String key) {
+		Function<Query<Role>, Role> parameter;
 		// Deliberately get only any one result (allow rolling on access roles).
 		parameter = query -> query.setParameter("key", key)
 				.setFetchSize(1).getResultList().get(0);

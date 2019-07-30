@@ -1,9 +1,9 @@
 package net.sf.zoftwhere.mule.jpa;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
+import net.sf.zoftwhere.mule.security.AccountSigner;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
@@ -38,12 +38,10 @@ public class Account extends AbstractEntity<UUID> {
 
 	@Column(nullable = false, length = 64)
 	@Getter
-	@Setter
 	private byte[] salt;
 
 	@Column(nullable = false, length = 64)
 	@Getter
-	@Setter
 	private byte[] hash;
 
 	public Account() {
@@ -52,5 +50,13 @@ public class Account extends AbstractEntity<UUID> {
 	public Account(String username, String emailAddress) {
 		this.username = username;
 		this.emailAddress = emailAddress;
+		this.salt = new byte[0];
+		this.hash = new byte[0];
+	}
+
+	public Account updateHash(AccountSigner signer, byte[] data) {
+		this.salt = signer.generateSalt(64);
+		this.hash = signer.getHash(this.salt, data);
+		return this;
 	}
 }

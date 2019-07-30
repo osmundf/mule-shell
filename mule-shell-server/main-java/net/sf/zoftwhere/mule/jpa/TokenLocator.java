@@ -7,10 +7,10 @@ import org.hibernate.Session;
 
 import java.util.UUID;
 
-public class AccessTokenLocator extends AbstractLocator<AccessToken, UUID> {
+public class TokenLocator extends AbstractLocator<Token, UUID> {
 
 	@Inject
-	public AccessTokenLocator(Provider<Session> sessionProvider) {
+	public TokenLocator(Provider<Session> sessionProvider) {
 		super(sessionProvider);
 	}
 

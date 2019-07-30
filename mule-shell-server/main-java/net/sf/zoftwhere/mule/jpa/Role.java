@@ -3,7 +3,7 @@ package net.sf.zoftwhere.mule.jpa;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
-import net.sf.zoftwhere.mule.model.AccessRoleModel;
+import net.sf.zoftwhere.mule.model.RoleModel;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
@@ -15,11 +15,11 @@ import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import java.util.UUID;
 
-@Entity(name = "AccessRole")
-@NamedQuery(name = "AccessRole.all", query = "select o from AccessRole o")
-@NamedQuery(name = "AccessRole.byKey", query = "select o from AccessRole o where o.key = :key and o.deletedAt is null")
+@Entity(name = "Role")
+@NamedQuery(name = "Role.all", query = "select o from Role o")
+@NamedQuery(name = "Role.byKey", query = "select o from Role o where o.key = :key and o.deletedAt is null")
 @Accessors(chain = true)
-public class AccessRole extends AbstractEntity<UUID> {
+public class Role extends AbstractEntity<UUID> {
 
 	@Id
 	@Generated(value = GenerationTime.INSERT)
@@ -44,19 +44,19 @@ public class AccessRole extends AbstractEntity<UUID> {
 	@Getter
 	private Integer priority;
 
-	public AccessRole() {
+	public Role() {
 	}
 
-	public AccessRole(String key, String name, String value, Integer priority) {
+	public Role(String key, String name, String value, Integer priority) {
 		this.key = key;
 		this.name = name;
 		this.value = value;
 		this.priority = priority;
 	}
 
-	public static String getKey(AccessRoleModel role) {
-		final var packageName = role.getClass().getPackage().getName();
-		final var enumName = role.name();
+	public static String getKey(RoleModel roleModel) {
+		final var packageName = roleModel.getClass().getPackage().getName();
+		final var enumName = roleModel.name();
 		return packageName + ":" + enumName;
 	}
 }
