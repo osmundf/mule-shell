@@ -8,6 +8,15 @@
     <version>1.0.0-S</version>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>mule-shell-bom</module>
+        <module>mule-shell-model</module>
+        <module>mule-shell-client</module>
+        <module>mule-shell-common</module>
+        <module>mule-shell-server</module>
+        <module>mule-shell-universe</module>
+    </modules>
+
     <properties>
         <!-- Settings: maven-resource-plugin -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
