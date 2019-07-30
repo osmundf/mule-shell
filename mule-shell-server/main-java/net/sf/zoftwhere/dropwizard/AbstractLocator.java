@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> implements TransactionalSession {
+public abstract class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> implements TransactionalSession {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractLocator.class);
 
 	private final Provider<Session> sessionProvider;
 
@@ -43,53 +43,56 @@ public class AbstractLocator<E, I extends Serializable> extends AbstractDAO<E> i
 		return sessionProvider.get();
 	}
 
-	public Optional<E> tryFetchNamedQuery(String subName, Function<Query<E>, E> parameter) {
+	protected Optional<E> tryFetchNamedQuery(String subName, Function<Query<E>, E> function) {
+		final var name = prefix + "." + subName;
 		try (Session session = sessionProvider.get()) {
-			final var name = prefix + "." + subName;
-			final var result = parameter.apply(session.createNamedQuery(name, super.getEntityClass()));
+			final var result = function.apply(session.createNamedQuery(name, super.getEntityClass()));
 			return Optional.of(result);
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		} catch (RuntimeException e) {
-			logger.warn("Error running named query ({}.{})", prefix, subName);
-			return Optional.empty();
+			final var exceptionType = e.getClass().getName();
+			logger.debug("tryFetchNamedQuery(): {} occurred running named query ({}).", exceptionType, name);
+			throw e;
 		}
 	}
 
-	public <T> Optional<T> tryFetchSingleResult(String subName, Function<Query<T>, Optional<T>> routine, Class<T> resultType) {
+	protected  <T> Optional<T> tryFetchSingleResult(String subName, Function<Query<T>, Optional<T>> routine, Class<T> resultType) {
+		final var name = prefix + "." + subName;
 		try (Session session = sessionProvider.get()) {
-			final var name = prefix + "." + subName;
 			return routine.apply(session.createNamedQuery(name, resultType));
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		} catch (RuntimeException e) {
-			logger.warn("Error running named query ({}.{})", prefix, subName);
-			return Optional.empty();
+			final var exceptionType = e.getClass().getName();
+			logger.debug("tryFetchSingleResult(): {} occurred running named query ({}).", exceptionType, name);
+			throw e;
 		}
 	}
 
-	public <T> Optional<List<T>> tryFetchResult(String subName, Function<Query<T>, Query<T>> routine, Class<T> resultType) {
+	protected  <T> Optional<List<T>> tryFetchResult(String subName, Function<Query<T>, Query<T>> routine, Class<T> resultType) {
+		final var name = prefix + "." + subName;
 		try (Session session = sessionProvider.get()) {
-			final var name = prefix + "." + subName;
 			List<T> result = routine.apply(session.createNamedQuery(name, resultType)).getResultList();
 			return Optional.ofNullable(result);
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		} catch (RuntimeException e) {
-			logger.warn("Error running named query ({}.{})", prefix, subName);
-			return Optional.empty();
+			final var exceptionType = e.getClass().getName();
+			logger.debug("tryFetchResult(): {} occurred running named query ({}).", exceptionType, name);
+			throw e;
 		}
 	}
 
-	public <V> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser) {
+	public static <I, E> Optional<E> tryFetchEntity(I id, final Function<I, E> fetcher) {
 		try {
-			return parser.apply(value).map(this::getById);
+			return Optional.ofNullable(fetcher.apply(id));
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		}
 	}
 
-	public static <V, E, I> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser, final Function<I, E> fetcher) {
+	public static <V, I, E> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser, final Function<I, E> fetcher) {
 		try {
 			return parser.apply(value).map(fetcher);
 		} catch (NoResultException ignore) {
