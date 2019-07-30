@@ -6,19 +6,14 @@ import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.inject.Provider;
 import io.dropwizard.auth.Authenticator;
-import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.dropwizard.TransactionalSession;
 import net.sf.zoftwhere.mule.jpa.AccessTokenLocator;
 import org.hibernate.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.UUID;
 
 public class AccountAuthenticator implements Authenticator<String, AccountPrincipal>, TransactionalSession {
-
-	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
 
 	private final Cache<UUID, AccountPrincipal> cache;
 
@@ -71,8 +66,6 @@ public class AccountAuthenticator implements Authenticator<String, AccountPrinci
 			if (accountRole.getDeletedAt() != null) {
 				return Optional.empty();
 			}
-
-			logger.info("Reinstating entry into cache.");
 
 			// Reinstate the cache entry for this access token.
 			final var entry = new AccountPrincipal(account.getUsername(), accessRole.getName());
