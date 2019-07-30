@@ -46,7 +46,7 @@ class TransactionalSessionTest implements TransactionalSession {
 
 	@Test
 	void testConsumer() {
-		wrapSession(session -> {
+		wrapConsumer(session -> {
 			session.beginTransaction();
 			session.getTransaction().commit();
 		});
@@ -54,7 +54,7 @@ class TransactionalSessionTest implements TransactionalSession {
 
 	@Test
 	void testFunction() {
-		final Optional<String> result = wrapSession(session -> {
+		final Optional<String> result = wrapFunction(session -> {
 			session.beginTransaction();
 			session.flush();
 			session.getTransaction().commit();
@@ -65,11 +65,11 @@ class TransactionalSessionTest implements TransactionalSession {
 		assertTrue(result.isEmpty());
 	}
 
-	private void wrapSession(Consumer<Session> consumer) {
+	private void wrapConsumer(Consumer<Session> consumer) {
 		TransactionalSession.wrapSession(sessionProvider, consumer);
 	}
 
-	private <E> Optional<E> wrapSession(Function<Session, E> function) {
+	private <E> Optional<E> wrapFunction(Function<Session, E> function) {
 		return TransactionalSession.wrapSession(sessionProvider, function);
 	}
 }
