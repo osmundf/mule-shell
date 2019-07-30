@@ -14,7 +14,7 @@
 
     <properties>
         <!-- > -->
-        <swagger.io.generate.phase>none</swagger.io.generate.phase>
+        <swagger.io.generate.phase>generate-sources</swagger.io.generate.phase>
         <swagger.api.package>net.sf.zoftwhere.mule.core.api</swagger.api.package>
         <swagger.model.package>net.sf.zoftwhere.mule.core.api</swagger.model.package>
     </properties>
@@ -100,8 +100,12 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>${maven-install-plugin.version}</version>
                 <executions>
                     <execution>
                         <!-- mvn install:install-file@local -->
@@ -123,16 +127,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>false</addClasspath>
-                        </manifest>
-                        <manifestEntries>
-                            <Dependencies/>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -148,8 +142,10 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${basedir}/main-swagger/swagger.yaml</inputSpec>
-                            <configurationFile>${basedir}/main-swagger/config.json</configurationFile>
+                            <inputSpec>${project.basedir}/main-swagger/swagger.yaml</inputSpec>
+                            <configurationFile>${project.basedir}/main-swagger/config.json</configurationFile>
+                            <ignoreFileOverride>${project.basedir}/main-swagger/.swagger-codegen-ignore
+                            </ignoreFileOverride>
                             <language>jaxrs-spec</language>
                             <apiPackage>net.sf.zoftwhere.mule.api</apiPackage>
                             <modelPackage>net.sf.zoftwhere.mule.model</modelPackage>

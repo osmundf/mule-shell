@@ -5,23 +5,35 @@
       <profile default="true" name="Default">
         <processorPath useClasspath="false" />
       </profile>
-      <profile name="Annotation profile for mule-shell-server" enabled="true">
+      <profile name="Annotation profile for mule-shell-universe" enabled="true">
         <sourceOutputDir name="_target/generated-sources/annotations" />
         <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="/Library/Apache/Maven-Repository-ZoftWhere/org/projectlombok/lombok/1.18.8/lombok-1.18.8.jar" />
-        </processorPath>
-        <module name="mule-shell-server" />
+        <module name="mule-shell-universe" />
+      </profile>
+      <profile name="Annotation profile for mule-shell-client" enabled="true">
+        <sourceOutputDir name="_target/generated-sources/annotations" />
+        <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mule-shell-client" />
+      </profile>
+      <profile name="Annotation profile for mule-shell-model" enabled="true">
+        <sourceOutputDir name="_target/generated-sources/annotations" />
+        <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mule-shell-model" />
       </profile>
       <profile name="Annotation profile for mule-shell-common" enabled="true">
         <sourceOutputDir name="_target/generated-sources/annotations" />
         <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="mule-shell-common" />
-        <module name="mule-shell-model" />
-        <module name="mule-shell-client" />
-        <module name="mule-shell-universe" />
+      </profile>
+      <profile name="Annotation profile for mule-shell" enabled="true">
+        <sourceOutputDir name="_target/generated-sources/annotations" />
+        <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mule-shell-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

@@ -86,6 +86,22 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>effective-pom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <output>${project.build.directory}/pom.effective.xml</output>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <executions>
                     <execution>
@@ -93,16 +109,34 @@
                         <phase>none</phase>
                     </execution>
                     <execution>
-                        <!-- mvn install:install@install-local -->
                         <id>install-local</id>
                         <phase>install</phase>
                         <goals>
-                            <goal>install</goal>
+                            <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <pomFile>pom.xml</pomFile>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
                             <createChecksum>true</createChecksum>
+                            <file>${project.build.directory}/pom.effective.xml</file>
+                            <packaging>pom</packaging>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>main-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>test-jar</id>
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>

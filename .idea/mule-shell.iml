@@ -4,6 +4,7 @@
     <output url="file://$MODULE_DIR$/_target/main-classes" />
     <output-test url="file://$MODULE_DIR$/_target/test-classes" />
     <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-bom" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-client" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-model" />
