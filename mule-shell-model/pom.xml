@@ -14,7 +14,7 @@
 
     <properties>
         <!-- > -->
-        <swagger.io.generate.phase>none</swagger.io.generate.phase>
+        <swagger.io.generate.phase>generate-sources</swagger.io.generate.phase>
         <swagger.api.package>net.sf.zoftwhere.mule.core.api</swagger.api.package>
         <swagger.model.package>net.sf.zoftwhere.mule.core.api</swagger.model.package>
     </properties>
@@ -153,7 +153,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${basedir}/main-swagger/swagger.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/main-swagger/swagger.yaml</inputSpec>
                             <configurationFile>${project.basedir}/main-swagger/config.json</configurationFile>
                             <ignoreFileOverride>${project.basedir}/main-swagger/.swagger-codegen-ignore
                             </ignoreFileOverride>
