@@ -14,6 +14,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import java.util.UUID;
@@ -24,8 +25,6 @@ import java.util.UUID;
 @NamedQuery(name = "AccountRole.byAccountId", query = "select o from AccountRole o where o.account.id = :accountId and o.deletedAt is null order by o.accessRole.priority")
 @NamedQuery(name = "AccountRole.byAccountAndKey", query = "select o from AccountRole o where o.account.id = :accountId and o.accessRole.key = :key and o.deletedAt is null")
 @NamedQuery(name = "AccountRole.byAccountAndRoleName", query = "select o from AccountRole o where o.account.id = :accountId and o.accessRole.name = :roleName and o.deletedAt is null")
-@Getter
-@Setter
 @Accessors(chain = true)
 public class AccountRole extends AbstractEntity<UUID> {
 
@@ -33,14 +32,29 @@ public class AccountRole extends AbstractEntity<UUID> {
 	@Generated(value = GenerationTime.INSERT)
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(insertable = false)
+	@Getter
 	private UUID id = null;
 
-	@ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn
+	@Getter
 	private Account account;
 
-	@ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn
+	@Getter
 	private AccessRole accessRole;
 
 	@Column(nullable = false, length = 40)
+	@Getter
+	@Setter
 	private String value;
+
+	public AccountRole() {
+	}
+
+	public AccountRole(Account account, AccessRole accessRole) {
+		this.account = account;
+		this.accessRole = accessRole;
+	}
 }

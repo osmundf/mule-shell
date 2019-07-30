@@ -184,26 +184,34 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	private void populateAccessRoles() {
 		final Map<String, Integer> priority = new Builder<String, Integer>()
-				.put(AccessRoleModel.ADMIN.name(), 3)
-				.put(AccessRoleModel.SYSTEM.name(), 2)
-				.put(AccessRoleModel.CLIENT.name(), 1)
-				.put(AccessRoleModel.REGISTER.name(), 0)
+				.put(AccessRoleModel.SYSTEM.name(), 100)
+				.put(AccessRoleModel.ADMIN.name(), 80)
+				.put(AccessRoleModel.CLIENT.name(), 60)
+				.put(AccessRoleModel.REGISTER.name(), 40)
 				.build();
 		final var roleArray = AccessRoleModel.values();
 		for (var role : roleArray) {
 			wrapSession(session -> {
 				final var key = AccessRole.getKey(role);
-				AccessRole accessRole = new AccessRole();
-				accessRole.setKey(key);
-				accessRole.setName(role.name());
-				accessRole.setValue(role.name().toLowerCase());
-				accessRole.setPriority(priority.get(accessRole.getName()));
+				final var name = role.name();
+				final var value = name.toLowerCase();
+				final var priorityValue = priority.get(name);
+				final var accessRole = new AccessRole(key, name, value, priorityValue);
 
 				session.beginTransaction();
 				session.persist(accessRole);
 				session.getTransaction().commit();
 			});
 		}
+
+		final var count = wrapSession(session -> {
+			final var select = "select count(o) from AccessRole o where o.deletedAt is null";
+			final var query = session.createQuery(select, Long.class);
+			return query.getSingleResult();
+		}).orElse(0L);
+
+		assertNotNull(count);
+		assertEquals((long) roleArray.length, (long) count, "");
 	}
 
 	private void registerTestAccountGroup() {
@@ -235,14 +243,12 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		assertNull(first);
 
 		wrapSession(session -> {
-			Account account = new Account();
-			account.setUsername(username);
-			account.setEmailAddress(emailAddress);
+			Account account = new Account(username, emailAddress);
 			account.setSalt(new byte[0]);
 			account.setHash(new byte[0]);
 
 			session.beginTransaction();
-			session.persist(account);
+			session.save(account);
 			session.getTransaction().commit();
 		});
 
@@ -252,12 +258,11 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 		// Add with role.
 		wrapSession(session -> {
-			AccountRole accountRole = new AccountRole();
-			session.beginTransaction();
-			accountRole.setAccount(session.get(Account.class, account.getId()));
-			accountRole.setAccessRole(session.get(AccessRole.class, accessRole.getId()));
+			AccountRole accountRole = new AccountRole(account, accessRole);
 			accountRole.setValue(accessRole.getValue());
-			session.persist(accountRole);
+
+			session.beginTransaction();
+			session.save(accountRole);
 			session.getTransaction().commit();
 		});
 

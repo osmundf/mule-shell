@@ -101,9 +101,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		}
 
 		wrapSession(session -> {
-			Account account = new Account();
-			account.setUsername(username);
-			account.setEmailAddress(emailAddress);
+			Account account = new Account(username, emailAddress);
 			account.setSalt(new byte[0]);
 			account.setHash(new byte[0]);
 
@@ -118,9 +116,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 
-		final var accountRole = new AccountRole()
-				.setAccount(account)
-				.setAccessRole(accessRole)
+		final var accountRole = new AccountRole(account, accessRole)
 				.setValue(accessRole.getValue());
 
 		wrapSession(session -> {
@@ -129,7 +125,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			session.getTransaction().commit();
 		});
 
-		final var accessToken = new AccessToken().setAccountRole(accountRole);
+		final var accessToken = new AccessToken(accountRole);
 
 		wrapSession(session -> {
 			session.beginTransaction();
@@ -256,12 +252,9 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		final var accountRole = accountRoleList.get(0);
 
-		final var accessToken = new AccessToken();
+		final var accessToken = new AccessToken(accountRole);
 
 		wrapSession(session -> {
-//			accessToken.setAccountRole(session.get(AccountRole.class, accountRole.getId()));
-			accessToken.setAccountRole(accountRole);
-
 			session.beginTransaction();
 			session.save(accessToken);
 			session.getTransaction().commit();
@@ -296,15 +289,14 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		return Response.ok().build();
 	}
 
-	public void updateAccountSaltHash(Account account, byte[] data) {
+	public void updateAccountSaltHash(final Account account, final byte[] data) {
 		final var digest = accountSignerProvider.get();
 		wrapSession(session -> {
-			final var entity = session.get(Account.class, account.getId());
 			final var salt = digest.generateSalt(64);
 			final var hash = digest.getHash(salt, data);
+			account.setSalt(salt);
+			account.setHash(hash);
 
-			entity.setSalt(salt);
-			entity.setHash(hash);
 			session.beginTransaction();
 			session.persist(entity);
 			session.getTransaction().commit();
@@ -316,6 +308,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		wrapSession(session -> {
 			final var registerRole = accountRoleLocator.getByRoleName(account, AccessRoleModel.REGISTER);
 			registerRole.delete();
+
 			session.beginTransaction();
 			session.save(registerRole);
 			session.getTransaction().commit();
@@ -324,9 +317,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		// Add with role.
 		wrapSession(session -> {
 			final var accessRole = accessRoleLocator.getByKey(AccessRole.getKey(role));
-			AccountRole accountRole = new AccountRole();
-			accountRole.setAccount(account);
-			accountRole.setAccessRole(accessRole);
+			final var accountRole = new AccountRole(account, accessRole);
 
 			session.beginTransaction();
 			session.save(accessRole);
