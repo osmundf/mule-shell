@@ -153,6 +153,9 @@
     <orderEntry type="library" name="Maven: ru.vyarus:dropwizard-guicey:4.2.2" level="project" />
     <orderEntry type="library" name="Maven: com.google.inject.extensions:guice-servlet:4.2.2" level="project" />
     <orderEntry type="library" name="Maven: ru.vyarus:generics-resolver:3.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.hibernate:hibernate-c3p0:5.4.3.Final" level="project" />
+    <orderEntry type="library" name="Maven: com.mchange:c3p0:0.9.5.3" level="project" />
+    <orderEntry type="library" name="Maven: com.mchange:mchange-commons-java:0.2.15" level="project" />
     <orderEntry type="library" name="Maven: org.postgresql:postgresql:42.2.5" level="project" />
     <orderEntry type="library" name="Maven: io.gsonfire:gson-fire:1.8.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:27.0.1-jre" level="project" />
