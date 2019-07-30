@@ -149,7 +149,9 @@
                         </goals>
                         <configuration>
                             <inputSpec>${basedir}/main-swagger/swagger.yaml</inputSpec>
-                            <configurationFile>${basedir}/main-swagger/config.json</configurationFile>
+                            <configurationFile>${project.basedir}/main-swagger/config.json</configurationFile>
+                            <ignoreFileOverride>${project.basedir}/main-swagger/.swagger-codegen-ignore
+                            </ignoreFileOverride>
                             <language>jaxrs-spec</language>
                             <apiPackage>net.sf.zoftwhere.mule.api</apiPackage>
                             <modelPackage>net.sf.zoftwhere.mule.model</modelPackage>
