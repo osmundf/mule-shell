@@ -202,6 +202,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 					configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
 				} else if (MacroCaseNamingStrategy.class.getName().equals(namingStrategy)) {
 					configuration.setPhysicalNamingStrategy(new MacroCaseNamingStrategy());
+				} else {
+					logger.warn("The following naming strategy may not have been loaded: {}", new Object[]{namingStrategy});
 				}
 			}
 		};
