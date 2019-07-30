@@ -197,7 +197,7 @@
                                 <goal>jar</goal>
                             </goals>
                             <configuration>
-                                <skipIfEmpty>true</skipIfEmpty>
+                                <skipIfEmpty>false</skipIfEmpty>
                             </configuration>
                         </execution>
                         <execution>
@@ -208,7 +208,7 @@
                             </goals>
                             <configuration>
                                 <classifier>tests</classifier>
-                                <skipIfEmpty>true</skipIfEmpty>
+                                <skipIfEmpty>false</skipIfEmpty>
                             </configuration>
                         </execution>
                     </executions>
@@ -295,9 +295,14 @@
                     <execution>
                         <id>default-cli</id>
                         <phase>none</phase>
-                        <configuration>
-                            <skipIfEmpty>true</skipIfEmpty>
-                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>main-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>test-jar</id>
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>
