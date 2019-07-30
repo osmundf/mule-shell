@@ -42,7 +42,7 @@ import java.util.UUID;
 
 public class AccountResource extends AbstractResource implements AccountApi {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
+	private static final Logger logger = LoggerFactory.getLogger(AccountResource.class);
 
 	private static final String BASIC_AUTHENTICATION_SCHEME = "basic";
 
@@ -180,8 +180,6 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		updateAccountSaltHash(account, data);
-
 		if (security.isUserInRole(REGISTER_ROLE)) {
 			try {
 				setupRegisteredAccount(account, AccessRoleModel.CLIENT);
@@ -189,6 +187,8 @@ public class AccountResource extends AbstractResource implements AccountApi {
 				logger.error("Error setting up registered account.", e);
 			}
 		}
+
+		updateAccountSaltHash(account, data);
 
 		return Response.ok().build();
 	}
