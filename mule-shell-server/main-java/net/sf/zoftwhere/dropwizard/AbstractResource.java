@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.Provider;
+import net.sf.zoftwhere.hibernate.TransactionalSession;
 import org.hibernate.Session;
 
 import javax.persistence.EntityNotFoundException;

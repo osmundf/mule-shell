@@ -1,4 +1,4 @@
-package net.sf.zoftwhere.dropwizard;
+package net.sf.zoftwhere.hibernate;
 
 import com.google.inject.Provider;
 import org.hibernate.Session;

@@ -2,6 +2,7 @@ package net.sf.zoftwhere.dropwizard;
 
 import com.google.inject.Provider;
 import io.dropwizard.hibernate.AbstractDAO;
+import net.sf.zoftwhere.hibernate.TransactionalSession;
 import net.sf.zoftwhere.mule.proxy.EmptyInterface;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -57,7 +58,7 @@ public abstract class AbstractLocator<E, I extends Serializable> extends Abstrac
 		}
 	}
 
-	protected  <T> Optional<T> tryFetchSingleResult(String subName, Function<Query<T>, Optional<T>> routine, Class<T> resultType) {
+	protected <T> Optional<T> tryFetchSingleResult(String subName, Function<Query<T>, Optional<T>> routine, Class<T> resultType) {
 		final var name = prefix + "." + subName;
 		try (Session session = sessionProvider.get()) {
 			return routine.apply(session.createNamedQuery(name, resultType));
@@ -70,7 +71,7 @@ public abstract class AbstractLocator<E, I extends Serializable> extends Abstrac
 		}
 	}
 
-	protected  <T> Optional<List<T>> tryFetchResult(String subName, Function<Query<T>, Query<T>> routine, Class<T> resultType) {
+	protected <T> Optional<List<T>> tryFetchResult(String subName, Function<Query<T>, Query<T>> routine, Class<T> resultType) {
 		final var name = prefix + "." + subName;
 		try (Session session = sessionProvider.get()) {
 			List<T> result = routine.apply(session.createNamedQuery(name, resultType)).getResultList();

@@ -6,7 +6,7 @@ import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.inject.Provider;
 import io.dropwizard.auth.Authenticator;
-import net.sf.zoftwhere.dropwizard.TransactionalSession;
+import net.sf.zoftwhere.hibernate.TransactionalSession;
 import net.sf.zoftwhere.mule.jpa.AccessTokenLocator;
 import org.hibernate.Session;
 
