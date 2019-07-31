@@ -15,6 +15,7 @@ import net.sf.zoftwhere.mule.jpa.RoleLocator;
 import net.sf.zoftwhere.mule.model.RoleModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
+import net.sf.zoftwhere.mule.security.AuthenticationScheme;
 import net.sf.zoftwhere.mule.security.StaticSecurityContext;
 import net.sf.zoftwhere.text.UTF_8;
 import org.junit.jupiter.api.AfterEach;
@@ -216,7 +217,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			final var principal = new AccountPrincipal(username, role);
 			final var security = StaticSecurityContext.withBuilder()
 					.secure(true)
-					.authenticationScheme("bearer")
+					.authenticationScheme(AuthenticationScheme.BEARER)
 					.role(role)
 					.userPrincipal(principal).build();
 
