@@ -34,6 +34,7 @@ import net.sf.zoftwhere.mule.security.AccountAuthenticator;
 import net.sf.zoftwhere.mule.security.AccountAuthorizer;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
+import net.sf.zoftwhere.mule.security.AuthenticationScheme;
 import net.sf.zoftwhere.mule.security.JWTSigner;
 import net.sf.zoftwhere.mule.security.SecureModule;
 import net.sf.zoftwhere.mule.shell.JShellManager;
@@ -132,7 +133,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 				new AuthorizationAuthFilter.Builder<AccountPrincipal>()
 						.setAuthorizer(new AccountAuthorizer())
 						.setAuthenticator(new AccountAuthenticator(cache, verifier, sessionFactory::openSession))
-						.setPrefix("bearer")
+						.setPrefix(AuthenticationScheme.BEARER)
 						.setRealm("mule-shell-public")
 						.buildAuthFilter()));
 		environment.jersey().register(RolesAllowedDynamicFeature.class);

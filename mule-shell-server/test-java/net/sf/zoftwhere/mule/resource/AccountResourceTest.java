@@ -15,6 +15,7 @@ import net.sf.zoftwhere.mule.jpa.RoleLocator;
 import net.sf.zoftwhere.mule.model.RoleModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
+import net.sf.zoftwhere.mule.security.AuthenticationScheme;
 import net.sf.zoftwhere.mule.security.StaticSecurityContext;
 import net.sf.zoftwhere.text.UTF_8;
 import org.junit.jupiter.api.AfterEach;
@@ -181,6 +182,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	void testNewAccountRegistration() {
 		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
 		final var accountRoleLocator = guiceInjector.getInstance(AccountRoleLocator.class);
+		final var securityVariable = guiceInjector.getInstance(securityKey);
 
 		for (var e : accountSecretMap.entrySet()) {
 			final var username = e.getKey();
@@ -206,26 +208,22 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		}
 
 		for (var e : accountSecretMap.entrySet()) {
-			final var interchange = guiceInjector.getInstance(securityKey);
-			interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
 
 			final var username = e.getKey();
 			final var password = e.getValue();
 			final var role = RoleModel.REGISTER.name();
 
 			final var principal = new AccountPrincipal(username, role);
-			final var security = StaticSecurityContext.withBuilder()
+			final var securityContext = StaticSecurityContext.withBuilder()
 					.secure(true)
-					.authenticationScheme("bearer")
+					.authenticationScheme(AuthenticationScheme.BEARER)
 					.role(role)
 					.userPrincipal(principal).build();
 
-			interchange.accept(security);
+			securityVariable.accept(securityContext);
 
 			final var reset = resource.reset(username, password);
 			final var status = reset.getStatus();
-
-			interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
 
 			assertNotNull(reset);
 			assertEquals(Status.OK.getStatusCode(), status);
