@@ -1,6 +1,7 @@
 /.idea/vcs.xml
 /.idea/libraries/
 /.idea/workspace.xml
+/*/*.jar
 /*/_target/
 /.DS_Store
 /**/.DS_Store
