@@ -190,6 +190,7 @@ definitions:
     enum:
       - admin
       - client
+      - guest
       - register
       - system
 

@@ -252,6 +252,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 				.put(RoleModel.ADMIN.name(), 80)
 				.put(RoleModel.CLIENT.name(), 60)
 				.put(RoleModel.REGISTER.name(), 40)
+				.put(RoleModel.GUEST.name(), 20)
 				.build();
 		final var roleModelArray = RoleModel.values();
 		for (var roleModel : roleModelArray) {
