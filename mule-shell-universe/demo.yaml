@@ -1,17 +1,17 @@
-# Developer Server Configuration.
+# Demo Server Configuration.
 
 # Logging settings.
 logging:
   level: INFO
   loggers:
     net.sf.zoftwhere:
-      level: DEBUG
+      level: INFO
     net.sf.zoftwhere.mule:
-      level: DEBUG
+      level: INFO
     org.hibernate:
       level: WARN
     org.hibernate.SQL:
-      level: DEBUG
+      level: WARN
   appenders:
     - type: console
       threshold: ALL
@@ -31,7 +31,7 @@ logging:
 
 # Server Settings
 server:
-  applicationContextPath: /mule-shell
+  applicationContextPath: /mule-shell-demo
   applicationConnectors:
     - type: http
       port: 8080
@@ -42,13 +42,13 @@ server:
 
 # Database Settings
 database:
-  driverClass: org.postgresql.Driver
-  url: jdbc:postgresql://localhost:5432/mule?currentSchema=public
-  user: mule-admin
+  driverClass: org.h2.Driver
+  url: jdbc:h2:mem:mule;mode=PostgreSQL;database_to_lower=true
+  user: admin
   password:
   properties:
-    hibernate.dialect: org.hibernate.dialect.PostgreSQL10Dialect
     hibernate.physical_naming_strategy: net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy
+    hibernate.dialect: org.hibernate.dialect.PostgreSQL10Dialect
     hibernate.globally_quoted_identifiers: true
     hibernate.hbm2ddl.auto: update
     hibernate.show_sql: false
