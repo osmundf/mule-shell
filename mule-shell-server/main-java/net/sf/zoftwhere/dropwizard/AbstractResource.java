@@ -88,9 +88,9 @@ public abstract class AbstractResource implements TransactionalSession {
 		return parser.apply(value).map(fetcher).orElseThrow(() -> entityNotFound(name, value));
 	}
 
-	protected <V, E, I> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser, final Function<I, E> fetcher) {
+	protected <V, E, I> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser, final Function<I, Optional<E>> fetcher) {
 		try {
-			return parser.apply(value).map(fetcher);
+			return parser.apply(value).map(fetcher).get();
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		}

@@ -1,32 +1,36 @@
 package net.sf.zoftwhere.mule.security;
 
-import com.auth0.jwt.interfaces.JWTVerifier;
+import com.auth0.jwt.JWTVerifier;
 import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import io.dropwizard.setup.Bootstrap;
 import net.sf.zoftwhere.mule.MuleConfiguration;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 
+import java.util.function.Supplier;
+
 public class SecureModule extends DropwizardAwareModule<MuleConfiguration> {
 
-	private final JWTVerifier verifier;
+	private final Supplier<JWTVerifier> verifier;
 
-	private final JWTSigner signer;
+	private final Supplier<JWTSigner> signer;
 
-	public SecureModule(JWTVerifier verifier, JWTSigner signer) {
-		this.verifier = verifier;
-		this.signer = signer;
+	public SecureModule(Supplier<JWTSigner> signerProducer, Supplier<JWTVerifier> verifierProducer) {
+		this.verifier = verifierProducer;
+		this.signer = signerProducer;
+	}
+
+	@Override
+	protected Bootstrap<MuleConfiguration> bootstrap() {
+		return super.bootstrap();
 	}
 
 	@Provides
-	@Singleton
 	public JWTVerifier getJWTVerifier() {
-		return verifier;
+		return verifier.get();
 	}
 
 	@Provides
-	@Singleton
 	public JWTSigner getJWTSigner() {
-		return signer;
+		return signer.get();
 	}
-
 }

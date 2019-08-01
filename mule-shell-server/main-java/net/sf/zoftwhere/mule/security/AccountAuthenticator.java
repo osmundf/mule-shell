@@ -1,7 +1,7 @@
 package net.sf.zoftwhere.mule.security;
 
-import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.JWTVerifier;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.inject.Provider;
@@ -40,7 +40,7 @@ public class AccountAuthenticator implements Authenticator<String, AccountPrinci
 			}
 
 			final var tokenLocator = new TokenLocator(sessionProvider);
-			final var accessToken = tokenLocator.getById(tokenUUID);
+			final var accessToken = tokenLocator.getById(tokenUUID).orElseThrow();
 			final var accountRole = accessToken.getAccountRole();
 			final var account = accountRole.getAccount();
 			final var role = accountRole.getRole();

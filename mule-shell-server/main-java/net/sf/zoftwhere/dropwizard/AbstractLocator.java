@@ -35,8 +35,12 @@ public abstract class AbstractLocator<E, I extends Serializable> extends Abstrac
 		this.sessionProvider = sessionProvider;
 	}
 
-	public E getById(I id) {
-		return super.get(id);
+	public Optional<E> getById(I id) {
+		try {
+			return Optional.ofNullable(super.get(id));
+		} catch (NoResultException ignore) {
+			return Optional.empty();
+		}
 	}
 
 	@Override
@@ -48,7 +52,7 @@ public abstract class AbstractLocator<E, I extends Serializable> extends Abstrac
 		final var name = prefix + "." + subName;
 		try (Session session = sessionProvider.get()) {
 			final var result = function.apply(session.createNamedQuery(name, super.getEntityClass()));
-			return Optional.of(result);
+			return Optional.ofNullable(result);
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		} catch (RuntimeException e) {
@@ -85,17 +89,18 @@ public abstract class AbstractLocator<E, I extends Serializable> extends Abstrac
 		}
 	}
 
-	public static <I, E> Optional<E> tryFetchEntity(I id, final Function<I, E> fetcher) {
+	public static <I, E> Optional<E> tryFetchEntity(I id, final Function<I, Optional<E>> fetcher) {
 		try {
-			return Optional.ofNullable(fetcher.apply(id));
+			return fetcher.apply(id);
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		}
 	}
 
-	public static <V, I, E> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser, final Function<I, E> fetcher) {
+	public static <V, I, E> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser, final Function<I, Optional<E>> fetcher) {
 		try {
-			return parser.apply(value).map(fetcher);
+			final Optional<I> id = parser.apply(value);
+			return id.isPresent() ? fetcher.apply(id.get()) : Optional.empty();
 		} catch (NoResultException ignore) {
 			return Optional.empty();
 		}

@@ -53,8 +53,9 @@ public class AccountRole extends AbstractEntity<UUID> {
 	public AccountRole() {
 	}
 
-	public AccountRole(Account account, Role role) {
+	public AccountRole(Account account, Role role, String value) {
 		this.account = account;
 		this.role = role;
+		this.value = value;
 	}
 }

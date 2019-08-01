@@ -102,7 +102,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			final var username = secretEntry.getKey();
 			final var password = secretEntry.getValue();
 
-			final var accountPhase1 = accountLocator.getByUsername(username);
+			final var accountPhase1 = accountLocator.getByUsername(username).orElseThrow();
 
 			final var scheme = "basic";
 			final var credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
@@ -123,7 +123,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			};
 			final AccountPrincipal cached = principalProvider.get().orElse(null);
 
-			final var accountPhase2 = accountLocator.getByUsername(username);
+			final var accountPhase2 = accountLocator.getByUsername(username).orElseThrow();
 
 			assertNotNull(login);
 			assertNotNull(cache);
@@ -195,7 +195,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 			createAccount(username, email, password, RoleModel.REGISTER);
 
-			final var account = accountLocator.getByUsername(username);
+			final var account = accountLocator.getByUsername(username).orElseThrow();
 			final var accountRoleList = accountRoleLocator.getForAccount(account);
 
 			assertNotNull(account);
@@ -228,7 +228,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertNotNull(reset);
 			assertEquals(Status.OK.getStatusCode(), status);
 
-			final var account = accountLocator.getByUsername(username);
+			final var account = accountLocator.getByUsername(username).orElseThrow();
 			final var accountRoleList = accountRoleLocator.getForAccount(account);
 
 			assertNotNull(account);
@@ -321,9 +321,8 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		assertNotNull(account);
 
 		// Add with role.
-		final var role = roleLocator.getByKey(Role.getKey(roleModel));
-		final var accountRole = new AccountRole(account, role);
-		accountRole.setValue(role.getValue());
+		final var role = roleLocator.getByKey(Role.getKey(roleModel)).orElseThrow();
+		final var accountRole = new AccountRole(account, role, role.getValue());
 
 		wrapConsumer(session -> {
 			session.beginTransaction();

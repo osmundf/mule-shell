@@ -10,17 +10,17 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class AccountLocator extends AbstractLocator<Account, UUID> {
+public class SettingLocator extends AbstractLocator<Setting, UUID> {
 
 	@Inject
-	public AccountLocator(Provider<Session> sessionProvider) {
+	public SettingLocator(Provider<Session> sessionProvider) {
 		super(sessionProvider);
 	}
 
-	public Optional<Account> getByUsername(final String username) {
-		Function<Query<Account>, Account> parameter;
-		parameter = query -> query.setParameter("username", username).getSingleResult();
-		return tryFetchNamedQuery("byUsername", parameter);
+	public Optional<Setting> getByKey(final String key) {
+		Function<Query<Setting>, Setting> parameter;
+		parameter = query -> query.setParameter("key", key).getSingleResult();
+		return tryFetchNamedQuery("byKey", parameter);
 	}
 
 	void persistCollection(ShellSession session) {
