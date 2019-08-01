@@ -100,40 +100,37 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-help-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- mvn install:install-file@local -->
-                        <id>local</id>
-                        <phase>install</phase>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>deploy-artifact</id>
+                        <phase>deploy</phase>
                         <goals>
-                            <goal>install-file</goal>
+                            <goal>deploy-file</goal>
                         </goals>
                         <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <pomFile>${project.basedir}/pom.xml</pomFile>
                             <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <generatePom>false</generatePom>
-                            <pomFile>pom.xml</pomFile>
-                            <createChecksum>true</createChecksum>
+                            <packaging>jar</packaging>
+                            <!-- packaging loads test-jars for deploy? -->
+                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
+                            <!--<types>jar</types>-->
+                            <!--<classifiers>tests</classifiers>-->
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-
-            <plugin>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-codegen-maven-plugin</artifactId>
                 <version>2.4.5</version>
-
                 <executions>
                     <execution>
                         <phase>${swagger.io.generate.phase}</phase>
@@ -162,7 +159,6 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>3.0.0</version>
-
                 <executions>
                     <execution>
                         <id>add-generated-source</id>

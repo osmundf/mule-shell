@@ -10,6 +10,7 @@
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-model/test-java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-model/test-resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-model/_target/generated-sources/swagger/java" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/mule-shell-model/_target/generated-sources/annotations" isTestSource="false" generated="true" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-model/_target" />
     </content>
     <orderEntry type="inheritedJdk" />

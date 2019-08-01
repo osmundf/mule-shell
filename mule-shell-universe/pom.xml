@@ -13,7 +13,6 @@
     <version>1.0.0-S</version>
 
     <properties>
-        <com.h2database.h2.version>1.4.199</com.h2database.h2.version>
     </properties>
 
     <dependencyManagement>
@@ -48,12 +47,6 @@
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
             <artifactId>mule-shell-client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.2.0</version>
         </dependency>
 
         <dependency>
@@ -100,7 +93,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>${com.h2database.h2.version}</version>
+            <version>1.4.199</version>
             <scope>test</scope>
         </dependency>
 
@@ -115,41 +108,31 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <release>${maven.compiler.release}</release>
-                    <compilerArgs>
-                        <arg>-Xlint:all,-processing,-cast,-serial,-try</arg>
-                    </compilerArgs>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>true</showDeprecation>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- mvn install:install-file@local -->
-                        <id>local</id>
-                        <phase>install</phase>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>deploy-artifact</id>
+                        <phase>deploy</phase>
                         <goals>
-                            <goal>install-file</goal>
+                            <goal>deploy-file</goal>
                         </goals>
                         <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <pomFile>${project.basedir}/pom.xml</pomFile>
                             <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <generatePom>false</generatePom>
-                            <pomFile>pom.xml</pomFile>
-                            <createChecksum>true</createChecksum>
+                            <packaging>jar</packaging>
+                            <!-- packaging loads test-jars for deploy? -->
+                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
+                            <!--<types>jar</types>-->
+                            <!--<classifiers>tests</classifiers>-->
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

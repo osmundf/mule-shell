@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/main-resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/test-java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/test-resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/mule-shell-client/_target/generated-sources/annotations" isTestSource="false" generated="true" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-client/_target" />
     </content>
     <orderEntry type="inheritedJdk" />
