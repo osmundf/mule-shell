@@ -12,6 +12,9 @@
     <artifactId>mule-shell-common</artifactId>
     <version>1.0.0-S</version>
 
+    <properties>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
