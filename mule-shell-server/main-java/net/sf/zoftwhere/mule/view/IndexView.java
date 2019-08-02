@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 public class IndexView extends AbstractView {
 
-	private static final String templateName = getTemplateName(IndexView.class, FTL_SUFFIX);
+	private static final String templateName = getTemplateName(IndexView.class, FTL_SUFFIX).toLowerCase();
 
 	public IndexView(ContextPath contextPath) {
 		super(templateName, StandardCharsets.UTF_8, contextPath);

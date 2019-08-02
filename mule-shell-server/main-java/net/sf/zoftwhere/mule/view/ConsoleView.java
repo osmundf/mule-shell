@@ -9,7 +9,7 @@ import java.time.Instant;
 
 public class ConsoleView extends AbstractView {
 
-	private static final String templateName = getTemplateName(ConsoleView.class, FTL_SUFFIX);
+	private static final String templateName = getTemplateName(ConsoleView.class, FTL_SUFFIX).toLowerCase();
 
 	@Getter
 	private final RoleModel roleModel;
