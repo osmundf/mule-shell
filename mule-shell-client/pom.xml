@@ -50,49 +50,31 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <release>${maven.compiler.release}</release>
-                    <compilerArgs>
-                        <arg>-Xlint:all,-processing,-cast,-serial,-try</arg>
-                    </compilerArgs>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>true</showDeprecation>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- mvn install:install-file@local -->
-                        <id>local</id>
-                        <phase>install</phase>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>deploy-artifact</id>
+                        <phase>deploy</phase>
                         <goals>
-                            <goal>install-file</goal>
+                            <goal>deploy-file</goal>
                         </goals>
                         <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <pomFile>${project.basedir}/pom.xml</pomFile>
                             <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <generatePom>false</generatePom>
-                            <pomFile>pom.xml</pomFile>
-                            <createChecksum>true</createChecksum>
+                            <packaging>jar</packaging>
+                            <!-- packaging loads test-jars for deploy? -->
+                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
+                            <!--<types>jar</types>-->
+                            <!--<classifiers>tests</classifiers>-->
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <configuration>
-                    <overwrite>false</overwrite>
-                </configuration>
             </plugin>
         </plugins>
     </build>

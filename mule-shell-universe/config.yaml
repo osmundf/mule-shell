@@ -8,6 +8,8 @@ logging:
       level: DEBUG
     net.sf.zoftwhere.mule:
       level: DEBUG
+    org.hibernate:
+      level: WARN
     org.hibernate.SQL:
       level: DEBUG
   appenders:
@@ -33,7 +35,7 @@ server:
   applicationConnectors:
     - type: http
       port: 8080
-  adminContextPath: /mule-shell
+  adminContextPath: /admin
   adminConnectors:
     - type: http
       port: 8081

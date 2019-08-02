@@ -13,7 +13,7 @@
     <version>1.0.0-S</version>
 
     <properties>
-        <com.h2database.h2.version>1.4.199</com.h2database.h2.version>
+        <shadePhase>package</shadePhase>
     </properties>
 
     <dependencyManagement>
@@ -37,12 +37,45 @@
 
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-model</artifactId>
+            <artifactId>mule-shell-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>2.5.0-b32</version>
+            <!-- Class class with javax.inject -->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <!---->
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>aopalliance-repackaged</artifactId>
+            <version>2.5.0-b32</version>
+            <!-- Class class with AOP Alliance -->
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- javax.websocket:javax.websocket-api:jar:1.0:compile -->
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <version>1.0</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- javax.websocket:javax.websocket-client:jar:1.0:compile -->
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-client-api</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-server</artifactId>
+            <artifactId>mule-shell-model</artifactId>
         </dependency>
 
         <dependency>
@@ -51,33 +84,18 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.2.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
-            <version>2.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>5.4.3.Final</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.199</version>
+            <!-- compile for demonstration purposes. -->
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
+            <!-- compile for demonstration purposes. -->
             <scope>compile</scope>
         </dependency>
 
@@ -98,13 +116,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>${com.h2database.h2.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
@@ -115,41 +126,97 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+                <artifactId>maven-clean-plugin</artifactId>
                 <configuration>
-                    <release>${maven.compiler.release}</release>
-                    <compilerArgs>
-                        <arg>-Xlint:all,-processing,-cast,-serial,-try</arg>
-                    </compilerArgs>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>true</showDeprecation>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.build.directory}</directory>
+                        </fileset>
+                        <fileset>
+                            <directory>${project.basedir}</directory>
+                            <includes>
+                                <include>demo.jar</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- mvn install:install-file@local -->
-                        <id>local</id>
-                        <phase>install</phase>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>deploy-artifact</id>
+                        <phase>deploy</phase>
                         <goals>
-                            <goal>install-file</goal>
+                            <goal>deploy-file</goal>
                         </goals>
                         <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <pomFile>${project.basedir}/pom.xml</pomFile>
                             <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <generatePom>false</generatePom>
-                            <pomFile>pom.xml</pomFile>
-                            <createChecksum>true</createChecksum>
+                            <packaging>jar</packaging>
+                            <!-- packaging loads test-jars for deploy? -->
+                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
+                            <!--<types>jar</types>-->
+                            <!--<classifiers>tests</classifiers>-->
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
+            <!-- Ensure that the jar plugin goals execute before the shade plugin. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>module-info.class</exclude>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>${shadePhase}</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>shaded</shadedClassifierName>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>net.sf.zoftwhere.mule.MuleShellDemo</mainClass>
+                                </transformer>
+                            </transformers>
+                            <outputFile>demo.jar</outputFile>
+                            <outputDirectory>${project.basedir}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

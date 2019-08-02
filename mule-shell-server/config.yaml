@@ -29,7 +29,7 @@ server:
   applicationConnectors:
     - type: http
       port: 8080
-  adminContextPath: /mule-shell
+  adminContextPath: /admin
   adminConnectors:
     - type: http
       port: 8081

@@ -53,7 +53,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	private Cache<UUID, AccountPrincipal> cache;
 
 	@Inject
-	private JWTSigner signer;
+	private Provider<JWTSigner> signerProvider;
 
 	@Inject
 	private Provider<AccountSigner> accountSignerProvider;
@@ -75,11 +75,12 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	/**
 	 * System only: register user.
 	 */
-	@RolesAllowed({"SYSTEM"})
+	@RolesAllowed({SYSTEM_ROLE})
 	@POST
 	@Path("/register")
 	public Response register(@QueryParam("user") String username, @QueryParam("email") String emailAddress) {
 		final var security = securityContextProvider.get();
+		final var signer = signerProvider.get();
 
 		// TODO: !security.isSecure()
 		if (security == null || security.getUserPrincipal() == null
@@ -114,8 +115,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 
-		final var accountRole = new AccountRole(account, role)
-				.setValue(role.getValue());
+		final var accountRole = new AccountRole(account, role, role.getValue());
 
 		wrapSession(session -> {
 			session.beginTransaction();
@@ -162,7 +162,8 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		}
 
 		final var name = security.getUserPrincipal().getName();
-		final var account = accountLocator.getByUsername(name);
+		// TODO: Fix this with an appropriate message.
+		final var account = accountLocator.getByUsername(name).orElseThrow();
 		final var digest = accountSignerProvider.get();
 		final var data = password.getBytes(StandardCharsets.UTF_8);
 
@@ -264,6 +265,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 				.withJWTId(accessToken.getId().toString())
 				.withExpiresAt(new Date(Instant.now().plus(Duration.ofMinutes(10)).toEpochMilli()));
 
+		final var signer = signerProvider.get();
 		final var jwtToken = signer.sign(tokenBuilder);
 
 		final var principal = new AccountPrincipal(username, accountRole.getRole().getName());
@@ -305,8 +307,9 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		if (currentAccountRole == null) {
 			// Add with role.
 			wrapSession(session -> {
-				final var role = roleLocator.getByKey(Role.getKey(roleModel));
-				final var accountRole = new AccountRole(account, role).setValue(role.getValue());
+				// TODO: Fix this with the needed checks.
+				final var role = roleLocator.getByKey(Role.getKey(roleModel)).orElseThrow();
+				final var accountRole = new AccountRole(account, role, role.getValue());
 
 				session.beginTransaction();
 				session.save(accountRole);

@@ -16,7 +16,6 @@ import net.sf.zoftwhere.mule.shell.JShellManager;
 import net.sf.zoftwhere.mule.shell.UUIDBuffer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +67,7 @@ class SessionResourceTest extends TestResource<SessionResource> {
 		}
 	}
 
-	@Disabled
+	// @Disabled
 	// @Test
 	public void debugExpressions() {
 		final var jshell = JShell.create();
@@ -133,7 +132,7 @@ class SessionResourceTest extends TestResource<SessionResource> {
 	/**
 	 * Debug code to compare snippet entries with those listing in JShell executed in terminal.
 	 */
-	@Disabled
+	// @Disabled
 	// @Test
 	public void testCodeAnalysis() {
 		JShellManager manager = new JShellManager();

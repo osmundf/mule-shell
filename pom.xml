@@ -45,15 +45,11 @@
         <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
+        <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
         <maven-site-plugin.version>3.7.1</maven-site-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <maven-toolchains-plugin.version>3.0.0</maven-toolchains-plugin.version>
         <maven-war-plugin.version>3.2.3</maven-war-plugin.version>
-
-        <!-- Application dependency properties. -->
-        <org.junit.5.version>5.2.0</org.junit.5.version>
-        <org.mockito.mockito-core.version>2.23.0</org.mockito.mockito-core.version>
-        <org.projectlombok.lombok.version>1.18.8</org.projectlombok.lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -61,13 +57,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>${org.projectlombok.lombok.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${org.mockito.mockito-core.version}</version>
+                <version>1.18.8</version>
             </dependency>
 
             <dependency>
@@ -82,7 +72,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>${org.junit.5.version}</version>
+                <version>5.2.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -143,6 +133,13 @@
                         </compilerArgs>
                         <showWarnings>true</showWarnings>
                         <showDeprecation>true</showDeprecation>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>1.18.8</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
 
@@ -156,29 +153,34 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
                     <version>${maven-deploy-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-help-plugin</artifactId>
-                    <version>${maven-help-plugin.version}</version>
                     <executions>
                         <execution>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>effective-pom</goal>
-                            </goals>
+                            <phase>none</phase>
+                        </execution>
+                        <execution>
+                            <id>default-deploy</id>
+                            <phase>none</phase>
+                        </execution>
+                        <execution>
+                            <id>deploy-artifact</id>
+                            <phase>none</phase>
                         </execution>
                     </executions>
-                    <configuration>
-                        <output>${project.build.directory}/pom.effective.xml</output>
-                    </configuration>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
                     <version>${maven-install-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>none</phase>
+                        </execution>
+                        <execution>
+                            <id>default-install</id>
+                            <phase>none</phase>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>
@@ -186,6 +188,9 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>${maven-jar-plugin.version}</version>
                     <executions>
+                        <execution>
+                            <phase>none</phase>
+                        </execution>
                         <execution>
                             <id>default-jar</id>
                             <phase>none</phase>
@@ -218,6 +223,15 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>${maven-resources-plugin.version}</version>
+                    <configuration>
+                        <overwrite>false</overwrite>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin.version}</version>
                 </plugin>
 
                 <plugin>
@@ -251,38 +265,16 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-help-plugin</artifactId>
+                <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>effective-pom</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-install</id>
+                        <id>create-lib</id>
                         <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>install-local</id>
-                        <phase>install</phase>
                         <goals>
-                            <goal>install-file</goal>
+                            <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <createChecksum>true</createChecksum>
-                            <file>${project.build.directory}/pom.effective.xml</file>
-                            <packaging>pom</packaging>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -290,22 +282,27 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${maven-deploy-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>default-cli</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>main-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>test-jar</id>
-                        <phase>none</phase>
+                        <id>default</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <pomFile>${project.basedir}/pom.xml</pomFile>
+                            <file>${project.basedir}/pom.xml</file>
+                            <packaging>pom</packaging>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
 </project>

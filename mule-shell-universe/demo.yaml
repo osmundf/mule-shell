@@ -1,0 +1,69 @@
+# Demo Server Configuration.
+
+# Logging settings.
+logging:
+  level: INFO
+  loggers:
+    net.sf.zoftwhere:
+      level: INFO
+    net.sf.zoftwhere.mule:
+      level: INFO
+    org.hibernate:
+      level: WARN
+    org.hibernate.SQL:
+      level: WARN
+  appenders:
+    - type: console
+      threshold: ALL
+      queueSize: 512
+      discardingThreshold: 0
+      timeZone: UTC
+      target: stdout
+      logFormat: "%-5p [%d{ISO8601,CAT}] %c: %m%n%rEx"
+    - type: file
+      threshold: INFO
+      currentLogFilename: /tmp/application.log
+      archivedLogFilenamePattern: /tmp/application-%d{yyyy-MM-dd}-%i.log.gz
+      archivedFileCount: 7
+      timeZone: UTC
+      maxFileSize: 10MiB
+      logFormat: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
+
+# Server Settings
+server:
+  applicationContextPath: /mule-shell-demo
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminContextPath: /admin
+  adminConnectors:
+    - type: http
+      port: 8081
+
+# Database Settings
+database:
+  driverClass: org.h2.Driver
+  url: jdbc:h2:mem:mule;mode=PostgreSQL;database_to_lower=true
+  user: admin
+  password:
+  properties:
+    hibernate.physical_naming_strategy: net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy
+    hibernate.dialect: org.hibernate.dialect.PostgreSQL10Dialect
+    hibernate.globally_quoted_identifiers: true
+    hibernate.hbm2ddl.auto: update
+    hibernate.show_sql: false
+    hibernate.format_sql: false
+
+# the key needs to match the configuration key of the renderer (ViewRenderer::getConfigurationKey)
+viewRendererConfiguration:
+  freemarker:
+    strict_syntax: yes
+    whitespace_stripping: yes
+
+#metrics:
+#  reporters:
+#    - type: graphite
+#      host: localhost
+#      port: 2003
+#      prefix: example
+#      frequency: 1m

@@ -59,7 +59,7 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		return Response.ok(Instant.now().atOffset(ZoneOffset.UTC)).build();
 	}
 
-	@RolesAllowed({"CLIENT"})
+	@RolesAllowed({CLIENT_ROLE})
 	@Override
 	public Response newSession() {
 		final var security = securityContextProvider.get();
@@ -76,21 +76,21 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		return Response.ok(ShellSession.asSessionModel(shellSession, ZoneOffset.UTC)).build();
 	}
 
-	@RolesAllowed({"CLIENT"})
+	@RolesAllowed({CLIENT_ROLE})
 	@Override
 	public Response getSession(String id, String tz) {
 		final var security = securityContextProvider.get();
 
 		// Get zone offset may throw a date time exception for invalid time zone.
 		final var zoneOffset = getZoneOffset(tz).orElse(ZoneOffset.UTC);
-		final var shellSession = tryFetchEntity(id, this::tryAsUUID, shellLocator::getById).orElse(null);
+		final var shellSession = tryFetchEntity(id, this::tryAsUUID, shellLocator::getById);
 
 		// TODO: Add shell session access tokens (owner, user, visitor)
-		if (shellSession == null) {
+		if (shellSession.isEmpty()) {
 			return Response.ok(Response.Status.BAD_REQUEST).entity("Session unavailable.").build();
 		}
 
-		final var model = ShellSession.asSessionModel(shellSession, zoneOffset);
+		final var model = ShellSession.asSessionModel(shellSession.get(), zoneOffset);
 		return Response.ok().entity(model).build();
 	}
 

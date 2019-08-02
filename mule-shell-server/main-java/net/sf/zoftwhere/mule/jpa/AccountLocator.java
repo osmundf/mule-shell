@@ -6,6 +6,7 @@ import net.sf.zoftwhere.dropwizard.AbstractLocator;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -16,10 +17,10 @@ public class AccountLocator extends AbstractLocator<Account, UUID> {
 		super(sessionProvider);
 	}
 
-	public Account getByUsername(final String username) {
+	public Optional<Account> getByUsername(final String username) {
 		Function<Query<Account>, Account> parameter;
 		parameter = query -> query.setParameter("username", username).getSingleResult();
-		return tryFetchNamedQuery("byUsername", parameter).orElse(null);
+		return tryFetchNamedQuery("byUsername", parameter);
 	}
 
 	void persistCollection(ShellSession session) {

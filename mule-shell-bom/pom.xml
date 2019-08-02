@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -19,41 +20,32 @@
         <dependencies>
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
-                <artifactId>mule-shell-model</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-client</artifactId>
-                <version>${project.version}</version>
+                <version>1.0.0-S</version>
             </dependency>
 
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.sf.zoftwhere.mule</groupId>
-                <artifactId>mule-shell-server</artifactId>
-                <version>${project.version}</version>
+                <version>1.0.0-S</version>
             </dependency>
 
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-model</artifactId>
-                <version>${project.version}</version>
-                <type>jar</type>
-                <classifier>tests</classifier>
-                <scope>test</scope>
+                <version>1.0.0-S</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.zoftwhere.mule</groupId>
+                <artifactId>mule-shell-server</artifactId>
+                <version>1.0.0-S</version>
             </dependency>
 
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-client</artifactId>
-                <version>${project.version}</version>
+                <version>1.0.0-S</version>
                 <type>jar</type>
                 <classifier>tests</classifier>
                 <scope>test</scope>
@@ -62,7 +54,16 @@
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-common</artifactId>
-                <version>${project.version}</version>
+                <version>1.0.0-S</version>
+                <type>jar</type>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>net.sf.zoftwhere.mule</groupId>
+                <artifactId>mule-shell-model</artifactId>
+                <version>1.0.0-S</version>
                 <type>jar</type>
                 <classifier>tests</classifier>
                 <scope>test</scope>
@@ -71,7 +72,7 @@
             <dependency>
                 <groupId>net.sf.zoftwhere.mule</groupId>
                 <artifactId>mule-shell-server</artifactId>
-                <version>${project.version}</version>
+                <version>1.0.0-S</version>
                 <type>jar</type>
                 <classifier>tests</classifier>
                 <scope>test</scope>
@@ -86,61 +87,29 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-help-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>effective-pom</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <output>${project.build.directory}/pom.effective.xml</output>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-install</id>
                         <phase>none</phase>
                     </execution>
                     <execution>
-                        <id>install-local</id>
-                        <phase>install</phase>
+                        <id>deploy-bom</id>
+                        <phase>deploy</phase>
                         <goals>
-                            <goal>install-file</goal>
+                            <goal>deploy-file</goal>
                         </goals>
                         <configuration>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>${project.artifactId}</artifactId>
                             <version>${project.version}</version>
-                            <createChecksum>true</createChecksum>
-                            <file>${project.build.directory}/pom.effective.xml</file>
+                            <pomFile>${project.basedir}/pom.xml</pomFile>
+                            <file>${project.basedir}/pom.xml</file>
                             <packaging>pom</packaging>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>main-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>test-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
-</project>
 
+</project>
