@@ -1,6 +1,8 @@
 package net.sf.zoftwhere.mule.view;
 
 import io.dropwizard.views.View;
+import lombok.Getter;
+import net.sf.zoftwhere.dropwizard.ContextPath;
 
 import java.nio.charset.Charset;
 
@@ -12,22 +14,25 @@ public abstract class AbstractView extends View {
 	public static final String FTLX_SUFFIX = "ftlx";
 	public static final String MUSTACHE_SUFFIX = "mustache";
 
-	public AbstractView(String name) {
-		super(name, null);
+	@Getter
+	private final String contextPath;
+
+	public AbstractView(String name, ContextPath contextPath) {
+		this(name, null, contextPath);
 	}
 
-	public AbstractView(String name, Charset charset) {
+	public AbstractView(String name, Charset charset, ContextPath contextPath) {
 		super(name, charset);
+		this.contextPath = contextPath.get();
 	}
 
 	/**
 	 * Helper for package deployed views.
 	 *
 	 * @param viewClass The view class.
-	 * @param suffix    The file extension (eg. "ftl")
+	 * @param suffix    The file extension (eg. "ftl").
 	 */
 	public static <V extends View> String getTemplateName(Class<V> viewClass, String suffix) {
-//		return viewClass.getSimpleName() + '.' + suffix;
 		final var regex = "(.*)View";
 		final var replacement = "$1";
 		return viewClass.getSimpleName().replaceFirst(regex, replacement) + '.' + suffix;
@@ -36,5 +41,4 @@ public abstract class AbstractView extends View {
 	public static <V extends View> String getTemplateName(Class<V> viewClass, String suffix, String regex, String replacement) {
 		return viewClass.getSimpleName().replaceFirst(regex, replacement) + '.' + suffix;
 	}
-
 }

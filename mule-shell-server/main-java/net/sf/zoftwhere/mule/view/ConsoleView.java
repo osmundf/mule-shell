@@ -1,6 +1,7 @@
 package net.sf.zoftwhere.mule.view;
 
 import lombok.Getter;
+import net.sf.zoftwhere.dropwizard.ContextPath;
 import net.sf.zoftwhere.mule.model.RoleModel;
 
 import java.nio.charset.StandardCharsets;
@@ -16,8 +17,8 @@ public class ConsoleView extends AbstractView {
 	@Getter
 	private final String time = Instant.now().toString();
 
-	public ConsoleView(RoleModel roleModel) {
-		super(templateName, StandardCharsets.UTF_8);
+	public ConsoleView(RoleModel roleModel, ContextPath contextPath) {
+		super(templateName, StandardCharsets.UTF_8, contextPath);
 		this.roleModel = roleModel;
 	}
 }

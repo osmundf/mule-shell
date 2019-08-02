@@ -23,6 +23,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.views.ViewBundle;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
+import net.sf.zoftwhere.dropwizard.ContextPath;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
 import net.sf.zoftwhere.hibernate.MacroCaseNamingStrategy;
@@ -101,7 +102,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		);
 
 		// Make static assets available if they're present.
-		bootstrap.addBundle(new AssetsBundle("/assets", "/assets", ""));
+		bootstrap.addBundle(new AssetsBundle("/mule-shell/assets", "/assets", ""));
 
 		// Drop-Wizard views.
 		bootstrap.addBundle(new ViewBundle<>());
@@ -144,6 +145,12 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			@Provides
 			public ObjectMapper getObjectMapper(Environment environment) {
 				return environment.getObjectMapper();
+			}
+
+			@Provides
+			@Singleton
+			public ContextPath getContextPath(Environment environment) {
+				return new ContextPath(environment.getApplicationContext().getContextPath());
 			}
 
 			@Provides

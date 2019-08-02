@@ -4,11 +4,11 @@ import net.sf.zoftwhere.dropwizard.ContextPath;
 
 import java.nio.charset.StandardCharsets;
 
-public class LogInView extends AbstractView {
+public class IntroView extends AbstractView {
 
-	private static final String templateName = getTemplateName(LogInView.class, FTL_SUFFIX);
+	private static final String templateName = getTemplateName(IntroView.class, FTL_SUFFIX);
 
-	public LogInView(ContextPath contextPath) {
+	public IntroView(ContextPath contextPath) {
 		super(templateName, StandardCharsets.UTF_8, contextPath);
 	}
 }
