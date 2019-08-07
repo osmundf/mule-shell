@@ -19,7 +19,6 @@ import net.sf.zoftwhere.mule.shell.JShellManager;
 import org.hibernate.Session;
 
 import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -36,10 +35,7 @@ import java.util.stream.Stream;
 
 public class SessionResource extends AbstractResource implements SessionApi {
 
-	//	@Inject
-	private Provider<HttpServletRequest> requestProvider;
-
-	//	@Inject
+	@Inject
 	private Provider<SecurityContext> securityContextProvider;
 
 	@Inject
@@ -65,7 +61,6 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		final var security = securityContextProvider.get();
 
 		final ShellSession shellSession = new ShellSession();
-		shellSession.setName("");
 
 		wrapSession(session -> {
 			session.beginTransaction();

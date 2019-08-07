@@ -3,6 +3,7 @@ package net.sf.zoftwhere.mule.resource;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import lombok.Getter;
+import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.dropwizard.TestInjection;
 import net.sf.zoftwhere.hibernate.TransactionalSession;
@@ -57,11 +58,31 @@ public abstract class TestResource<TestClass extends AbstractResource> implement
 		}
 	}
 
-	void wrapConsumer(Consumer<Session> consumer) {
-		TransactionalSession.wrapSession(sessionProvider, consumer);
-	}
-
 	<E> Optional<E> wrapFunction(Function<Session, E> function) {
 		return TransactionalSession.wrapSession(sessionProvider, function);
+	}
+
+	<T extends AbstractEntity<?>> void persistCollection(T entity) {
+		TransactionalSession.wrapSession(sessionProvider, session -> {
+			session.beginTransaction();
+			session.persist(entity);
+			session.getTransaction().commit();
+		});
+	}
+
+	<T extends AbstractEntity<?>> void saveEntity(T entity) {
+		TransactionalSession.wrapSession(sessionProvider, session -> {
+			session.beginTransaction();
+			session.save(entity);
+			session.getTransaction().commit();
+		});
+	}
+
+	<T extends AbstractEntity<?>> void updateEntity(T entity) {
+		TransactionalSession.wrapSession(sessionProvider, session -> {
+			session.beginTransaction();
+			session.update(entity);
+			session.getTransaction().commit();
+		});
 	}
 }

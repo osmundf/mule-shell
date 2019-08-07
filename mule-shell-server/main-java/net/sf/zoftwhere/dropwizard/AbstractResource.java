@@ -35,6 +35,30 @@ public abstract class AbstractResource implements TransactionalSession {
 		TransactionalSession.wrapSession(sessionProvider, consumer);
 	}
 
+	private <T extends AbstractEntity<?>> void persistCollection(T entity) {
+		wrapSession(session -> {
+			session.beginTransaction();
+			session.persist(entity);
+			session.getTransaction().commit();
+		});
+	}
+
+	protected <T extends AbstractEntity<?>> void saveEntity(T entity) {
+		wrapSession(session -> {
+			session.beginTransaction();
+			session.save(entity);
+			session.getTransaction().commit();
+		});
+	}
+
+	protected <T extends AbstractEntity<?>> void updateEntity(T entity) {
+		wrapSession(session -> {
+			session.beginTransaction();
+			session.update(entity);
+			session.getTransaction().commit();
+		});
+	}
+
 	public Optional<Integer> tryAsInteger(String value) {
 		if (Strings.isNullOrEmpty(value)) {
 			return Optional.empty();

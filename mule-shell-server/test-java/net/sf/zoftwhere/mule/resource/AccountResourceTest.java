@@ -12,6 +12,8 @@ import net.sf.zoftwhere.mule.jpa.AccountRole;
 import net.sf.zoftwhere.mule.jpa.AccountRoleLocator;
 import net.sf.zoftwhere.mule.jpa.Role;
 import net.sf.zoftwhere.mule.jpa.RoleLocator;
+import net.sf.zoftwhere.mule.jpa.TokenLocator;
+import net.sf.zoftwhere.mule.model.JsonWebTokenModel;
 import net.sf.zoftwhere.mule.model.RoleModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
@@ -107,10 +109,11 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			final var scheme = "basic";
 			final var credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
 			final var header = scheme + " " + Base64.getEncoder().encodeToString(credentials);
-			final var login = resource.login(Collections.singletonList(header));
+			final var login = resource.login(Collections.singletonList(header), null);
 			assertEquals(Status.OK.getStatusCode(), login.getStatus(), "OK: 200");
 
-			final var token = login.getEntity().toString();
+			final var tokenModel = (JsonWebTokenModel) login.getEntity();
+			final var token = tokenModel.getToken();
 			final var jwtDecoded = jwtVerifier.verify(token);
 			final var uuid = UUID.fromString(jwtDecoded.getId());
 
@@ -143,6 +146,41 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	}
 
 	@Test
+	void testGuestLogin() {
+		final var jwtVerifier = guiceInjector.getInstance(JWTVerifier.class);
+		final var tokenLocator = guiceInjector.getInstance(TokenLocator.class);
+		final var accountRoleLocator = guiceInjector.getInstance(AccountRoleLocator.class);
+		final var cacheProvider = guiceInjector.getProvider(loginCacheKey);
+		final var cache = cacheProvider.get();
+
+		final var login = resource.loginGuest();
+		assertEquals(Status.OK.getStatusCode(), login.getStatus(), "Guest Login status 200 OK.");
+
+		final var token = (JsonWebTokenModel) login.getEntity();
+		final var jwt = jwtVerifier.verify(token.getToken());
+		final var uuid = UUID.fromString(jwt.getId());
+		final var accessToken = tokenLocator.getById(uuid).orElseThrow();
+		assertNotNull(accessToken);
+
+		final var accountRole = accessToken.getAccountRole();
+		final var account = accountRole.getAccount();
+		final var role = accountRole.getRole();
+
+		assertNotNull(accountRole);
+		assertNotNull(account);
+		assertNotNull(role);
+
+		final var accountRoleList = accountRoleLocator.getForAccount(account);
+		assertEquals(1, accountRoleList.size(), "");
+
+		final var principal = cache.getIfPresent(uuid);
+		assertNotNull(principal);
+
+		assertEquals(principal.getUsername().orElse(null), account.getUsername(), "");
+		assertEquals(principal.getRole().orElse(null), RoleModel.GUEST.name(), "");
+	}
+
+	@Test
 	void testLoginFail() {
 		final var scheme = "basic";
 		final var openJoin = new String[]{
@@ -158,7 +196,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		for (String string : openJoin) {
 			final var credentials = string.getBytes(StandardCharsets.UTF_8);
 			final var header = scheme + " " + Base64.getEncoder().encodeToString(credentials);
-			final var login = resource.login(Collections.singletonList(header));
+			final var login = resource.login(Collections.singletonList(header), null);
 
 			assertNotNull(login);
 			assertEquals(Status.UNAUTHORIZED.getStatusCode(), login.getStatus(), "Unauthorized: 401 (" + string + ")");
@@ -166,11 +204,29 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	}
 
 	@Test
+	void testResetRecovery() {
+		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
+		final var accountRoleLocator = guiceInjector.getInstance(AccountRoleLocator.class);
+
+		createAccount("test", "test@test.test", "123456", RoleModel.REGISTER);
+
+		final var account = accountLocator.getByUsername("test").orElseThrow();
+		final var oldRole = accountRoleLocator.getByKey(account, RoleModel.REGISTER).orElseThrow();
+		oldRole.delete();
+		updateEntity(oldRole);
+
+		resource.reset("test", "123456");
+		final var newRole = accountRoleLocator.getByRoleName(account, RoleModel.CLIENT);
+
+		assertNotNull(newRole);
+	}
+
+	@Test
 	void testLogoutFailure() {
 		final var interchange = guiceInjector.getInstance(securityKey);
 		interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
 
-		createAccount("osmundf", "osmund.francis@gmail.com", "123456", RoleModel.ADMIN);
+		createAccount("test", "test@test.test", "123456", RoleModel.ADMIN);
 	}
 
 	@Test
@@ -241,11 +297,6 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		}
 	}
 
-	@Test
-	void registerAccountRoles() {
-		final var key = RoleModel.CLIENT.getClass().getName();
-	}
-
 	private void populateRoles() {
 		final Map<String, Integer> priority = new Builder<String, Integer>()
 				.put(RoleModel.SYSTEM.name(), 100)
@@ -256,17 +307,14 @@ class AccountResourceTest extends TestResource<AccountResource> {
 				.build();
 		final var roleModelArray = RoleModel.values();
 		for (var roleModel : roleModelArray) {
-			wrapConsumer(session -> {
-				final var key = Role.getKey(roleModel);
-				final var name = roleModel.name();
-				final var value = name.toLowerCase();
-				final var priorityValue = priority.get(name);
-				final var role = new Role(key, name, value, priorityValue);
+			final var key = Role.getKey(roleModel);
+			final var name = roleModel.name();
+			final var value = name.toLowerCase();
+			final var priorityValue = priority.get(name);
+			final var role = new Role(key, name, value, priorityValue);
 
-				session.beginTransaction();
-				session.persist(role);
-				session.getTransaction().commit();
-			});
+			// TODO: Replace with save entity?
+			persistCollection(role);
 		}
 
 		final var count = wrapFunction(session -> {
@@ -309,13 +357,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		assertNull(first);
 
 		// Save new account.
-		wrapConsumer(session -> {
-			final var account = new Account(username, emailAddress).updateHash(digest, data);
-
-			session.beginTransaction();
-			session.save(account);
-			session.getTransaction().commit();
-		});
+		saveEntity(new Account(username, emailAddress).updateHash(digest, data));
 
 		// Ensure account was saved.
 		final var account = tryFetchEntity(username, Optional::of, accountLocator::getByUsername).orElse(null);
@@ -324,12 +366,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		// Add with role.
 		final var role = roleLocator.getByKey(Role.getKey(roleModel)).orElseThrow();
 		final var accountRole = new AccountRole(account, role, role.getValue());
-
-		wrapConsumer(session -> {
-			session.beginTransaction();
-			session.save(accountRole);
-			session.getTransaction().commit();
-		});
+		saveEntity(accountRole);
 
 		final var accountRoleList = accountRoleLocator.getForAccount(account);
 

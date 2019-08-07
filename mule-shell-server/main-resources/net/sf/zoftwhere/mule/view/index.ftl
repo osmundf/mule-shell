@@ -14,6 +14,7 @@
             <#--noinspection SpellCheckingInspection-->
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
+    <link rel="stylesheet" href="${contextPath}/assets/mule-theme.css">
     <link rel="stylesheet" href="${contextPath}/assets/mule.css">
 </head>
 <body class="d-flex align-items-start flex-column" style="height: 100vh; margin-bottom: 0; border: 0;">
@@ -43,7 +44,7 @@
 
     <main role="main" class="text-center" style="min-height: 100px; height: 50vh">
         <p>&nbsp;</p>
-        <h1 class="cover-heading">Run with Mule Shell</h1>
+        <h1>Run with Mule Shell</h1>
         <p>Execute Java code with JShell online.</p>
         <p class="lead">
             <a href="#" class="btn btn-lg btn-secondary">Learn more</a>

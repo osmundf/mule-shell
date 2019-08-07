@@ -24,15 +24,16 @@ paths:
           type: array
           items:
             $ref: JsonString
+        - name: role
+          in: query
+          type: string
       responses:
         200:
           summary: 'Successful login'
           schema:
-            $ref: JsonWebToken
+            $ref: '#/definitions/JsonWebToken'
         401:
           summary: 'Unauthorized login attempt'
-          schema:
-            $ref: JsonWebToken
 
   /account/logout:
     post:
@@ -174,7 +175,10 @@ definitions:
     type: string
 
   JsonWebToken:
-    type: string
+    type: object
+    properties:
+      token:
+        type: string
 
   BasicAccount:
     type: object

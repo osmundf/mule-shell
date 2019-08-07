@@ -102,7 +102,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		);
 
 		// Make static assets available if they're present.
-		bootstrap.addBundle(new AssetsBundle("/mule-shell/assets", "/assets", ""));
+		bootstrap.addBundle(new AssetsBundle("/assets", "/assets", ""));
 
 		// Drop-Wizard views.
 		bootstrap.addBundle(new ViewBundle<>());

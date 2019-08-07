@@ -13,12 +13,4 @@ public class ShellSessionLocator extends AbstractLocator<ShellSession, UUID> {
 	public ShellSessionLocator(Provider<Session> sessionProvider) {
 		super(sessionProvider);
 	}
-
-	public ShellSession newShellSession() {
-		return new ShellSession().setName("empty");
-	}
-
-	void persistCollection(ShellSession session) {
-		currentSession().persist(session);
-	}
 }
