@@ -22,8 +22,4 @@ public class AccountLocator extends AbstractLocator<Account, UUID> {
 		parameter = query -> query.setParameter("username", username).getSingleResult();
 		return tryFetchNamedQuery("byUsername", parameter);
 	}
-
-	void persistCollection(ShellSession session) {
-		currentSession().persist(session);
-	}
 }

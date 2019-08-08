@@ -8,11 +8,15 @@ import net.sf.zoftwhere.mule.model.SessionModel;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -22,6 +26,8 @@ import static net.sf.zoftwhere.time.Instants.withZoneOffset;
 
 @Entity(name = "ShellSession")
 @NamedQuery(name = "ShellSession.All", query = "select o from ShellSession o")
+@NamedQuery(name = "ShellSession.byAccountId", query = "select o from ShellSession o where o.owner.id = :accountId and o.deletedAt is null")
+@NamedQuery(name = "ShellSession.byIdAndAccountId", query = "select o from ShellSession o where o.id = :id and o.owner.id = :accountId and o.deletedAt is null")
 @Accessors(chain = true)
 public class ShellSession extends AbstractEntity<UUID> {
 
@@ -32,19 +38,21 @@ public class ShellSession extends AbstractEntity<UUID> {
 	@Getter
 	private UUID id = null;
 
-	//	@Column(name = "name", length = 20)
-	@Column(length = 20)
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn
 	@Getter
-	@Setter
-	private String name;
+	private Account owner;
 
-	//	@Column(name = "suspended_at")
 	@Column()
 	@Getter
 	@Setter
 	private Instant suspendedAt = getCreatedAt();
 
 	public ShellSession() {
+	}
+
+	public ShellSession(Account owner) {
+		this.owner = owner;
 	}
 
 	public static SessionModel asSessionModel(ShellSession session, ZoneOffset zoneOffset) {

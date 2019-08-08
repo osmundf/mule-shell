@@ -1,54 +1,80 @@
 package net.sf.zoftwhere.mule.resource;
 
+import com.google.common.cache.Cache;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import jdk.jshell.JShell;
+import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.mule.api.ExpressionApi;
+import net.sf.zoftwhere.mule.jdk.jshell.MuleSnippetEvent;
+import net.sf.zoftwhere.mule.jpa.AccountLocator;
+import net.sf.zoftwhere.mule.jpa.ShellSessionLocator;
 import net.sf.zoftwhere.mule.model.ExpressionModel;
-import net.sf.zoftwhere.mule.shell.JShellManager;
-import net.sf.zoftwhere.mule.shell.UUIDBuffer;
+import net.sf.zoftwhere.mule.model.ExpressionResultModel;
+import net.sf.zoftwhere.mule.server.JShellManager;
+import org.hibernate.Session;
 
+import javax.annotation.Nonnull;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Random;
+import javax.ws.rs.core.SecurityContext;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-public class ExpressionResource implements ExpressionApi {
+import static jdk.jshell.Snippet.Status.OVERWRITTEN;
+
+public class ExpressionResource extends AbstractResource implements ExpressionApi {
 
 	@Inject
-	private JShellManager manager;
+	private Provider<SecurityContext> securityContextProvider;
 
 	@Inject
-	private UUIDBuffer buffer;
+	private Cache<UUID, JShell> shellCache;
 
-	public ExpressionResource() {
+	private final AccountLocator accountLocator;
+
+	private final ShellSessionLocator shellSessionLocator;
+
+	@Inject
+	public ExpressionResource(Provider<Session> sessionProvider) {
+		super(sessionProvider);
+		this.accountLocator = new AccountLocator(sessionProvider);
+		this.shellSessionLocator = new ShellSessionLocator(sessionProvider);
 	}
 
+	@RolesAllowed({CLIENT_ROLE, GUEST_ROLE})
 	@Override
-	public Response postExpression(String sessionId, String expressionType, ExpressionModel expression) {
-		final var sessionUUID = UUID.fromString(sessionId);
+	@SuppressWarnings("Duplicates")
+	public Response postExpression(@Nonnull String sessionId, ExpressionModel expression, @Nonnull String expressionType) {
+		final var security = securityContextProvider.get();
+		final var account = accountLocator.getByUsername(security.getUserPrincipal().getName()).orElseThrow();
+		final var manager = new JShellManager(shellCache, shellSessionLocator);
+		final var shell = manager.getJShell(tryAsUUID(sessionId).orElse(null), account).orElse(null);
+		final var code = expression != null && expression.getInput() != null ? expression.getInput() : null;
 
-		final var entity = new ExpressionModel();
-		entity.setInput(expression.getInput());
-		entity.setOutput("Done.");
-
-		return Response.ok(entity, MediaType.APPLICATION_JSON_TYPE).build();
-	}
-
-	public Response putExpression(String sessionId, ExpressionModel body, String expressionType) {
-
-		int i = 0;
-		while (i < 100) {
-			try {
-				final var a1 = manager.newJShell(new UUIDBuffer(new Random(0))).orElseThrow();
-				++i;
-				System.out.printf("k:%s (%s) %n", a1.getKey(), manager.size());
-			} catch (RuntimeException e) {
-				System.out.println(e.getMessage());
-			}
+		if (shell == null) {
+			// TODO: Extend to use session privileges (owner, viewer, visitor)
+			return Response.status(Response.Status.BAD_REQUEST)
+					.entity("The session does not exist or is no longer active.")
+					.build();
 		}
 
-		JShell shell = manager.newJShell(buffer).orElseThrow().getValue();
+		final var result = shell.eval(code);
 
-		return Response.ok("{'size':" + manager.size() + " }", MediaType.APPLICATION_JSON_TYPE).build();
+		// TODO: Handle sections of complete code as well as possible "incomplete" code.
+		// TODO: Handle exceptions in code input submitted.
+		final var list = result.stream()
+				.map(MuleSnippetEvent::new)
+				.filter(event -> event.getStatus() != OVERWRITTEN)
+				.map(MuleSnippetEvent::getEventOutput)
+				.collect(Collectors.toList());
+
+		final var entity = new ExpressionResultModel()
+				.input(code)
+				.output(list)
+				.continuation(false);
+
+		return Response.ok(entity, MediaType.APPLICATION_JSON_TYPE).build();
 	}
 }

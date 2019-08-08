@@ -1,42 +1,19 @@
-/*
- * Globals
- */
-
-/* Links */
-a,
-a:focus,
-a:hover {
-    color: #fff;
+/* Mule Shell Boot Strap Theme Customizations */
+html {
+    height: 100%;
 }
 
-/* Custom default button */
-.btn-secondary,
-.btn-secondary:hover,
-.btn-secondary:focus {
-    color: #333;
-    text-shadow: none; /* Prevent inheritance from `body` */
-    background-color: #fff;
-    border: .05rem solid #fff;
-}
-
-
-/*
- * Base structure
- */
-
-html,
 body {
     height: 100%;
-    background-color: #333;
-}
-
-body {
     display: -ms-flexbox;
     display: flex;
-    color: #fff;
-    background-color: #222222;
-    text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
 }
+
+.hidden {
+    display: none;
+}
+
+/* TODO */
 
 .box-shadow {
     box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
@@ -44,12 +21,12 @@ body {
 
 .prompt-bevel {
     color: #222;
-    font-size: 12px;
+    /*font-size: 12px;*/
     background-color: #ddd;
     border-color: #ccc;
     text-shadow: none;
-    padding: 0;
-    margin: 5px;
+    /*padding: 0;*/
+    /*margin: 5px;*/
 }
 
 .fixed-font {
@@ -57,13 +34,19 @@ body {
 }
 
 .line {
-    color: #fff;
-    font-size: 12px;
-    font-weight: lighter;
+    color: #ddd;
     /*text-shadow: 0 .05rem .1rem rgba(0, 0, 0, 0);*/
     padding: 0 0 0 5px;
     margin: 0;
     /*border: 1px solid red;*/
+}
+
+.terminal {
+    /*font-size: 12px;*/
+    font-size: 75.00%;
+    font-weight: lighter;
+    /*line-height: 14px;*/
+    line-height: 116.67%;
 }
 
 .skinny {
@@ -71,17 +54,24 @@ body {
     margin: 0;
 }
 
+.dark-prompt {
+}
+
 .dark-input {
     background-color: #222;
-    color: #ddd;
+    color: #eee;
     border: 0px solid #222;
-    padding: 5px 5px 5px 5px
+    padding: 5px 5px 5px 5px;
 }
 
-.cover-container {
-    /*max-width: 42em;*/
+.console-prompt {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #222;
+    color: #eee;
+    border: 0px solid #222;
+    padding: 5px 5px 5px 5px;
+    font-size: 12px;
 }
-
 
 /*
  * Header
@@ -124,25 +114,4 @@ body {
     .nav-masthead {
         float: right;
     }
-}
-
-
-/*
- * Cover
- */
-.cover {
-    padding: 0 1.5rem;
-}
-
-.cover .btn-lg {
-    padding: .75rem 1.25rem;
-    font-weight: 700;
-}
-
-
-/*
- * Footer
- */
-.mastfoot {
-    color: rgba(255, 255, 255, .5);
 }

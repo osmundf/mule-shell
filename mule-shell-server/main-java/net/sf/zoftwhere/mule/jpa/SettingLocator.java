@@ -22,8 +22,4 @@ public class SettingLocator extends AbstractLocator<Setting, UUID> {
 		parameter = query -> query.setParameter("key", key).getSingleResult();
 		return tryFetchNamedQuery("byKey", parameter);
 	}
-
-	void persistCollection(ShellSession session) {
-		currentSession().persist(session);
-	}
 }

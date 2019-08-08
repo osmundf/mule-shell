@@ -24,15 +24,16 @@ paths:
           type: array
           items:
             $ref: JsonString
+        - name: role
+          in: query
+          type: string
       responses:
         200:
           summary: 'Successful login'
           schema:
-            $ref: JsonWebToken
+            $ref: '#/definitions/JsonWebToken'
         401:
           summary: 'Unauthorized login attempt'
-          schema:
-            $ref: JsonWebToken
 
   /account/logout:
     post:
@@ -60,6 +61,16 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/Session'
+
+  /session/list:
+    get:
+      operationId: getSessionList
+      responses:
+        200:
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Session'
 
   /session/{id}:
     get:
@@ -157,7 +168,7 @@ paths:
           in: body
           schema:
             $ref: '#/definitions/Expression'
-          required: false
+          required: true
         - name: expressionType
           in: query
           type: string
@@ -174,7 +185,10 @@ definitions:
     type: string
 
   JsonWebToken:
-    type: string
+    type: object
+    properties:
+      token:
+        type: string
 
   BasicAccount:
     type: object
@@ -207,8 +221,6 @@ definitions:
     properties:
       input:
         type: string
-      output:
-        type: string
 
   ExpressionResult:
     type: object
@@ -216,7 +228,11 @@ definitions:
       input:
         type: string
       output:
-        type: string
+        type: array
+        items: 
+          type: string
+      continuation:
+        type: boolean
 
   Session:
     type: object

@@ -37,8 +37,4 @@ public class RoleLocator extends AbstractLocator<Role, UUID> {
 
 		return tryFetchNamedQuery("byKey", parameter);
 	}
-
-	void persistCollection(ShellSession session) {
-		currentSession().persist(session);
-	}
 }

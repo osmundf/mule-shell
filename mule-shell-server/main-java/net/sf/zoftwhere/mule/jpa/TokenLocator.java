@@ -13,8 +13,4 @@ public class TokenLocator extends AbstractLocator<Token, UUID> {
 	public TokenLocator(Provider<Session> sessionProvider) {
 		super(sessionProvider);
 	}
-
-	void persistCollection(ShellSession session) {
-		currentSession().persist(session);
-	}
 }

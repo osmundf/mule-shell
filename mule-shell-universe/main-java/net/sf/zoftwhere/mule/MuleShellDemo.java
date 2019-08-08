@@ -90,7 +90,7 @@ public class MuleShellDemo extends MuleApplication {
 		}
 
 		final var accountLocator = new AccountLocator(sessionProvider);
-		final var usernameArray = new String[]{"guest", "osmundf"};
+		final var usernameArray = new String[]{"guest"};
 		for (var username : usernameArray) {
 			if (accountLocator.getByUsername(username).isPresent()) {
 				continue;
