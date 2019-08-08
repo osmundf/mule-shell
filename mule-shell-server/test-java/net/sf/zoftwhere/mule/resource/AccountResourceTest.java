@@ -38,7 +38,6 @@ import java.util.concurrent.ExecutionException;
 
 import static com.google.common.collect.ImmutableMap.Builder;
 import static com.google.common.collect.ImmutableMap.Entry;
-import static net.sf.zoftwhere.dropwizard.AbstractLocator.tryFetchEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -106,7 +105,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 			final var accountPhase1 = accountLocator.getByUsername(username).orElseThrow();
 
-			final var scheme = "basic";
+			final var scheme = AuthenticationScheme.BASIC;
 			final var credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
 			final var header = scheme + " " + Base64.getEncoder().encodeToString(credentials);
 			final var login = resource.login(Collections.singletonList(header), null);
@@ -182,7 +181,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	@Test
 	void testLoginFail() {
-		final var scheme = "basic";
+		final var scheme = AuthenticationScheme.BASIC;
 		final var openJoin = new String[]{
 				"fake:thisPasswordIsLongEnough",
 				"test:2tiny",
@@ -312,9 +311,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			final var value = name.toLowerCase();
 			final var priorityValue = priority.get(name);
 			final var role = new Role(key, name, value, priorityValue);
-
-			// TODO: Replace with save entity?
-			persistCollection(role);
+			saveEntity(role);
 		}
 
 		final var count = wrapFunction(session -> {

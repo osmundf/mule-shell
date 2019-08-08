@@ -35,9 +35,7 @@
                 <button class="btn btn-outline-success hidden" data-toggle="modal" data-target="#myModal"
                         id="loginButton">Login
                 </button>
-                <button class="btn btn-outline-success hidden" data-toggle="modal" data-target="#myModal"
-                        id="guestButton">Guest
-                </button>
+                <button class="btn btn-outline-success hidden" id="guestButton">Guest</button>
             </div>
         </nav>
     </nav>
@@ -45,20 +43,14 @@
 
 <div id="center" class="d-flex mb-auto flex-column box-shadow w-100" style="height: 100%; overflow: auto;">
     <div class="mb-auto w-100"></div>
-    <div class="w-100" style="overflow: none; padding: 2px;">
-        <pre class="line">$ jshell</pre>
-        <pre class="line">|  Welcome to JShell -- Version 11.0.2</pre>
-        <pre class="line">|  For an introduction type: /help intro</pre>
-        <pre class="line">&nbsp;</pre>
+    <div class="w-100" style="overflow: none; padding: 2px;" id="console">
     </div>
 </div>
 
 <div id="south" class="w-100" style="padding: 5px; background-color: #222;">
-    <form class="input-group">
-        <div class="input-group-prepend">
-            <span class="input-group-text prompt-bevel fixed-font">shell></span>
-        </div>
-        <input type="text" class="d-flex flex-grow-1 fixed-font dark-input" id="prompt" autocomplete="off">
+    <form id="prompt-form" class="input-group">
+        <div class="input-group-prepend align-items-center fixed-font dark-prompt terminal" id="prompt">jshell&gt;</div>
+        <input type="text" class="d-flex flex-grow-1 fixed-font dark-input terminal" autocomplete="off" autofocus id="console-input">
     </form>
 </div>
 
@@ -108,30 +100,92 @@
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
 
-<input type="hidden" id="context-path" value="${contextPath}">
+<input type="hidden" class="hidden" value="${contextPath}" id="context-path">
+<input type="hidden" class="hidden" value="" id="shell-id">
 
 <script type="application/javascript">
 
+    var guestButton = $('button#guestButton');
+    var loginForm = $("form#form-log-in");
+    var consoleDiv = $("div#console");
+    var promptForm = $("form#prompt-form");
+    var promptSymbol = $("div#prompt");
+    var promptInput = $("input#console-input");
+    var contextPath = $("input#context-path").val();
+    var shellId = $("input#shell-id");
+
     $(function () {
-        console.log("ready!");
         $('button#loadingButton').addClass("hidden");
         $('button#guestButton').removeClass("hidden");
-        var active = loginGuest();
-        console.log("Guest? " + active);
+        loginGuest();
     });
 
-    var loginForm = $("#form-log-in");
+    guestButton.bind("click", function () {
+        if (guestButton.hasClass("disabled")) {
+            return;
+        }
+
+        guestButton.addClass("disabled");
+        guestButton.removeClass("disabled");
+    });
+
+    function loginGuest() {
+
+        $.ajax({
+            type: "POST",
+            url: contextPath + "/account/login?role=GUEST",
+            dataType: 'json',
+            async: true,
+            data: null
+        }).done(function (data) {
+            console.log("Token stored: " + data.token);
+            setLoginStore(data.token);
+            startShellSession();
+        }).fail(function (status, error) {
+            console.log("Fail." + JSON.stringify(error));
+        });
+    }
+
+    function startShellSession() {
+
+        var token = getLoginStore();
+        disablePrompt();
+
+        $.ajax({
+            type: "GET",
+            url: contextPath + "/session/list",
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            async: true,
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('Authorization', "Bearer " + token);
+            }
+        }).done(function (data) {
+            console.log("Session stored: " + data[0].id);
+            document.location.hash = data[0].id;
+            shellId.val(data[0].id);
+
+            consoleDiv.append("<pre class=\"line terminal\">$ jshell</pre>");
+            consoleDiv.append("<pre class=\"line terminal\">|  Welcome to JShell -- Version 11.0.2</pre>");
+            consoleDiv.append("<pre class=\"line terminal\">|  For an introduction type: /help intro</pre>");
+            consoleDiv.append("<pre class=\"line terminal\">&nbsp;</pre>");
+            enablePrompt();
+
+        }).fail(function (status, error) {
+            console.log("Fail." + JSON.stringify(error));
+        });
+    }
 
     loginForm.bind("submit", function () {
         $('div#myModal').modal('hide');
 
         var username = $("input#inputUsername").val();
-
         var password = $("input#inputPassword").val();
 
         $.ajax({
             type: "POST",
-            url: "/mule-shell/account/login",
+            url: contextPath + "/account/login",
             dataType: 'json',
             async: true,
             data: null,
@@ -140,55 +194,81 @@
                 xhr.setRequestHeader('Authorization', "Basic " + btoa(username + ':' + password));
             }
         }).done(function (data) {
-            console.log("Done." + JSON.stringify(data));
+            console.log("Done: " + JSON.stringify(data));
+            // enablePrompt();
         }).fail(function (status, error) {
-            console.log("Fail." + JSON.stringify(error));
+            console.log("Fail: " + JSON.stringify(error));
+            // disablePrompt();
         });
 
         return false;
     });
 
-    var promptObject = $("#prompt-form");
+    promptForm.bind("submit", function () {
 
-    promptObject.bind("submit", function () {
-        var jwt = getLoginStore();
+        var token = getLoginStore();
+        var shellId = $("#shell-id").val();
+        var contextPath = $("#context-path").val();
+        var expression = promptInput.val().trim();
 
-        if (jwt == null) {
+        if (expression === "") {
+            $('<pre class="line terminal"/>').text("jshell>").appendTo(consoleDiv);
+            $('<pre class="line terminal">&nbsp;</pre>').appendTo(consoleDiv);
+            return false;
+        }
+
+        if (token == null) {
             alert("Login please.");
             return false;
         }
 
-        var contextPath = $("context-path").val();
-        var url = contextPath + "/login";
-        $.post(url,
-            {
-                name: "Donald Duck",
-                city: "Duckburg"
-            },
-            function (data, status) {
-                alert("Data: " + data + "\nStatus: " + status);
-            });
+        disablePrompt();
+
+        $.ajax({
+            type: "POST",
+            url: contextPath + "/expression?sessionId=" + shellId,
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json',
+            async: true,
+            data: JSON.stringify({"input": expression}),
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('Authorization', "Bearer " + token);
+            }
+        }).done(function (data) {
+            console.log("Response: " + JSON.stringify(data));
+            promptInput.val("");
+
+            var lines = data != null && data.output != null ? data.output : [];
+            var size = lines.length;
+
+            $('<pre class="line terminal"/>').text("jshell> " + expression.trim()).appendTo(consoleDiv);
+
+            for (var i = 0; i < size; i++) {
+                var line = lines[i];
+
+                if (line === "") {
+                    $('<pre class="line terminal">&nbsp;</pre>').appendTo(consoleDiv);
+                } else {
+                    $('<pre class="line terminal"/>').text(line).appendTo(consoleDiv);
+                }
+            }
+
+            if (true === data.continuation) {
+                promptSymbol.text("...>");
+            } else {
+                promptSymbol.text("jshell>");
+            }
+
+            enablePrompt();
+
+        }).fail(function (status, error) {
+            console.log("Fail status: " + JSON.stringify(status));
+            console.log("Fail error: " + JSON.stringify(error));
+            enablePrompt();
+        });
 
         return false;
     });
-
-    function loginGuest() {
-        $.ajax({
-            type: "POST",
-            url: "/mule-shell/account/login?role=GUEST",
-            dataType: 'json',
-            async: true,
-            data: null,
-            beforeSend: function (xhr) {
-                console.log("Sending.");
-                // xhr.setRequestHeader('Authorization', "Basic " + btoa(username + ':' + password));
-            }
-        }).done(function (data) {
-            console.log("Done." + JSON.stringify(data));
-        }).fail(function (status, error) {
-            console.log("Fail." + JSON.stringify(error));
-        });
-    }
 
     function postToSession() {
         var contextPath = document.getElementById("context-path");
@@ -196,11 +276,15 @@
     }
 
     function disablePrompt() {
-        promptObject.addClass("disabled");
+        promptInput.addClass("disabled");
+        promptInput.attr('disabled', 'disabled');
+        promptInput.prop('disabled', true);
     }
 
     function enablePrompt() {
-        promptObject.removeClass("disabled");
+        promptInput.prop('disabled', false);
+        promptInput.attr('disabled', null);
+        promptInput.removeClass("disabled");
     }
 
     function getLoginStore() {

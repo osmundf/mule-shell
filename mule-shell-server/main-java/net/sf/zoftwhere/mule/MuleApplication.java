@@ -22,6 +22,7 @@ import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.views.ViewBundle;
+import jdk.jshell.JShell;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.dropwizard.ContextPath;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
@@ -44,8 +45,6 @@ import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.AuthenticationScheme;
 import net.sf.zoftwhere.mule.security.JWTSigner;
 import net.sf.zoftwhere.mule.security.SecureModule;
-import net.sf.zoftwhere.mule.shell.JShellManager;
-import net.sf.zoftwhere.mule.shell.UUIDBuffer;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -56,7 +55,6 @@ import ru.vyarus.dropwizard.guice.GuiceBundle;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.Random;
 import java.util.UUID;
 
 public class MuleApplication extends Application<MuleConfiguration> {
@@ -74,7 +72,9 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	private final String realm;
 
-	private final Cache<UUID, AccountPrincipal> cache;
+	private final Cache<UUID, AccountPrincipal> principalCache;
+
+	private final Cache<UUID, JShell> shellCache;
 
 	private final PlaceHolder<JWTSigner> jwtSigner = new Variable<>();
 
@@ -83,7 +83,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 	public MuleApplication(final String realm) {
 		this.realm = realm;
 		this.hibernateBundle = newHibernateBundle();
-		this.cache = newLoginAccountCache();
+		this.principalCache = newLoginAccountCache();
+		this.shellCache = newJShellCache();
 	}
 
 	@Override
@@ -112,7 +113,6 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		GuiceBundle<MuleConfiguration> guiceBundle = newGuiceBuilder()
 				.modules(new SecureModule(jwtSigner, jwtVerifier))
 				.modules(serverModule())
-				.modules(muleModule())
 				.build();
 
 		bootstrap.addBundle(guiceBundle);
@@ -165,23 +165,13 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			@Provides
 			@Singleton
 			public Cache<UUID, AccountPrincipal> getLoginCache() {
-				return cache;
-			}
-		};
-	}
-
-	protected AbstractModule muleModule() {
-		return new AbstractModule() {
-			@Provides
-			@Singleton
-			public JShellManager getJShell() {
-				return new JShellManager();
+				return principalCache;
 			}
 
 			@Provides
 			@Singleton
-			public UUIDBuffer getUUIDBuffer() {
-				return new UUIDBuffer(new Random());
+			public Cache<UUID, JShell> getJShellCache() {
+				return shellCache;
 			}
 		};
 	}
@@ -241,7 +231,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		// Create filter
 		final var filter = new AuthorizationAuthFilter.Builder<AccountPrincipal>()
 				.setAuthorizer(new AccountAuthorizer())
-				.setAuthenticator(new AccountAuthenticator(cache, jwtVerifier.get(), sessionFactory::openSession))
+				.setAuthenticator(new AccountAuthenticator(principalCache, jwtVerifier.get(), sessionFactory::openSession))
 				.setPrefix(AuthenticationScheme.BEARER)
 				.setRealm(realm)
 				.buildAuthFilter();
@@ -262,6 +252,13 @@ public class MuleApplication extends Application<MuleConfiguration> {
 	public static Cache<UUID, AccountPrincipal> newLoginAccountCache() {
 		return CacheBuilder.newBuilder()
 				.maximumSize(10000)
+				.expireAfterWrite(Duration.ofMinutes(30))
+				.build();
+	}
+
+	public static Cache<UUID, JShell> newJShellCache() {
+		return CacheBuilder.newBuilder()
+				.maximumSize(1000)
 				.expireAfterWrite(Duration.ofMinutes(30))
 				.build();
 	}

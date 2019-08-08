@@ -20,6 +20,7 @@ import net.sf.zoftwhere.mule.model.JsonWebTokenModel;
 import net.sf.zoftwhere.mule.model.RoleModel;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
 import net.sf.zoftwhere.mule.security.AccountSigner;
+import net.sf.zoftwhere.mule.security.AuthenticationScheme;
 import net.sf.zoftwhere.mule.security.JWTSigner;
 import net.sf.zoftwhere.text.UTF_8;
 import net.sf.zoftwhere.time.Instants;
@@ -48,8 +49,6 @@ import java.util.UUID;
 public class AccountResource extends AbstractResource implements AccountApi {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccountResource.class);
-
-	private static final String BASIC_AUTHENTICATION_SCHEME = "basic";
 
 	@Inject
 	private Provider<SecurityContext> securityContextProvider;
@@ -113,7 +112,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		saveEntity(accountRole);
 		saveEntity(accessToken);
 
-		return activeLogin(account, accessToken,  Duration.ofMinutes(120));
+		return activeLogin(account, accessToken, Duration.ofMinutes(120));
 	}
 
 	/**
@@ -185,7 +184,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		final String scheme = split.get()[0];
 		final String detail = split.get()[1];
 
-		if (!scheme.equalsIgnoreCase(BASIC_AUTHENTICATION_SCHEME)) {
+		if (!scheme.equalsIgnoreCase(AuthenticationScheme.BASIC)) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 

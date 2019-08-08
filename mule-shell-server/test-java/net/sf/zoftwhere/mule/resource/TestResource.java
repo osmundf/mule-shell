@@ -3,35 +3,30 @@ package net.sf.zoftwhere.mule.resource;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import lombok.Getter;
-import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.dropwizard.TestInjection;
-import net.sf.zoftwhere.hibernate.TransactionalSession;
 import net.sf.zoftwhere.mule.MuleApplication;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static net.sf.zoftwhere.hibernate.HibernateLoader.getH2DatabaseConfiguration;
 
-public abstract class TestResource<TestClass extends AbstractResource> implements AutoCloseable, Closeable {
+public abstract class TestResource<TestClass extends AbstractResource> extends AbstractResource implements AutoCloseable, Closeable {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
 
 	private static final List<Class<?>> entityList = List.of(MuleApplication.persistenceEntities());
 
 	private final SessionFactory sessionFactory;
-
-	private final Provider<Session> sessionProvider;
 
 	@Getter
 	private final Injector guiceInjector;
@@ -40,11 +35,14 @@ public abstract class TestResource<TestClass extends AbstractResource> implement
 	private final TestClass resource;
 
 	TestResource(Function<Provider<Session>, TestClass> constructor) {
-		final var configuration = getH2DatabaseConfiguration(entityList);
-		this.sessionFactory = configuration.buildSessionFactory();
-		this.sessionProvider = sessionFactory::openSession;
-		this.guiceInjector = TestInjection.newTestGuiceInjector(sessionFactory);
-		this.resource = constructor.apply(sessionProvider);
+		this(constructor, new TestConfiguration(getH2DatabaseConfiguration(entityList)));
+	}
+
+	private TestResource(Function<Provider<Session>, TestClass> constructor, TestConfiguration configuration) {
+		super(configuration.sessionProvider);
+		this.sessionFactory = configuration.sessionFactory;
+		this.guiceInjector = configuration.guiceInjector;
+		this.resource = constructor.apply(configuration.sessionProvider);
 		guiceInjector.injectMembers(resource);
 	}
 
@@ -58,31 +56,16 @@ public abstract class TestResource<TestClass extends AbstractResource> implement
 		}
 	}
 
-	<E> Optional<E> wrapFunction(Function<Session, E> function) {
-		return TransactionalSession.wrapSession(sessionProvider, function);
-	}
+	public static class TestConfiguration {
+		private final SessionFactory sessionFactory;
+		private final Provider<Session> sessionProvider;
+		private final Injector guiceInjector;
 
-	<T extends AbstractEntity<?>> void persistCollection(T entity) {
-		TransactionalSession.wrapSession(sessionProvider, session -> {
-			session.beginTransaction();
-			session.persist(entity);
-			session.getTransaction().commit();
-		});
-	}
-
-	<T extends AbstractEntity<?>> void saveEntity(T entity) {
-		TransactionalSession.wrapSession(sessionProvider, session -> {
-			session.beginTransaction();
-			session.save(entity);
-			session.getTransaction().commit();
-		});
-	}
-
-	<T extends AbstractEntity<?>> void updateEntity(T entity) {
-		TransactionalSession.wrapSession(sessionProvider, session -> {
-			session.beginTransaction();
-			session.update(entity);
-			session.getTransaction().commit();
-		});
+		@SuppressWarnings("WeakerAccess")
+		public TestConfiguration(Configuration configuration) {
+			this.sessionFactory = configuration.buildSessionFactory();
+			this.sessionProvider = sessionFactory::openSession;
+			this.guiceInjector = TestInjection.newTestGuiceInjector(sessionFactory);
+		}
 	}
 }

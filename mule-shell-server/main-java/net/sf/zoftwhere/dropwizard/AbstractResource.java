@@ -20,6 +20,7 @@ public abstract class AbstractResource implements TransactionalSession {
 
 	public static final String ADMIN_ROLE = "ADMIN";
 	public static final String CLIENT_ROLE = "CLIENT";
+	public static final String GUEST_ROLE = "GUEST";
 	public static final String REGISTER_ROLE = "REGISTER";
 	public static final String SYSTEM_ROLE = "SYSTEM";
 
@@ -35,7 +36,11 @@ public abstract class AbstractResource implements TransactionalSession {
 		TransactionalSession.wrapSession(sessionProvider, consumer);
 	}
 
-	private <T extends AbstractEntity<?>> void persistCollection(T entity) {
+	protected <E> Optional<E> wrapFunction(Function<Session, E> function) {
+		return TransactionalSession.wrapSession(sessionProvider, function);
+	}
+
+	protected <T extends AbstractEntity<?>> void persistCollection(T entity) {
 		wrapSession(session -> {
 			session.beginTransaction();
 			session.persist(entity);

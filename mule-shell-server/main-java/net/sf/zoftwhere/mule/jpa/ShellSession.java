@@ -26,6 +26,8 @@ import static net.sf.zoftwhere.time.Instants.withZoneOffset;
 
 @Entity(name = "ShellSession")
 @NamedQuery(name = "ShellSession.All", query = "select o from ShellSession o")
+@NamedQuery(name = "ShellSession.byAccountId", query = "select o from ShellSession o where o.owner.id = :accountId and o.deletedAt is null")
+@NamedQuery(name = "ShellSession.byIdAndAccountId", query = "select o from ShellSession o where o.id = :id and o.owner.id = :accountId and o.deletedAt is null")
 @Accessors(chain = true)
 public class ShellSession extends AbstractEntity<UUID> {
 

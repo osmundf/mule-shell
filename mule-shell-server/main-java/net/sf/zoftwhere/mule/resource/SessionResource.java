@@ -1,31 +1,23 @@
 package net.sf.zoftwhere.mule.resource;
 
+import com.google.common.cache.Cache;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import jdk.jshell.ImportSnippet;
 import jdk.jshell.JShell;
-import jdk.jshell.MethodSnippet;
-import jdk.jshell.Snippet;
-import jdk.jshell.VarSnippet;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import net.sf.zoftwhere.mule.api.SessionApi;
+import net.sf.zoftwhere.mule.jdk.jshell.MuleSnippet;
+import net.sf.zoftwhere.mule.jpa.AccountLocator;
 import net.sf.zoftwhere.mule.jpa.ShellSession;
 import net.sf.zoftwhere.mule.jpa.ShellSessionLocator;
-import net.sf.zoftwhere.mule.model.ImportSnippetModel;
-import net.sf.zoftwhere.mule.model.MethodSnippetModel;
-import net.sf.zoftwhere.mule.model.SnippetModel;
-import net.sf.zoftwhere.mule.model.VariableSnippetModel;
-import net.sf.zoftwhere.mule.shell.JShellManager;
+import net.sf.zoftwhere.mule.server.JShellManager;
 import org.hibernate.Session;
 
+import javax.annotation.Nonnull;
 import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -33,26 +25,25 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static net.sf.zoftwhere.mule.jpa.ShellSession.asSessionModel;
+
 public class SessionResource extends AbstractResource implements SessionApi {
 
 	@Inject
 	private Provider<SecurityContext> securityContextProvider;
 
 	@Inject
-	private JShellManager manager;
+	private Cache<UUID, JShell> shellCache;
 
-	private final ShellSessionLocator shellLocator;
+	private final AccountLocator accountLocator;
+
+	private final ShellSessionLocator shellSessionLocator;
 
 	@Inject
 	public SessionResource(Provider<Session> sessionProvider) {
 		super(sessionProvider);
-		this.shellLocator = new ShellSessionLocator(sessionProvider);
-	}
-
-	@Path("/time")
-	@GET
-	public Response getTime() {
-		return Response.ok(Instant.now().atOffset(ZoneOffset.UTC)).build();
+		this.accountLocator = new AccountLocator(sessionProvider);
+		this.shellSessionLocator = new ShellSessionLocator(sessionProvider);
 	}
 
 	@RolesAllowed({CLIENT_ROLE})
@@ -60,122 +51,93 @@ public class SessionResource extends AbstractResource implements SessionApi {
 	public Response newSession() {
 		final var security = securityContextProvider.get();
 
-		final ShellSession shellSession = new ShellSession();
+		final var account = accountLocator.getByUsername(security.getUserPrincipal().getName()).orElseThrow();
+		final var shellSession = new ShellSession(account);
+		saveEntity(shellSession);
 
-		wrapSession(session -> {
-			session.beginTransaction();
-			session.persist(shellSession);
-			session.getTransaction().commit();
-		});
-
-		return Response.ok(ShellSession.asSessionModel(shellSession, ZoneOffset.UTC)).build();
+		return Response.ok(asSessionModel(shellSession, ZoneOffset.UTC)).build();
 	}
 
-	@RolesAllowed({CLIENT_ROLE})
+	@RolesAllowed({CLIENT_ROLE, GUEST_ROLE})
 	@Override
 	public Response getSession(String id, String tz) {
 		final var security = securityContextProvider.get();
 
+		// TODO: !security.isSecure()
+		if (security == null || security.getUserPrincipal() == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
 		// Get zone offset may throw a date time exception for invalid time zone.
 		final var zoneOffset = getZoneOffset(tz).orElse(ZoneOffset.UTC);
-		final var shellSession = tryFetchEntity(id, this::tryAsUUID, shellLocator::getById);
+		final var account = accountLocator.getByUsername(security.getUserPrincipal().getName()).orElse(null);
+		final var shellSession = shellSessionLocator.getForIdAndAccount(tryAsUUID(id).orElse(null), account);
 
 		// TODO: Add shell session access tokens (owner, user, visitor)
 		if (shellSession.isEmpty()) {
 			return Response.ok(Response.Status.BAD_REQUEST).entity("Session unavailable.").build();
 		}
 
-		final var model = ShellSession.asSessionModel(shellSession.get(), zoneOffset);
+		final var model = asSessionModel(shellSession.get(), zoneOffset);
 		return Response.ok().entity(model).build();
 	}
 
+	@RolesAllowed({CLIENT_ROLE, GUEST_ROLE})
 	@Override
-	public Response getSessionSnippetArray(String sessionId) {
-		return this.transform(sessionId, JShell::snippets, Objects::toString, this::generalSnippet);
-	}
+	public Response getSessionList() {
+		final var security = securityContextProvider.get();
 
-	@Override
-	public Response getSessionImportArray(String sessionId) {
-		return this.transform(sessionId, JShell::imports, Objects::toString, this::importSnippet);
-	}
-
-	@Override
-	public Response getSessionVariableArray(String sessionId) {
-		return this.transform(sessionId, JShell::variables, Objects::toString, this::variableSnippet);
-	}
-
-	@Override
-	public Response getSessionMethodArray(String sessionId) {
-		return this.transform(sessionId, JShell::methods, Objects::toString, this::methodSnippet);
-	}
-
-	public <S, I, M> Response transform(String id, Function<JShell, Stream<S>> getList, Function<Integer, I> indexer, BiFunction<S, I, M> combiner) {
-		final var jshell = manager.getJShell(UUID.fromString(id));
-		final var modelList = new ArrayList<M>();
-		final var snippetList = getList.apply(jshell).collect(Collectors.toList());
-
-		for (int i = 0, size = snippetList.size(); i < size; i++) {
-			final var snippet = snippetList.get(i);
-			final var index = indexer.apply(i);
-			modelList.add(combiner.apply(snippet, index));
+		// TODO: !security.isSecure()
+		if (security == null || security.getUserPrincipal() == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
-		return Response.ok(modelList).build();
+		final var name = security.getUserPrincipal().getName();
+		final var account = accountLocator.getByUsername(name).orElseThrow();
+		final var sessionList = shellSessionLocator.getForAccount(account);
+
+		final var list = sessionList.stream()
+				.map(shellSession -> asSessionModel(shellSession, ZoneOffset.UTC))
+				.collect(Collectors.toList());
+
+		return Response.ok(list).build();
 	}
 
-	public SnippetModel generalSnippet(final Snippet snippet, final String index) {
-		final var result = new SnippetModel();
-		result.setId(snippet.id());
-		result.setIndex(index);
+	@RolesAllowed({CLIENT_ROLE, GUEST_ROLE})
+	@Override
+	public Response getSessionSnippetArray(@Nonnull String sessionId) {
+		return this.getModelList(sessionId, JShell::snippets, Objects::toString, MuleSnippet::generalSnippet);
+	}
 
-		if (snippet instanceof ImportSnippet) {
-			result.setType("Import Snippet");
-			final var var = (ImportSnippet) snippet;
-			result.setName(var.name());
+	@RolesAllowed({CLIENT_ROLE, GUEST_ROLE})
+	@Override
+	public Response getSessionImportArray(@Nonnull String sessionId) {
+		return this.getModelList(sessionId, JShell::imports, Objects::toString, MuleSnippet::importSnippet);
+	}
 
-		} else if (snippet instanceof VarSnippet) {
-			result.setType("Variable Snippet");
-			final var var = (VarSnippet) snippet;
-			result.setName(var.typeName() + " " + var.name());
+	@RolesAllowed({CLIENT_ROLE, GUEST_ROLE})
+	@Override
+	public Response getSessionVariableArray(@Nonnull String sessionId) {
+		return this.getModelList(sessionId, JShell::variables, Objects::toString, MuleSnippet::variableSnippet);
+	}
 
-		} else if (snippet instanceof MethodSnippet) {
-			result.setType("Method Snippet");
-			final var var = (MethodSnippet) snippet;
-			result.setName(var.name());
+	@RolesAllowed({CLIENT_ROLE, GUEST_ROLE})
+	@Override
+	public Response getSessionMethodArray(@Nonnull String sessionId) {
+		return this.getModelList(sessionId, JShell::methods, Objects::toString, MuleSnippet::methodSnippet);
+	}
 
-		} else {
-			result.setType("Generic");
-			result.setName("");
+	@SuppressWarnings("Duplicates")
+	public <S, I, M> Response getModelList(String id, Function<JShell, Stream<S>> getList, Function<Integer, I> indexer, BiFunction<S, I, M> combiner) {
+		final var security = securityContextProvider.get();
+		final var account = accountLocator.getByUsername(security.getUserPrincipal().getName()).orElseThrow();
+		final var manager = new JShellManager(shellCache, shellSessionLocator);
+		final var shell = manager.getJShell(tryAsUUID(id).orElse(null), account).orElse(null);
+
+		if (shell == null) {
+			return Response.status(Response.Status.BAD_REQUEST).build();
 		}
 
-		result.setSource(snippet.source());
-		return result;
-	}
-
-	public ImportSnippetModel importSnippet(final ImportSnippet snippet, final String index) {
-		final var result = new ImportSnippetModel();
-		result.setId(snippet.id());
-		result.setIndex(index);
-		result.setName(snippet.name());
-		result.setSource(snippet.source());
-		return result;
-	}
-
-	public VariableSnippetModel variableSnippet(final VarSnippet snippet, final String index) {
-		final var result = new VariableSnippetModel();
-		result.setId(snippet.id());
-		result.setIndex(index);
-		result.setName(snippet.typeName() + " " + snippet.name());
-		result.setSource(snippet.source());
-		return result;
-	}
-
-	public MethodSnippetModel methodSnippet(final MethodSnippet snippet, final String index) {
-		final var result = new MethodSnippetModel();
-		result.setId(snippet.id());
-		result.setIndex(index);
-		result.setName(snippet.name() + " " + snippet.signature());
-		result.setSource(snippet.source());
-		return result;
+		return Response.ok(MuleSnippet.getModelList(shell, getList, indexer, combiner)).build();
 	}
 }
