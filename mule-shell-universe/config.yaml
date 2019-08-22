@@ -22,8 +22,8 @@ logging:
       logFormat: "%-5p [%d{ISO8601,CAT}] %c: %m%n%rEx"
     - type: file
       threshold: INFO
-      currentLogFilename: /tmp/application.log
-      archivedLogFilenamePattern: /tmp/application-%d{yyyy-MM-dd}-%i.log.gz
+      currentLogFilename: _target/application.log
+      archivedLogFilenamePattern: _target/application-%d{yyyy-MM-dd}-%i.log.gz
       archivedFileCount: 7
       timeZone: UTC
       maxFileSize: 10MiB
@@ -35,7 +35,7 @@ server:
   applicationConnectors:
     - type: http
       port: 8080
-  adminContextPath: /admin
+  adminContextPath: /dev-admin
   adminConnectors:
     - type: http
       port: 8081
