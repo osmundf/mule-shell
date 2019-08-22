@@ -9,6 +9,10 @@ public class Variable<E> implements PlaceHolder<E> {
 	public Variable() {
 	}
 
+	public Variable(E internal) {
+		this.internal = internal;
+	}
+
 	@Override
 	public E get() {
 		return internal;
