@@ -35,7 +35,7 @@ public class MuleShellDemo extends MuleApplication {
 	}
 
 	public MuleShellDemo(String realm) {
-		super(realm);
+		super(realm, 100, 100);
 	}
 
 	@Override

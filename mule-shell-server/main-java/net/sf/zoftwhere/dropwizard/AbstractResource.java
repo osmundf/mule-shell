@@ -1,10 +1,13 @@
 package net.sf.zoftwhere.dropwizard;
 
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.common.cache.Cache;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.hibernate.TransactionalSession;
+import net.sf.zoftwhere.mule.jpa.AccountLocator;
+import net.sf.zoftwhere.mule.jpa.ShellSessionLocator;
+import net.sf.zoftwhere.mule.shell.MuleShell;
+import net.sf.zoftwhere.mule.shell.MuleShellManager;
 import org.hibernate.Session;
 
 import javax.persistence.EntityNotFoundException;
@@ -24,8 +27,6 @@ public abstract class AbstractResource implements TransactionalSession {
 	public static final String REGISTER_ROLE = "REGISTER";
 	public static final String SYSTEM_ROLE = "SYSTEM";
 
-	protected final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-
 	private final Provider<Session> sessionProvider;
 
 	public AbstractResource(Provider<Session> sessionProvider) {
@@ -38,6 +39,17 @@ public abstract class AbstractResource implements TransactionalSession {
 
 	protected <E> Optional<E> wrapFunction(Function<Session, E> function) {
 		return TransactionalSession.wrapSession(sessionProvider, function);
+	}
+
+	protected <T> T wrapMuleShell(Cache<UUID, MuleShell> shellCache, String username, String sessionId, Function<MuleShell, T> function) {
+		final var accountLocator = new AccountLocator(sessionProvider);
+		final var shellSessionLocator = new ShellSessionLocator(sessionProvider);
+
+		final var account = accountLocator.getByUsername(username).orElseThrow();
+		final var manager = new MuleShellManager(shellCache, shellSessionLocator);
+		final var shell = manager.getMuleShell(tryAsUUID(sessionId).orElse(null), account).orElse(null);
+
+		return function.apply(shell);
 	}
 
 	protected <T extends AbstractEntity<?>> void persistCollection(T entity) {
@@ -64,7 +76,7 @@ public abstract class AbstractResource implements TransactionalSession {
 		});
 	}
 
-	public Optional<Integer> tryAsInteger(String value) {
+	protected Optional<Integer> tryAsInteger(String value) {
 		if (Strings.isNullOrEmpty(value)) {
 			return Optional.empty();
 		}
@@ -76,7 +88,7 @@ public abstract class AbstractResource implements TransactionalSession {
 		}
 	}
 
-	public Optional<UUID> tryAsUUID(String value) {
+	protected Optional<UUID> tryAsUUID(String value) {
 		if (Strings.isNullOrEmpty(value)) {
 			return Optional.empty();
 		}
@@ -88,7 +100,7 @@ public abstract class AbstractResource implements TransactionalSession {
 		}
 	}
 
-	public Optional<ZoneOffset> getZoneOffset(String tz) throws DateTimeException {
+	protected Optional<ZoneOffset> getZoneOffset(String tz) throws DateTimeException {
 		if (Strings.isNullOrEmpty(tz)) {
 			return Optional.empty();
 		}
@@ -125,7 +137,7 @@ public abstract class AbstractResource implements TransactionalSession {
 		}
 	}
 
-	public EntityNotFoundException entityNotFound(String name, String id) {
+	public static EntityNotFoundException entityNotFound(String name, String id) {
 		return new EntityNotFoundException(String.format("Could not find %s entity with id (%s).", name, id));
 	}
 }

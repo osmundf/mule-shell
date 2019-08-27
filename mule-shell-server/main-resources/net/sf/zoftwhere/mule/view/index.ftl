@@ -1,5 +1,9 @@
-<#-- @ftlvariable name="contextPath" type="java.lang.String" -->
 <#--noinspection HtmlUnknownTarget-->
+<#-- @ftlvariable name="bootstrapJS" type="java.lang.String" -->
+<#-- @ftlvariable name="contextPath" type="java.lang.String" -->
+<#-- @ftlvariable name="JQueryJS" type="java.lang.String" -->
+<#-- @ftlvariable name="popperJS" type="java.lang.String" -->
+<#-- @ftlvariable name="version" type="java.lang.String" -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -45,7 +49,7 @@
     <main role="main" class="text-center" style="min-height: 100px; height: 50vh">
         <p>&nbsp;</p>
         <h1>Run with Mule Shell</h1>
-        <p>Execute Java code with JShell online.</p>
+        <p>Execute Java code online with a JShell powered tool.</p>
         <p class="lead">
             <a href="#" class="btn btn-lg btn-secondary">Learn more</a>
         </p>
@@ -55,23 +59,15 @@
 
     <footer class="footer">
         <div class="container w-100 text-center">
-            <span class="text-muted">{ Mule Shell 2019 }</span>
+            <span class="text-muted">{ Mule Shell v${version} – 2019 }</span>
         </div>
     </footer>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        <#--noinspection SpellCheckingInspection-->
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-        <#--noinspection SpellCheckingInspection-->
-        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-        <#--noinspection SpellCheckingInspection-->
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-        crossorigin="anonymous"></script>
+<#-- Preverse the order of these JavaScript libraries for Bootstrap to work. -->
+${JQueryJS?no_esc}
+${popperJS?no_esc}
+${bootstrapJS?no_esc}
 
 </body>
 </html>

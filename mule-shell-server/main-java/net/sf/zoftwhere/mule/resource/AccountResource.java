@@ -28,6 +28,7 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.POST;
@@ -159,7 +160,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	}
 
 	@Override
-	public Response login(List<String> authorization, String role) {
+	public Response login(@Nonnull List<String> authorization, String role) {
 		final int size = authorization.size();
 		if (size != 1) {
 			if (Strings.isNullOrEmpty(role) || !RoleModel.GUEST.name().equalsIgnoreCase(role)) {
@@ -321,9 +322,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	@SuppressWarnings("SameParameterValue")
 	private void setupRegisteredAccount(Account account, RoleModel roleModel) {
 		// Check if account has this as an active role.
-		final var currentAccountRole = accountRoleLocator.getByKey(account, roleModel).orElse(null);
-
-		if (currentAccountRole == null) {
+		if (accountRoleLocator.getByKey(account, roleModel).isEmpty()) {
 			// Add with role.
 			// TODO: Fix this with the needed checks.
 			final var role = roleLocator.getByKey(Role.getKey(roleModel)).orElseThrow();
@@ -332,13 +331,11 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		}
 
 		// Check if account has active register role.
-		final var registerRole = accountRoleLocator.getByRoleName(account, RoleModel.REGISTER).orElse(null);
-
-		if (registerRole != null) {
+		accountRoleLocator.getByRoleName(account, RoleModel.REGISTER).ifPresent(registerRole -> {
 			// Delete register account role.
 			registerRole.delete();
 			updateEntity(registerRole);
-		}
+		});
 	}
 
 	private Optional<String[]> splitHeader(final String header) {

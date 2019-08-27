@@ -22,10 +22,11 @@ import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.views.ViewBundle;
-import jdk.jshell.JShell;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.dropwizard.ContextPath;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
+import net.sf.zoftwhere.dropwizard.MuleInfo;
+import net.sf.zoftwhere.dropwizard.ViewAssetPath;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
 import net.sf.zoftwhere.hibernate.MacroCaseNamingStrategy;
 import net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy;
@@ -45,6 +46,7 @@ import net.sf.zoftwhere.mule.security.AccountSigner;
 import net.sf.zoftwhere.mule.security.AuthenticationScheme;
 import net.sf.zoftwhere.mule.security.JWTSigner;
 import net.sf.zoftwhere.mule.security.SecureModule;
+import net.sf.zoftwhere.mule.shell.MuleShell;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -74,17 +76,21 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	private final Cache<UUID, AccountPrincipal> principalCache;
 
-	private final Cache<UUID, JShell> shellCache;
+	private final Cache<UUID, MuleShell> shellCache;
 
 	private final PlaceHolder<JWTSigner> jwtSigner = new Variable<>();
 
 	private final PlaceHolder<JWTVerifier> jwtVerifier = new Variable<>();
 
-	public MuleApplication(final String realm) {
+	private MuleApplication(final String realm) {
+		this(realm, 500, 500);
+	}
+
+	public MuleApplication(final String realm, int maximumUserCache, int maximumShellCache) {
 		this.realm = realm;
 		this.hibernateBundle = newHibernateBundle();
-		this.principalCache = newLoginAccountCache();
-		this.shellCache = newJShellCache();
+		this.principalCache = newLoginAccountCache(maximumUserCache);
+		this.shellCache = newMuleShellCache(maximumShellCache);
 	}
 
 	@Override
@@ -94,7 +100,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	@Override
 	public void initialize(Bootstrap<MuleConfiguration> bootstrap) {
-		// Enable variable substitution with environment variables
+		// Enable variable substitution with environment variables.
 		bootstrap.setConfigurationSourceProvider(
 				new SubstitutingSourceProvider(
 						bootstrap.getConfigurationSourceProvider(),
@@ -149,8 +155,20 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 			@Provides
 			@Singleton
+			public MuleInfo getMuleProperties(MuleConfiguration configuration) {
+				return configuration.getInfo();
+			}
+
+			@Provides
+			@Singleton
 			public ContextPath getContextPath(Environment environment) {
 				return new ContextPath(environment.getApplicationContext().getContextPath());
+			}
+
+			@Provides
+			@Singleton
+			public ViewAssetPath getViewAssetPath(MuleConfiguration configuration) {
+				return configuration.getViewAssetPath();
 			}
 
 			@Provides
@@ -170,7 +188,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 			@Provides
 			@Singleton
-			public Cache<UUID, JShell> getJShellCache() {
+			public Cache<UUID, MuleShell> getJShellCache() {
 				return shellCache;
 			}
 		};
@@ -249,16 +267,16 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		return GuiceBundle.<T>builder().enableAutoConfig(basePackage.getName());
 	}
 
-	public static Cache<UUID, AccountPrincipal> newLoginAccountCache() {
+	public static Cache<UUID, AccountPrincipal> newLoginAccountCache(int maximumSize) {
 		return CacheBuilder.newBuilder()
-				.maximumSize(10000)
+				.maximumSize(maximumSize)
 				.expireAfterWrite(Duration.ofMinutes(30))
 				.build();
 	}
 
-	public static Cache<UUID, JShell> newJShellCache() {
+	public static Cache<UUID, MuleShell> newMuleShellCache(int maximumSize) {
 		return CacheBuilder.newBuilder()
-				.maximumSize(1000)
+				.maximumSize(maximumSize)
 				.expireAfterWrite(Duration.ofMinutes(30))
 				.build();
 	}
