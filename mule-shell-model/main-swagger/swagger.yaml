@@ -100,9 +100,13 @@ paths:
           in: query
           type: string
           required: true
+        - name: snippetId
+          in: query
+          type: string
+          requied: false
       responses:
         200:
-          summary: 'Successfully retrieved all session snippets.'
+          summary: 'Successfully retrieved session snippets.'
           schema:
             type: array
             $ref: '#/definitions/Snippet'
@@ -118,7 +122,7 @@ paths:
           required: true
       responses:
         200:
-          summary: 'Successfully retrieved all session snippets.'
+          summary: 'Successfully retrieved import snippet(s).'
           schema:
             type: array
             $ref: '#/definitions/ImportSnippet'
@@ -132,9 +136,13 @@ paths:
           in: query
           type: string
           required: true
+        - name: variableName
+          in: query
+          type: string
+          requied: false
       responses:
         200:
-          summary: 'Successfully retrieved all session snippets.'
+          summary: 'Successfully retrieved variable snippet(s).'
           schema:
             type: array
             $ref: '#/definitions/VariableSnippet'
@@ -148,12 +156,36 @@ paths:
           in: query
           type: string
           required: true
+        - name: methodName
+          in: query
+          type: string
+          requied: false
+      responses:
+        200:
+          summary: 'Successfully retrieved method snippet(s).'
+          schema:
+            type: array
+            $ref: '#/definitions/MethodSnippet'
+
+  /session/type:
+    get:
+      operationId: getSessionTypeArray
+      description: Retrieves the type declaration snippets for the session.
+      parameters:
+        - name: sessionId
+          in: query
+          type: string
+          required: true
+        - name: typeName
+          in: query
+          type: string
+          requied: false
       responses:
         200:
           summary: 'Successfully retrieved all session snippets.'
           schema:
             type: array
-            $ref: '#/definitions/MethodSnippet'
+            $ref: '#/definitions/TypeSnippet'
 
   /expression:
     post:
@@ -229,10 +261,14 @@ definitions:
         type: string
       output:
         type: array
-        items: 
-          type: string
+        items:
+          $ref: '#/definitions/Snippet'
       continuation:
         type: boolean
+      remainingCode:
+        type: string
+      error:
+        type: string
 
   Session:
     type: object
@@ -250,28 +286,72 @@ definitions:
         type: string
         format: date-time
 
+  SnippetType:
+    type: string
+    enum:
+      - console
+      - error
+      - expression
+      - import
+      - method
+      - other
+      - statement
+      - type
+      - variable
+
+  SnippetStatus:
+    type: string
+    enum:
+      - dropped
+      - nonexistent
+      - overwritten
+      - recoverable_defined
+      - recoverable_not_defined
+      - rejected
+      - valid
+
   Snippet:
     type: object
-    description: 'Basic Snippet'
+    description: 'Generic Snippet'
     properties:
+      type:
+        $ref: '#/definitions/SnippetType'
       id:
         type: string
-      index:
-        type: string
-      type:
-        type: string
+      status:
+        $ref: '#/definitions/SnippetStatus'
       name:
+        type: string
+      fullName:
+        type: string
+      signature:
         type: string
       source:
         type: string
+      typeName:
+        type: string
+      value:
+        type: string
+      error:
+        type: string
+      diagnostic:
+        type: array
+        items:
+          $ref: '#/definitions/Diagnostic'
+      exception:
+        type: string
+      stacktrace:
+        type: array
+        items:
+          $ref: '#/definitions/StackTraceElement'
 
   ImportSnippet:
     type: object
     properties:
       id:
         type: string
-      index:
-        type: string
+      status:
+        $ref: '#/definitions/SnippetStatus'
       name:
         type: string
       fullName:
@@ -284,15 +364,15 @@ definitions:
     properties:
       id:
         type: string
-      index:
-        type: string
+      status:
+        $ref: '#/definitions/SnippetStatus'
       name:
         type: string
-      type:
-        type: string
-      value:
+      typeName:
         type: string
       source:
+        type: string
+      value:
         type: string
 
   MethodSnippet:
@@ -300,13 +380,54 @@ definitions:
     properties:
       id:
         type: string
-      index:
-        type: string
+      status:
+        $ref: '#/definitions/SnippetStatus'
       name:
         type: string
-      type:
+      typeName:
         type: string
       signature:
         type: string
       source:
+        type: string
+
+  TypeSnippet:
+    type: object
+    description: 'Type Declaration Snippet'
+    properties:
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/SnippetStatus'
+      name:
+        type: string
+      fullName:
+        type: string
+      signature:
+        type: string
+      source:
+        type: string
+      value:
+        type: string
+
+  Diagnostic:
+    type: object
+    properties:
+      input:
+        type: string
+      message:
+        type: string
+      local:
+        type: string
+      position:
+        type: string
+      start:
+        type: string
+      end:
+        type: string
+
+  StackTraceElement:
+    type: object
+    properties:
+      line:
         type: string

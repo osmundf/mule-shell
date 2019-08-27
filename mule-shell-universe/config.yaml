@@ -1,4 +1,6 @@
 # Developer Server Configuration.
+muleInfo:
+  version: 1.0.0 (Development)
 
 # Logging settings.
 logging:
@@ -59,6 +61,13 @@ viewRendererConfiguration:
   freemarker:
     strict_syntax: yes
     whitespace_stripping: yes
+
+viewAssetPath:
+  bootstrapCSS: '<link rel="stylesheet" href="/mule-shell/assets/bootstrap-4.3.1.min.css">'
+  bootstrapJS: '<script src="/mule-shell/assets/bootstrap-4.3.1.min.js"></script>'
+  jQueryJS: '<script src="/mule-shell/assets/jquery-3.4.1.min.js"></script>'
+  jQuerySlimJS: '<script src="/mule-shell/assets/jquery-3.4.1.min.js"></script>'
+  popperJS: '<script src="/mule-shell/assets/popper-1.14.7.min.js"></script>'
 
 #metrics:
 #  reporters:

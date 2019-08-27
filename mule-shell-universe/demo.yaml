@@ -1,4 +1,6 @@
 # Demo Server Configuration.
+muleInfo:
+  version: 1.0.0 (Demo)
 
 # Logging settings.
 logging:
@@ -22,8 +24,8 @@ logging:
       logFormat: "%-5p [%d{ISO8601,CAT}] %c: %m%n%rEx"
     - type: file
       threshold: INFO
-      currentLogFilename: /tmp/application.log
-      archivedLogFilenamePattern: /tmp/application-%d{yyyy-MM-dd}-%i.log.gz
+      currentLogFilename: application.log
+      archivedLogFilenamePattern: application-%d{yyyy-MM-dd}-%i.log.gz
       archivedFileCount: 7
       timeZone: UTC
       maxFileSize: 10MiB
@@ -59,6 +61,13 @@ viewRendererConfiguration:
   freemarker:
     strict_syntax: yes
     whitespace_stripping: yes
+
+viewAssetPath:
+  bootstrapCSS: '<link rel="stylesheet" href="/mule-shell-demo/assets/bootstrap-4.3.1.min.css">'
+  bootstrapJS: '<script src="/mule-shell-demo/assets/bootstrap-4.3.1.min.js"></script>'
+  jQueryJS: '<script src="/mule-shell-demo/assets/jquery-3.4.1.min.js"></script>'
+  jQuerySlimJS: '<script src="/mule-shell-demo/assets/jquery-3.4.1.min.js"></script>'
+  popperJS: '<script src="/mule-shell-demo/assets/popper-1.14.7.min.js"></script>'
 
 #metrics:
 #  reporters:

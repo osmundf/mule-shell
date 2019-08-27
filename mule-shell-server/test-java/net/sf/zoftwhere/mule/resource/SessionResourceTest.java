@@ -4,9 +4,9 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import jdk.jshell.JShell;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
 import net.sf.zoftwhere.mule.security.AccountPrincipal;
+import net.sf.zoftwhere.mule.shell.MuleShell;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
@@ -21,7 +21,7 @@ class SessionResourceTest extends TestResource<SessionResource> {
 
 	private static final Key<Cache<UUID, AccountPrincipal>> principalCacheKey = new Key<>() {};
 
-	private static final Key<Cache<UUID, JShell>> shellCacheKey = new Key<>() {};
+	private static final Key<Cache<UUID, MuleShell>> shellCacheKey = new Key<>() {};
 
 	private Map<String, String> accountSecretMap = new ImmutableMap.Builder<String, String>()
 			.put("test-bob", "test-bob-public-secret")

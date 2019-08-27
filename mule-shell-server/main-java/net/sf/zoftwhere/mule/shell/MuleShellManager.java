@@ -1,30 +1,29 @@
-package net.sf.zoftwhere.mule.server;
+package net.sf.zoftwhere.mule.shell;
 
 import com.google.common.cache.Cache;
-import jdk.jshell.JShell;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.ShellSessionLocator;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public class JShellManager {
+public class MuleShellManager {
 
-	private final Cache<UUID, JShell> shellCache;
+	private final Cache<UUID, MuleShell> shellCache;
 
 	private final ShellSessionLocator shellSessionLocator;
 
-	public JShellManager(Cache<UUID, JShell> shellCache, ShellSessionLocator shellSessionLocator) {
+	public MuleShellManager(Cache<UUID, MuleShell> shellCache, ShellSessionLocator shellSessionLocator) {
 		this.shellCache = shellCache;
 		this.shellSessionLocator = shellSessionLocator;
 	}
 
-	public Optional<JShell> getJShell(UUID id, Account account) {
+	public Optional<MuleShell> getMuleShell(UUID id, Account account) {
 		if (id == null || account == null) {
 			return Optional.empty();
 		}
 
-		// final var shellSession = shellSessionLocator.getById(id).orElse(null);
+		// TODO: Extend to use session privileges (owner, viewer, visitor)
 		final var shellSession = shellSessionLocator.getForIdAndAccount(id, account).orElse(null);
 
 		if (shellSession == null) {
@@ -38,7 +37,7 @@ public class JShellManager {
 		}
 
 		// Load shell from database.
-		final var loaded = JShell.builder().remoteVMOptions("-Xmx64m").build();
+		final var loaded = new MuleShell(builder -> builder.remoteVMOptions("-Xmx64m"));
 
 		// TODO: Run expressions for saved shell session.
 

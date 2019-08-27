@@ -34,14 +34,16 @@ body {
 }
 
 .line {
+    display: block;
+    white-space: pre;
     color: #ddd;
     /*text-shadow: 0 .05rem .1rem rgba(0, 0, 0, 0);*/
-    padding: 0 0 0 5px;
-    margin: 0;
+    margin: 0 0 0 0;
     /*border: 1px solid red;*/
 }
 
 .terminal {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     /*font-size: 12px;*/
     font-size: 75.00%;
     font-weight: lighter;
@@ -60,8 +62,10 @@ body {
 .dark-input {
     background-color: #222;
     color: #eee;
-    border: 0px solid #222;
-    padding: 5px 5px 5px 5px;
+    border: 1px solid transparent;
+    margin: 0px;
+    padding: 0px;
+    outline: 1px solid transparent;
 }
 
 .console-prompt {
@@ -70,19 +74,9 @@ body {
     color: #eee;
     border: 0px solid #222;
     padding: 5px 5px 5px 5px;
-    font-size: 12px;
 }
 
-/*
- * Header
- */
-.masthead {
-    margin-bottom: 2rem;
-}
 
-.masthead-brand {
-    margin-bottom: 0;
-}
 
 .nav-masthead .nav-link {
     padding: .25rem 0;

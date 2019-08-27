@@ -1,4 +1,6 @@
 # Production Server Configuration.
+muleInfo:
+  version: 0.1.0 (In-Development)
 
 # Logging settings.
 logging:
@@ -17,8 +19,8 @@ logging:
       logFormat: "%-5p [%d{ISO8601,CAT}] %c: %m%n%rEx"
     - type: file
       threshold: INFO
-      currentLogFilename: /tmp/application.log
-      archivedLogFilenamePattern: /tmp/application-%d{yyyy-MM-dd}-%i.log.gz
+      currentLogFilename: application.log
+      archivedLogFilenamePattern: application-%d{yyyy-MM-dd}-%i.log.gz
       archivedFileCount: 7
       timeZone: UTC
       maxFileSize: 10MiB

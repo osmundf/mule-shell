@@ -1,5 +1,10 @@
-<#-- @ftlvariable name="contextPath" type="java.lang.String" -->
 <#--noinspection HtmlUnknownTarget-->
+<#-- @ftlvariable name="bootstrapCSS" type="java.lang.String" -->
+<#-- @ftlvariable name="bootstrapJS" type="java.lang.String" -->
+<#-- @ftlvariable name="contextPath" type="java.lang.String" -->
+<#-- @ftlvariable name="JQueryJS" type="java.lang.String" -->
+<#-- @ftlvariable name="popperJS" type="java.lang.String" -->
+<#-- @ftlvariable name="version" type="java.lang.String" -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,10 +15,7 @@
 
     <title>Console · Mule Shell</title>
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-            <#--noinspection SpellCheckingInspection-->
-          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
+    ${bootstrapCSS?no_esc}
     <link rel="stylesheet" href="${contextPath}/assets/mule-theme.css">
     <link rel="stylesheet" href="${contextPath}/assets/mule.css">
 </head>
@@ -42,6 +44,7 @@
 </div>
 
 <div id="center" class="d-flex mb-auto flex-column box-shadow w-100" style="height: 100%; overflow: auto;">
+    <!-- Empty div to fill the top (when needed). -->
     <div class="mb-auto w-100"></div>
     <div class="w-100" style="overflow: none; padding: 2px;" id="console">
     </div>
@@ -49,8 +52,12 @@
 
 <div id="south" class="w-100" style="padding: 5px; background-color: #222;">
     <form id="prompt-form" class="input-group">
-        <div class="input-group-prepend align-items-center fixed-font dark-prompt terminal" id="prompt">jshell&gt;</div>
-        <input type="text" class="d-flex flex-grow-1 fixed-font dark-input terminal" autocomplete="off" autofocus id="console-input">
+        <label for="console-input"></label>
+        <div class="input-group-prepend align-items-center fixed-font dark-prompt terminal" id="prompt">
+            $&nbsp;
+        </div>
+        <input type="text" class="d-flex flex-grow-1 fixed-font dark-input terminal" autocomplete="off" autofocus
+               id="console-input">
     </form>
 </div>
 
@@ -86,37 +93,32 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<#--<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        &lt;#&ndash;noinspection SpellCheckingInspection&ndash;&gt;
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-        <#--noinspection SpellCheckingInspection-->
-        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-        <#--noinspection SpellCheckingInspection-->
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-        crossorigin="anonymous"></script>
+<#-- Preverse the order of these JavaScript libraries for Bootstrap to work. -->
+${JQueryJS?no_esc}
+${popperJS?no_esc}
+${bootstrapJS?no_esc}
 
 <input type="hidden" class="hidden" value="${contextPath}" id="context-path">
 <input type="hidden" class="hidden" value="" id="shell-id">
+<input type="hidden" class="hidden" value="${version}" id="mule-version">
 
+<script type="application/javascript" src="${contextPath}/assets/mule.js"></script>
 <script type="application/javascript">
 
-    var guestButton = $('button#guestButton');
-    var loginForm = $("form#form-log-in");
-    var consoleDiv = $("div#console");
-    var promptForm = $("form#prompt-form");
-    var promptSymbol = $("div#prompt");
-    var promptInput = $("input#console-input");
-    var contextPath = $("input#context-path").val();
-    var shellId = $("input#shell-id");
+    const guestButton = $('button#guest-button');
+    const loginForm = $("form#form-log-in");
+    const consoleDiv = $("div#console");
+    const promptForm = $("form#prompt-form");
+    const promptSymbol = $("div#prompt");
+    const promptInput = $("input#console-input");
+    const contextPath = $("input#context-path").val();
+    const shellId = $("input#shell-id");
+    const muleVersion = $("input#mule-version").val();
+    const mule = new MuleShellConsole(consoleDiv);
 
     $(function () {
-        $('button#loadingButton').addClass("hidden");
-        $('button#guestButton').removeClass("hidden");
+        $('button#loading-button').addClass("hidden");
+        $('button#guest-button').removeClass("hidden");
         loginGuest();
     });
 
@@ -148,7 +150,7 @@
 
     function startShellSession() {
 
-        var token = getLoginStore();
+        const token = getLoginStore();
         disablePrompt();
 
         $.ajax({
@@ -162,26 +164,29 @@
                 xhr.setRequestHeader('Authorization', "Bearer " + token);
             }
         }).done(function (data) {
-            console.log("Session stored: " + data[0].id);
+            console.debug("Session stored: " + data[0].id);
             document.location.hash = data[0].id;
             shellId.val(data[0].id);
 
-            consoleDiv.append("<pre class=\"line terminal\">$ jshell</pre>");
-            consoleDiv.append("<pre class=\"line terminal\">|  Welcome to JShell -- Version 11.0.2</pre>");
-            consoleDiv.append("<pre class=\"line terminal\">|  For an introduction type: /help intro</pre>");
-            consoleDiv.append("<pre class=\"line terminal\">&nbsp;</pre>");
+            mule.addOutput(":  Welcome to MuleShell.");
+            mule.addOutput(":  Version: " + muleVersion);
+            mule.addOutput(":");
+            mule.addOutput(":  For an help type: /help");
+            mule.addOutput("\n");
+            mule.scrollIntoView();
+
             enablePrompt();
 
         }).fail(function (status, error) {
-            console.log("Fail." + JSON.stringify(error));
+            console.error("Fail." + JSON.stringify(error));
         });
     }
 
     loginForm.bind("submit", function () {
         $('div#myModal').modal('hide');
 
-        var username = $("input#inputUsername").val();
-        var password = $("input#inputPassword").val();
+        const username = $("input#inputUsername").val();
+        const password = $("input#inputPassword").val();
 
         $.ajax({
             type: "POST",
@@ -206,19 +211,32 @@
 
     promptForm.bind("submit", function () {
 
-        var token = getLoginStore();
-        var shellId = $("#shell-id").val();
-        var contextPath = $("#context-path").val();
-        var expression = promptInput.val().trim();
+        const token = getLoginStore();
+        const shellId = $("#shell-id").val();
+        const contextPath = $("#context-path").val();
+        const lastInput = promptInput.val();
+        const expression = (mule.continuation ? mule.remainingCode + "\n" : "") + lastInput;
 
-        if (expression === "") {
-            $('<pre class="line terminal"/>').text("jshell>").appendTo(consoleDiv);
-            $('<pre class="line terminal">&nbsp;</pre>').appendTo(consoleDiv);
+        if (mule.continuation === false && lastInput.trim().startsWith("/help")) {
+            let m = mule.command(lastInput);
+            console.debug(JSON.stringify(m));
+            if (m === true) {
+                promptInput.val("")
+            }
             return false;
         }
 
         if (token == null) {
             alert("Login please.");
+            return false;
+        }
+
+        if (mule.continuation === false && lastInput.trim().startsWith("/")) {
+            let m = mule.command(lastInput);
+            console.debug(JSON.stringify(m));
+            if (m === true) {
+                promptInput.val("")
+            }
             return false;
         }
 
@@ -235,31 +253,17 @@
                 xhr.setRequestHeader('Authorization', "Bearer " + token);
             }
         }).done(function (data) {
-            console.log("Response: " + JSON.stringify(data));
             promptInput.val("");
+            try {
+                mule.processExpressionResult(lastInput, expression, data);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                // Prompt with spaces as non-breaking spaces.
+                promptSymbol.text((MuleShellConsole.getPrompt(mule.continuation) + ' ').replace(/ /g, '\u00a0'));
 
-            var lines = data != null && data.output != null ? data.output : [];
-            var size = lines.length;
-
-            $('<pre class="line terminal"/>').text("jshell> " + expression.trim()).appendTo(consoleDiv);
-
-            for (var i = 0; i < size; i++) {
-                var line = lines[i];
-
-                if (line === "") {
-                    $('<pre class="line terminal">&nbsp;</pre>').appendTo(consoleDiv);
-                } else {
-                    $('<pre class="line terminal"/>').text(line).appendTo(consoleDiv);
-                }
+                enablePrompt();
             }
-
-            if (true === data.continuation) {
-                promptSymbol.text("...>");
-            } else {
-                promptSymbol.text("jshell>");
-            }
-
-            enablePrompt();
 
         }).fail(function (status, error) {
             console.log("Fail status: " + JSON.stringify(status));
@@ -269,11 +273,6 @@
 
         return false;
     });
-
-    function postToSession() {
-        var contextPath = document.getElementById("context-path");
-        console.log("Here: " + contextPath);
-    }
 
     function disablePrompt() {
         promptInput.addClass("disabled");
@@ -295,8 +294,12 @@
         localStorage.setItem("mule-shell-token", jwt);
     }
 
+    function clearLoginStore() {
+        localStorage.removeItem("mule-shell-token");
+    }
+
     function makeBasicBase64(user, password) {
-        var tok = user + ':' + password;
+        const tok = user + ':' + password;
         return btoa(tok);
     }
 </script>
