@@ -1,7 +1,13 @@
-/.idea/vcs.xml
-/.idea/libraries/
-/.idea/workspace.xml
+# Maven
 /*/*.jar
 /*/_target/
+
+# Log Files
+/*/*.log
+
+# IntelliJ
+/.idea/
+
+# MacOS
 /.DS_Store
 /**/.DS_Store
