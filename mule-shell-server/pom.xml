@@ -60,7 +60,7 @@
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>javax.inject</artifactId>
             <version>2.5.0-b32</version>
-            <!-- Class class with javax.inject -->
+            <!-- Class clash with javax.inject -->
             <scope>provided</scope>
         </dependency>
 
@@ -69,7 +69,7 @@
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>aopalliance-repackaged</artifactId>
             <version>2.5.0-b32</version>
-            <!-- Class class with AOP Alliance -->
+            <!-- Class clash with AOP Alliance -->
             <scope>provided</scope>
         </dependency>
 
