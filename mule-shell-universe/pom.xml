@@ -123,6 +123,17 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>main-resources</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}</directory>
+                <includes>
+                    <include>demo.yaml</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
