@@ -145,7 +145,7 @@ public class MuleShell implements AutoCloseable {
 			}
 
 			for (Snippet sourceSnippet : analyzer.sourceToSnippets(info.source())) {
-				modelList.add(MuleSnippet.generalSnippet(this, sourceSnippet, null));
+				modelList.add(MuleSnippet.generalSnippet(sourceSnippet));
 			}
 
 			remainingCode = info.remaining();
@@ -249,6 +249,10 @@ public class MuleShell implements AutoCloseable {
 	}
 
 	private Optional<String> readConsoleBuffer() {
+		if (isClosed()) {
+			return Optional.empty();
+		}
+
 		StringBuilder builder = new StringBuilder();
 		try {
 			if (!readOutput.ready()) {
