@@ -249,6 +249,10 @@ public class MuleShell implements AutoCloseable {
 	}
 
 	private Optional<String> readConsoleBuffer() {
+		if (isClosed()) {
+			return Optional.empty();
+		}
+
 		StringBuilder builder = new StringBuilder();
 		try {
 			if (!readOutput.ready()) {
