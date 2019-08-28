@@ -8,18 +8,15 @@ import jdk.jshell.JShell;
 import jdk.jshell.MethodSnippet;
 import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
-import jdk.jshell.SourceCodeAnalysis.Completeness;
 import jdk.jshell.SourceCodeAnalysis.CompletionInfo;
 import jdk.jshell.TypeDeclSnippet;
 import jdk.jshell.VarSnippet;
 import lombok.Getter;
 import net.sf.zoftwhere.mule.model.DiagnosticModel;
 import net.sf.zoftwhere.mule.model.SnippetModel;
-import net.sf.zoftwhere.mule.model.SnippetStatusModel;
 import net.sf.zoftwhere.mule.model.SnippetTypeModel;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.NullOutputStream;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,18 +37,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static jdk.jshell.SourceCodeAnalysis.Completeness.COMPLETE;
 import static jdk.jshell.SourceCodeAnalysis.Completeness.COMPLETE_WITH_SEMI;
+import static jdk.jshell.SourceCodeAnalysis.Completeness.DEFINITELY_INCOMPLETE;
 
 public class MuleShell implements AutoCloseable {
 
 	private static final Logger logger = LoggerFactory.getLogger(MuleShell.class);
-
-	protected final static Function<@NonNull Completeness, @NonNull Boolean> JSHELL_COMPLETENESS =
-			completeness -> completeness == COMPLETE || completeness == COMPLETE_WITH_SEMI;
-
-	protected final static Function<@NonNull Completeness, @NonNull Boolean> MULE_SHELL_COMPLETENESS =
-			completeness -> completeness == COMPLETE;
 
 	@Getter
 	private boolean closed = false;
@@ -138,8 +129,8 @@ public class MuleShell implements AutoCloseable {
 		final var analyzer = jShell.sourceCodeAnalysis();
 		while (!Strings.isNullOrEmpty(remainingCode)) {
 			CompletionInfo info = analyzer.analyzeCompletion(remainingCode);
-			var complete = JSHELL_COMPLETENESS.apply(info.completeness());
-			if (!complete) {
+			
+			if (info.completeness() == DEFINITELY_INCOMPLETE || info.completeness() == COMPLETE_WITH_SEMI) {
 				final var evaluationModelList = Lists.newCopyOnWriteArrayList(modelList);
 				return new MuleShellEvaluation(evaluationModelList, remainingCode, null);
 			}
@@ -172,27 +163,8 @@ public class MuleShell implements AutoCloseable {
 
 		do {
 			CompletionInfo info = analyzer.analyzeCompletion(remainingCode);
-			var complete = JSHELL_COMPLETENESS.apply(info.completeness());
 
-			if (info.completeness() == Completeness.UNKNOWN) {
-				final var diagnostic = new DiagnosticModel();
-				diagnostic.setMessage("illegal start of expression");
-				diagnostic.setInput(remainingCode);
-				diagnostic.setPosition("" + 0);
-				diagnostic.setStart("" + 0);
-				diagnostic.setEnd("" + inputCode.length());
-
-				final var model = new SnippetModel();
-				model.setType(SnippetTypeModel.EXPRESSION);
-				model.setStatus(SnippetStatusModel.REJECTED);
-				model.setDiagnostic(List.of(diagnostic));
-
-				modelList.add(model);
-				final var evaluationModelList = Lists.newCopyOnWriteArrayList(modelList);
-				return new MuleShellEvaluation(evaluationModelList, "", "error.code.unknown", null, null);
-			}
-
-			if (!complete) {
+			if (info.completeness() == DEFINITELY_INCOMPLETE || info.completeness() == COMPLETE_WITH_SEMI) {
 				final var evaluationModelList = Lists.newCopyOnWriteArrayList(modelList);
 				return new MuleShellEvaluation(evaluationModelList, remainingCode, null);
 			}
