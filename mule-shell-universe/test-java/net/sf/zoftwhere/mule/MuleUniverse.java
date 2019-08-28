@@ -11,8 +11,7 @@ public class MuleUniverse {
 		long time = -System.nanoTime();
 		int maxUserCache = 1;
 		int maxShellCache = 1;
-		new MuleApplication("mule-shell-dev", maxUserCache, maxShellCache)
-				.run("server", "../mule-shell-universe/config.yaml");
+		new MuleApplication("mule-shell-dev", maxUserCache, maxShellCache).run("server", "config.yaml");
 		time += System.nanoTime();
 		logger.info("Started: " + ((time / 1_000) / 1e3) + " ms");
 	}
