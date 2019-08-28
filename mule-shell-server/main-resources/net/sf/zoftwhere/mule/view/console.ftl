@@ -164,12 +164,13 @@ ${bootstrapJS?no_esc}
                 xhr.setRequestHeader('Authorization', "Bearer " + token);
             }
         }).done(function (data) {
-            console.debug("Session stored: " + data[0].id);
-            document.location.hash = data[0].id;
-            shellId.val(data[0].id);
+            const session = data[0];
+            document.location.hash = session.id;
+            shellId.val(session.id);
 
             mule.addOutput(":  Welcome to MuleShell.");
             mule.addOutput(":  Version: " + muleVersion);
+            mule.addOutput(":  System: " + session.system.type + " " + session.system.version);
             mule.addOutput(":");
             mule.addOutput(":  For an help type: /help");
             mule.addOutput("\n");
