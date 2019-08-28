@@ -101,8 +101,18 @@ The Java Platform Module System will print a warning message about illegal refle
 
 ```--add-opens java.base/java.lang=ALL-UNNAMED```
 
-## Deploying to Local Repository
+## To install/deploy the project with Apache Maven:
 
-Artifacts can be installed to the local repository with the deploy plugin, ensuring that test jar dependencies are also installed.  The ```shadePhase``` property is to suppress the creation of the shaded ```demo.jar``` file.
+Artifacts can be installed to the local repository, ensuring that test jar dependencies are also installed.  The ```shadePhase``` property is to suppress the creation of the shaded ```demo.jar``` file.
+
+1. Install the base project to the local repository (skip tests and shading):
+
+```mvn clean install -pl '!mule-shell-universe' -DskipTests=true -DshadePhase=none -f pom.xml```
+
+2. Install the project to the local repository (skip tests and shading):
+
+```mvn clean install -DskipTests=true -DshadePhase=none -f pom.xml```
+
+3. Artifacts can be installed to the local repository with the deploy plugin:
 
 ```mvn clean deploy -Durl=file://<path> -DskipTests=true -DshadePhase=none -f pom.xml```

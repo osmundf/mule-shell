@@ -178,7 +178,7 @@
                         </execution>
                         <execution>
                             <id>default-install</id>
-                            <phase>none</phase>
+                            <phase>install</phase>
                         </execution>
                     </executions>
                 </plugin>
