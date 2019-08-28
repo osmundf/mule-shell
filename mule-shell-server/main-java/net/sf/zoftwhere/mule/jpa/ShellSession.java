@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.sf.zoftwhere.dropwizard.AbstractEntity;
 import net.sf.zoftwhere.mule.model.SessionModel;
+import net.sf.zoftwhere.mule.model.SystemModel;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
@@ -56,9 +57,11 @@ public class ShellSession extends AbstractEntity<UUID> {
 	}
 
 	public static SessionModel asSessionModel(ShellSession session, ZoneOffset zoneOffset) {
+		String jvmVersion = System.getProperty("java.version");
 		SessionModel model = new SessionModel();
 		model.setId(session.getId());
 
+		model.setSystem(new SystemModel().type("Java").version(jvmVersion));
 		model.setCreatedAt(withZoneOffset(session.getCreatedAt(), zoneOffset));
 		model.setClosedAt(withZoneOffset(session.getDeletedAt(), zoneOffset));
 		model.setSuspendedAt(withZoneOffset(session.getSuspendedAt(), zoneOffset));

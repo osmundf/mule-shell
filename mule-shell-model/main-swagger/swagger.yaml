@@ -216,6 +216,14 @@ definitions:
   JsonString:
     type: string
 
+  System:
+    type: object
+    properties:
+      type:
+        type: string
+      version:
+        type: string
+        
   JsonWebToken:
     type: object
     properties:
@@ -276,6 +284,8 @@ definitions:
       id:
         type: string
         format: uuid
+      system:
+        $ref: '#/definitions/System'
       createdAt:
         type: string
         format: date-time
