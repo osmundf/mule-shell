@@ -27,7 +27,7 @@ The project has the following requirements to compile/run:
 
 4. Run the demo.jar file with JDK Java (The JDK is needed as the JRE does not have the JDK JShell modules):
 
-        java -jar mule-shell-universe/demo.ja
+        java -jar mule-shell-universe/demo.jar
         
 5. Navigate to the local host in a browser:
 
@@ -60,10 +60,6 @@ The project has the following requirements to compile/run:
 ### Compile server:
 
     mvn test-compile -pl=mule-shell-server -am
-
-### Compile universe:
-
-    mvn test-compile -pl=mule-shell-universe -am -f pom.all.xml
 
 ## Compiling the project in an IDE:
 
