@@ -1,9 +1,12 @@
 package net.sf.zoftwhere.mule;
 
 import com.google.inject.Provider;
+import io.dropwizard.configuration.ConfigurationSourceProvider;
+import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import net.sf.zoftwhere.hibernate.TransactionalSession;
+import net.sf.zoftwhere.mule.data.Variable;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
 import net.sf.zoftwhere.mule.jpa.AccountRole;
@@ -17,7 +20,6 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -26,13 +28,14 @@ public class MuleShellDemo extends MuleApplication {
 
 	private static final Logger logger = LoggerFactory.getLogger(MuleShellDemo.class);
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] arguments) throws Exception {
 		long time = -System.nanoTime();
-		final var arguments = args != null && args.length > 0 ? args : new String[]{"server", findDemoConfiguration()};
 		new MuleShellDemo("mule-shell-demo").run(arguments);
 		time += System.nanoTime();
 		logger.info("Started: " + ((time / 1_000) / 1e3) + " ms");
 	}
+
+	private final Variable<ConfigurationSourceProvider> sourceProviderVariable = new Variable<>();
 
 	public MuleShellDemo(String realm) {
 		super(realm, 100, 100);
@@ -44,7 +47,21 @@ public class MuleShellDemo extends MuleApplication {
 	}
 
 	@Override
+	public void run(String... arguments) throws Exception {
+		if (arguments != null && arguments.length > 0) {
+			super.run(arguments);
+			return;
+		}
+
+		sourceProviderVariable.accept(new ResourceConfigurationSourceProvider());
+		super.run("server", "demo.yaml");
+	}
+
+	@Override
 	public void initialize(Bootstrap<MuleConfiguration> bootstrap) {
+		if (sourceProviderVariable.optional().isPresent()) {
+			bootstrap.setConfigurationSourceProvider(sourceProviderVariable.get());
+		}
 		super.initialize(bootstrap);
 	}
 
@@ -120,19 +137,5 @@ public class MuleShellDemo extends MuleApplication {
 				session.getTransaction().commit();
 			});
 		}
-	}
-
-	private static String findDemoConfiguration() {
-		final var files = new String[]{"demo.yaml", "mule-shell-universe/demo.yaml", "../demo.yaml"};
-
-		for (var name : files) {
-			File file = new File(name);
-			if (file.exists() && file.isFile()) {
-				logger.info("Running configuration: " + name);
-				return name;
-			}
-		}
-
-		return "demo.yaml";
 	}
 }

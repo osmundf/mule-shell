@@ -1,4 +1,8 @@
+# Initialize with separate folder for Git repository.
 git init --separate-git-dir ../mule-shell.git
+
+# Configure automatic branch merge (local).
+git config --local branch.autosetupmerge true
 
 # SSH: (multiple account with SSH config)
 # git remote add github git@<ssh-alias>:osmundf/mule-shell.git
@@ -6,3 +10,12 @@ git remote add github git@osmundf_github.com:osmundf/mule-shell.git
 
 # HTTPS:
 git remote add github https://github.com/osmundf/mule-shell.git
+
+# Add files to local branch (master)
+git add .
+
+# Commit to local branch
+git commit -m "<message>"
+
+# Push with branch to remote repository
+git push -u github master
