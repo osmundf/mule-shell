@@ -1,9 +1,9 @@
 # Mule Shell (Still in Development)
-A cloud-based JDK JShell.
+A cloud-based shell application with JDK JShell API.
 
 ## Requirements
 
-The project has the following requirements to compile/run:
+The project has the following (minimum) requirements to compile/run:
 
 1. Java Development Kit 11 
 
