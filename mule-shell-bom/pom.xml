@@ -60,19 +60,9 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>deploy-bom</id>
+                        <id>deploy-artifact</id>
                         <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
                         <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <pomFile>${project.basedir}/pom.xml</pomFile>
                             <file>${project.basedir}/pom.xml</file>
                             <packaging>pom</packaging>
                         </configuration>
