@@ -4,6 +4,7 @@
 
 # Log Files
 /*/*.log
+/*/*.log.gz
 
 # IntelliJ
 /.idea/
