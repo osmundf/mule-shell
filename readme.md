@@ -45,6 +45,10 @@ The project has the following (minimum) requirements to compile/run:
 
     mvn clean generate-sources -pl=mule-shell-model -am
 
+### Compile debug:
+
+    mvn test-compile -pl=mule-shell-debug -am
+
 ### Compile common:
 
     mvn test-compile -pl=mule-shell-common -am
@@ -69,23 +73,27 @@ To rebuild the project in IntelliJ, simply call the clean and/or package Maven g
 
 IntelliJ IDE does not (or shouldn't?) include the BOM POM as a resolved dependency.  To be able to repackage only a given module, ensure that you add the BOM module to the Maven module playlist.
 
-1. Repackage mule-shell-common with resolve workspace dependencies selected:
+1. Repackage mule-shell-debug with resolve workspace dependencies selected:
+
+       clean package -pl=mule-shell-debug,mule-shell-bom -f pom.xml
+
+2. Repackage mule-shell-common with resolve workspace dependencies selected:
 
        clean package -pl=mule-shell-common,mule-shell-bom -f pom.xml
 
-2. Repackage mule-shell-model with resolve workspace dependencies selected:
+3. Repackage mule-shell-model with resolve workspace dependencies selected:
    
        clean package -pl=mule-shell-model,mule-shell-bom -f pom.xml
 
-3. Repackage mule-shell-client with resolve workspace dependencies selected:
+4. Repackage mule-shell-client with resolve workspace dependencies selected:
 
        clean package -pl=mule-shell-client,mule-shell-bom -f pom.xml
 
-4. Repackage mule-shell-server with resolve workspace dependencies selected:
+5. Repackage mule-shell-server with resolve workspace dependencies selected:
 
        clean package -pl=mule-shell-server,mule-shell-bom -f pom.xml
 
-5. Repackage mule-shell-universe with resolve workspace dependencies selected:
+6. Repackage mule-shell-universe with resolve workspace dependencies selected:
 
        clean package -pl=mule-shell-universe,mule-shell-bom -f pom.xml
 
@@ -108,7 +116,3 @@ Artifacts can be installed to the local repository, ensuring that test jar depen
 2. Install the project to the local repository (skip tests and shading):
 
 ```mvn clean install -DskipTests=true -DshadePhase=none -f pom.xml```
-
-3. Artifacts can be installed to the local repository with the deploy plugin:
-
-```mvn clean deploy -Durl=file://<path> -DskipTests=true -DshadePhase=none -f pom.xml```
