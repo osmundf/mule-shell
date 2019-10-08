@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>net.sf.zoftwhere.mule</groupId>
@@ -13,8 +13,10 @@
     <version>1.0.0-S</version>
 
     <properties>
+        <automatic.module.name>zoftwhere.mule.shell.model</automatic.module.name>
         <!-- > -->
-        <swagger.io.generate.phase>generate-sources</swagger.io.generate.phase>
+        <!-- Phase on process-source due to sources plugin calling generate sources phase. -->
+        <swagger.io.generate.phase>process-sources</swagger.io.generate.phase>
         <swagger.api.package>net.sf.zoftwhere.mule.core.api</swagger.api.package>
         <swagger.model.package>net.sf.zoftwhere.mule.core.api</swagger.model.package>
     </properties>
@@ -86,43 +88,18 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>main-javadoc</id>
-                        <!-- TODO: Link Swagger model JavaDoc to doclet tool. -->
-                        <phase>none</phase>
-                    </execution>
-                </executions>
+                <artifactId>maven-source-plugin</artifactId>
             </plugin>
+
+            <!-- TODO: Link Swagger model JavaDoc to doclet tool. -->
+            <!--<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>-->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>deploy-artifact</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <pomFile>${project.basedir}/pom.xml</pomFile>
-                            <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <packaging>jar</packaging>
-                            <!-- packaging loads test-jars for deploy? -->
-                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
-                            <!--<types>jar</types>-->
-                            <!--<classifiers>tests</classifiers>-->
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-jar-plugin</artifactId>
             </plugin>
 
             <plugin>

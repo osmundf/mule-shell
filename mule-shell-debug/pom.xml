@@ -11,46 +11,25 @@
 
     <artifactId>mule-shell-debug</artifactId>
     <version>1.0.0-S</version>
+    <packaging>jar</packaging>
 
     <properties>
+        <automatic.module.name>zoftwhere.mule.shell.debug</automatic.module.name>
     </properties>
 
     <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>net.sf.zoftwhere.mule</groupId>
-                <artifactId>mule-shell-bom</artifactId>
-                <version>1.0.0-S</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -58,31 +37,7 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>deploy-artifact</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <pomFile>${project.basedir}/pom.xml</pomFile>
-                            <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <packaging>jar</packaging>
-                            <!-- packaging loads test-jars for deploy? -->
-                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
-                            <!--<types>jar</types>-->
-                            <!--<classifiers>tests</classifiers>-->
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-jar-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

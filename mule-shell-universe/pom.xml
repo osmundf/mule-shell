@@ -13,6 +13,7 @@
     <version>1.0.0-S</version>
 
     <properties>
+        <automatic.module.name>zoftwhere.mule.shell.universe</automatic.module.name>
         <shadePhase>package</shadePhase>
     </properties>
 
@@ -29,12 +30,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
             <artifactId>mule-shell-server</artifactId>
@@ -74,16 +69,6 @@
         </dependency>
 
         <dependency>
-            <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-model</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-client</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>1.4.199</version>
@@ -105,14 +90,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!--<dependency>
-            <groupId>net.sf.zoftwhere.mule</groupId>
-            <artifactId>mule-shell-server</artifactId>
-            <type>jar</type>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>-->
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -132,6 +109,7 @@
                 </includes>
             </resource>
         </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -154,31 +132,12 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>deploy-artifact</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <pomFile>${project.basedir}/pom.xml</pomFile>
-                            <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <packaging>jar</packaging>
-                            <!-- packaging loads test-jars for deploy? -->
-                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
-                            <!--<types>jar</types>-->
-                            <!--<classifiers>tests</classifiers>-->
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
 
             <!-- Ensure that the jar plugin goals execute before the shade plugin. -->

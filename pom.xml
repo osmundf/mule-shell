@@ -59,18 +59,9 @@
             </dependency>
 
             <dependency>
-                <!-- to get around bug https://github.com/junit-team/junit5/issues/1367 -->
-                <groupId>org.apache.maven.surefire</groupId>
-                <artifactId>surefire-logger-api</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <scope>test</scope>
-                <optional>true</optional>
-            </dependency>
-
-            <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.2.0</version>
+                <version>5.5.1</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -79,8 +70,10 @@
 
     <dependencies>
         <dependency>
+            <!-- to get around bug https://github.com/junit-team/junit5/issues/1367 -->
             <groupId>org.apache.maven.surefire</groupId>
             <artifactId>surefire-logger-api</artifactId>
+            <version>${maven-surefire-plugin.version}</version>
             <scope>test</scope>
             <optional>true</optional>
         </dependency>
@@ -221,18 +214,27 @@
                             </goals>
                             <configuration>
                                 <classifier>sources</classifier>
+                                <excludeResources>true</excludeResources>
+                                <archive>
+                                    <addMavenDescriptor>false</addMavenDescriptor>
+                                    <manifest>
+                                        <addClasspath>false</addClasspath>
+                                    </manifest>
+                                    <manifestEntries>
+                                        <Main-Class/>
+                                        <Class-Path/>
+                                        <Dependencies/>
+                                        <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
+                                        <Implementation-Title>${project.artifactId}</Implementation-Title>
+                                        <Implementation-Vendor>${project.groupId}</Implementation-Vendor>
+                                        <Implementation-Version>${project.version}</Implementation-Version>
+                                        <Specification-Title>${project.artifactId}</Specification-Title>
+                                        <Specification-Vendor>${project.groupId}</Specification-Vendor>
+                                        <Specification-Version>${project.version}</Specification-Version>
+                                    </manifestEntries>
+                                </archive>
                             </configuration>
                         </execution>
-                        <!--<execution>
-                            <id>test-source</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>test-jar</goal>
-                            </goals>
-                            <configuration>
-                                <classifier>test-sources</classifier>
-                            </configuration>
-                        </execution>-->
                     </executions>
                     <configuration>
                     </configuration>
@@ -250,18 +252,16 @@
                                 <goal>jar</goal>
                             </goals>
                             <configuration>
+                                <quiet>true</quiet>
+                                <show>package</show>
                                 <failOnWarnings>true</failOnWarnings>
+                                <failOnError>true</failOnError>
                                 <sourceFileExcludes>
                                     <exclude>module-info.java</exclude>
                                 </sourceFileExcludes>
                             </configuration>
                         </execution>
                     </executions>
-                    <configuration>
-                        <quiet>true</quiet>
-                        <show>package</show>
-                        <failOnError>true</failOnError>
-                    </configuration>
                 </plugin>
 
                 <plugin>
@@ -281,7 +281,13 @@
                             </goals>
                             <configuration>
                                 <classifier/>
+                                <skipIfEmpty>false</skipIfEmpty>
+                                <forceCreation>false</forceCreation>
                                 <archive>
+                                    <addMavenDescriptor>false</addMavenDescriptor>
+                                    <manifest>
+                                        <addClasspath>false</addClasspath>
+                                    </manifest>
                                     <manifestEntries>
                                         <Main-Class/>
                                         <Class-Path/>
@@ -297,39 +303,8 @@
                                 </archive>
                             </configuration>
                         </execution>
-                        <!--<execution>
-                            <id>test-jar</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>test-jar</goal>
-                            </goals>
-                            <configuration>
-                                <classifier>tests</classifier>
-                                <archive>
-                                    <manifestEntries>
-                                        <Main-Class/>
-                                        <Class-Path/>
-                                        <Dependencies/>
-                                        <Automatic-Module-Name>${automatic.module.name}.test</Automatic-Module-Name>
-                                        <Implementation-Title>${project.artifactId}-test</Implementation-Title>
-                                        <Implementation-Vendor>${project.groupId}</Implementation-Vendor>
-                                        <Implementation-Version>${project.version}</Implementation-Version>
-                                        <Specification-Title>${project.artifactId}-test</Specification-Title>
-                                        <Specification-Vendor>${project.groupId}</Specification-Vendor>
-                                        <Specification-Version>${project.version}</Specification-Version>
-                                    </manifestEntries>
-                                </archive>
-                            </configuration>
-                        </execution>-->
                     </executions>
                     <configuration>
-                        <skipIfEmpty>true</skipIfEmpty>
-                        <archive>
-                            <addMavenDescriptor>false</addMavenDescriptor>
-                            <manifest>
-                                <addClasspath>false</addClasspath>
-                            </manifest>
-                        </archive>
                     </configuration>
                 </plugin>
 
@@ -339,15 +314,23 @@
                     <version>${maven-deploy-plugin.version}</version>
                     <executions>
                         <execution>
-                            <phase>none</phase>
-                        </execution>
-                        <execution>
                             <id>default-deploy</id>
                             <phase>none</phase>
                         </execution>
                         <execution>
                             <id>deploy-artifact</id>
-                            <phase>none</phase>
+                            <phase>deploy</phase>
+                            <goals>
+                                <goal>deploy-file</goal>
+                            </goals>
+                            <configuration>
+                                <groupId>${project.groupId}</groupId>
+                                <artifactId>${project.artifactId}</artifactId>
+                                <version>${project.version}</version>
+                                <pomFile>${project.basedir}/pom.xml</pomFile>
+                                <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                                <packaging>jar</packaging>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
@@ -407,16 +390,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
@@ -438,16 +411,12 @@
                 <version>${maven-deploy-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>default</id>
+                        <id>deploy-artifact</id>
                         <phase>deploy</phase>
                         <goals>
                             <goal>deploy-file</goal>
                         </goals>
                         <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <pomFile>${project.basedir}/pom.xml</pomFile>
                             <file>${project.basedir}/pom.xml</file>
                             <packaging>pom</packaging>
                         </configuration>

@@ -13,6 +13,7 @@
     <version>1.0.0-S</version>
 
     <properties>
+        <automatic.module.name>zoftwhere.mule.shell.common</automatic.module.name>
     </properties>
 
     <dependencyManagement>
@@ -58,36 +59,17 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>deploy-artifact</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
-                        <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <pomFile>${project.basedir}/pom.xml</pomFile>
-                            <file>${project.build.directory}/${project.build.finalName}.jar</file>
-                            <packaging>jar</packaging>
-                            <!-- packaging loads test-jars for deploy? -->
-                            <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
-                            <!--<types>jar</types>-->
-                            <!--<classifiers>tests</classifiers>-->
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-jar-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

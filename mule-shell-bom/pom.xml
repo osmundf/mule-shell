@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>net.sf.zoftwhere.mule</groupId>
@@ -60,19 +60,9 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>deploy-bom</id>
+                        <id>deploy-artifact</id>
                         <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
                         <configuration>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <pomFile>${project.basedir}/pom.xml</pomFile>
                             <file>${project.basedir}/pom.xml</file>
                             <packaging>pom</packaging>
                         </configuration>
