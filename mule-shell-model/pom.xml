@@ -13,6 +13,7 @@
     <version>1.0.0-S</version>
 
     <properties>
+        <automatic.module.name>zoftwhere.mule.shell.model</automatic.module.name>
         <!-- > -->
         <swagger.io.generate.phase>generate-sources</swagger.io.generate.phase>
         <swagger.api.package>net.sf.zoftwhere.mule.core.api</swagger.api.package>

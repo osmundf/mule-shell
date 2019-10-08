@@ -13,6 +13,7 @@
     <version>1.0.0-S</version>
 
     <properties>
+        <automatic.module.name>zoftwhere.mule.shell.server</automatic.module.name>
     </properties>
 
     <dependencyManagement>
