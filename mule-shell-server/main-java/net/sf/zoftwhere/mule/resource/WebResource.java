@@ -21,8 +21,6 @@ import java.net.URI;
 @Path("/")
 public class WebResource {
 
-	private static final URI index = URI.create("/mule-shell");
-
 	@Inject
 	private Provider<MuleInfo> muleInfoProvider;
 
@@ -53,11 +51,11 @@ public class WebResource {
 		final var viewAssetPath = viewAssetPathProvider.get();
 
 		if (requestingPage(page, "index", "index.html")) {
-			return Response.ok(new IntroView(contextPath)).build();
+			return Response.ok(new IndexView(contextPath, muleInfo, viewAssetPath)).build();
 		}
 
 		if (requestingPage(page, "intro", "intro.html")) {
-			return Response.ok(new IntroView(contextPath)).build();
+			return Response.ok(new IntroView(contextPath, muleInfo, viewAssetPath)).build();
 		}
 
 		// TODO Access to the view should be updated to reflect client access.
@@ -70,7 +68,7 @@ public class WebResource {
 			return Response.ok(new ConsoleView(RoleModel.GUEST, contextPath, muleInfo, viewAssetPath)).build();
 		}
 
-		return Response.temporaryRedirect(index).build();
+		return Response.temporaryRedirect(URI.create(contextPath.get() + "/index")).build();
 	}
 
 	protected IndexView getIndexPage(ContextPath contextPath, MuleInfo muleInfo, ViewAssetPath viewAssetPath) {

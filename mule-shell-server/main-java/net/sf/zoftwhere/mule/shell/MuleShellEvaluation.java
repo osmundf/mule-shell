@@ -54,9 +54,9 @@ public class MuleShellEvaluation {
 	/**
 	 * TODO: Implement code list per locale.
 	 *
-	 * @param code
-	 * @param locale
-	 * @return
+	 * @param code   code
+	 * @param locale locale
+	 * @return code
 	 */
 	protected String getMessage(String code, Locale locale) {
 		return code;

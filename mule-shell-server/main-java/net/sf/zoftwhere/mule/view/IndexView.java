@@ -18,4 +18,29 @@ public class IndexView extends BootStrapView {
 		super(templateName, StandardCharsets.UTF_8, contextPath, viewAssetPath);
 		this.version = muleInfo.get("version").orElse("<version>");
 	}
+
+	@Override
+	public String getBootstrapCSS() {
+		return super.getBootstrapCSS();
+	}
+
+	@Override
+	public String getBootstrapJS() {
+		return super.getBootstrapJS();
+	}
+
+	@Override
+	public String getJQueryJS() {
+		return super.getJQueryJS();
+	}
+
+	@Override
+	public String getJQuerySlimJS() {
+		return super.getJQuerySlimJS();
+	}
+
+	@Override
+	public String getPopperJS() {
+		return super.getPopperJS();
+	}
 }

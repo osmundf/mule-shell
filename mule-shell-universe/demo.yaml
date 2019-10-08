@@ -36,10 +36,12 @@ server:
   applicationContextPath: /mule-shell-demo
   applicationConnectors:
     - type: http
+      bindHost: 127.0.0.1
       port: 8080
-  adminContextPath: /admin
+  adminContextPath: /admin-demo
   adminConnectors:
     - type: http
+      bindHost: 127.0.0.1
       port: 8081
 
 # Database Settings

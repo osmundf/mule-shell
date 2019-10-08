@@ -1,4 +1,4 @@
-/* Mule Shell Boot Strap Theme Customizations */
+/* Mule Shell User Interface Cascade Style Sheets */
 html {
     height: 100%;
 }
@@ -9,8 +9,91 @@ body {
     display: flex;
 }
 
+.text-pink {
+    color: #fac;
+}
+
+.text-aqua {
+    color: #afc;
+}
+
+.text-purple {
+    color: #caf;
+}
+
+.text-orange {
+    color: #fca;
+}
+
+.text-lime {
+    color: #cfa;
+}
+
+.text-teal {
+    color: #acf;
+}
+
+a.text-aqua {
+    color: #afc;
+}
+
+a.text-aqua:hover {
+    color: #afc;
+}
+
+a.text-lime {
+    color: #cfa;
+}
+
+a.text-lime:hover {
+    color: #cfa;
+}
+
+a.link-orange {
+    color: #fca;
+}
+
+a.link-orange:hover {
+    color: #fca;
+}
+
+a.link-pink {
+    color: #fac;
+}
+
+a.link-pink:hover {
+    color: #fac;
+}
+
+a.link-purple {
+    color: #caf;
+}
+
+a.link-purple:hover {
+    color: #caf;
+}
+
+a.link-teal {
+    color: #acf;
+}
+
+a.link-teal:hover {
+    color: #acf;
+}
+
 .hidden {
     display: none;
+}
+
+
+.scroll-view-container {
+    height: 100%;
+    overflow: auto;
+}
+
+.scroll-view-item {
+    overflow: -moz-scrollbars-none;
+    padding: 2px;
 }
 
 /* TODO */
@@ -75,7 +158,6 @@ body {
     border: 0px solid #222;
     padding: 5px 5px 5px 5px;
 }
-
 
 
 .nav-masthead .nav-link {

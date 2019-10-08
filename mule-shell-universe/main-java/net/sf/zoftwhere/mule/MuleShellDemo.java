@@ -20,6 +20,8 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -30,15 +32,20 @@ public class MuleShellDemo extends MuleApplication {
 
 	public static void main(String[] arguments) throws Exception {
 		long time = -System.nanoTime();
-		new MuleShellDemo("mule-shell-demo").run(arguments);
+		MuleApplicationBuilder.create(MuleShellDemo::new)
+				.realm("mule-shell-demo")
+				.userCacheSize(10)
+				.shellCacheSize(10)
+				.run(arguments);
 		time += System.nanoTime();
 		logger.info("Started: " + ((time / 1_000) / 1e3) + " ms");
+		new ServerSocket().bind(new InetSocketAddress("localhost", 0));
 	}
 
 	private final Variable<ConfigurationSourceProvider> sourceProviderVariable = new Variable<>();
 
-	public MuleShellDemo(String realm) {
-		super(realm, 100, 100);
+	public MuleShellDemo(MuleApplicationBuilder<MuleShellDemo> builder) {
+		super(builder);
 	}
 
 	@Override
@@ -53,7 +60,7 @@ public class MuleShellDemo extends MuleApplication {
 			return;
 		}
 
-		sourceProviderVariable.accept(new ResourceConfigurationSourceProvider());
+		sourceProviderVariable.set(new ResourceConfigurationSourceProvider());
 		super.run("server", "demo.yaml");
 	}
 

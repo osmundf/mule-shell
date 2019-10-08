@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,7 +27,7 @@ class MuleShellTest extends MuleShell implements AutoCloseable {
 
 	@BeforeEach
 	void setUp() {
-		shell = new MuleShell(builder -> builder
+		shell = new MuleShell(UUID.randomUUID(), builder -> builder
 				.out(new PrintStream(out))
 				.err(new PrintStream(err))
 				.compilerOptions("-Xlint:all")

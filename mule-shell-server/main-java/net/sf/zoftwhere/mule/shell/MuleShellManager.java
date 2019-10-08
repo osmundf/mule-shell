@@ -37,7 +37,7 @@ public class MuleShellManager {
 		}
 
 		// Load shell from database.
-		final var loaded = new MuleShell(builder -> builder.remoteVMOptions("-Xmx64m"));
+		final var loaded = new MuleShell(id, builder -> builder.remoteVMOptions("-Xmx64m"));
 
 		// TODO: Run expressions for saved shell session.
 

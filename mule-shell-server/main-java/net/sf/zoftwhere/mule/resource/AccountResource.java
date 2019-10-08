@@ -79,10 +79,15 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 	/**
 	 * System only: register user.
+	 *
+	 * @param username     username
+	 * @param emailAddress email address
+	 * @return JsonWebTokenModel model.
 	 */
 	@RolesAllowed({SYSTEM_ROLE})
 	@POST
 	@Path("/register")
+
 	public Response register(@QueryParam("user") String username, @QueryParam("email") String emailAddress) {
 		final var security = securityContextProvider.get();
 
@@ -118,6 +123,10 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 	/**
 	 * System only: register user.
+	 *
+	 * @param username username
+	 * @param password password
+	 * @return 200 OK response.
 	 */
 	@RolesAllowed(value = {CLIENT_ROLE, REGISTER_ROLE})
 	@POST
@@ -289,7 +298,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 		final var username = account.getUsername();
 		final var accountRole = accessToken.getAccountRole();
-		final var principal = new AccountPrincipal(username, accountRole.getRole().getName());
+		final var principal = new AccountPrincipal(username, accountRole.getRole());
 
 		// Place in active cache.
 		cache.put(accessToken.getId(), principal);

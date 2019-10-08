@@ -68,7 +68,7 @@ public class AccountAuthenticator implements Authenticator<String, AccountPrinci
 			}
 
 			// Reinstate the cache entry for this access token.
-			final var entry = new AccountPrincipal(account.getUsername(), role.getName());
+			final var entry = new AccountPrincipal(account.getUsername(), role);
 			cache.put(accessToken.getId(), entry);
 			return Optional.of(entry);
 		} catch (Exception e) {

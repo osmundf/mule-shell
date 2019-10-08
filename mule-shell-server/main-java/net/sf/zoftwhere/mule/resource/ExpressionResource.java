@@ -17,8 +17,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 public class ExpressionResource extends AbstractResource implements ExpressionApi {
+
+	@Inject
+	private Provider<ExecutorService> executorServiceProvider;
 
 	@Inject
 	private Provider<SecurityContext> securityContextProvider;

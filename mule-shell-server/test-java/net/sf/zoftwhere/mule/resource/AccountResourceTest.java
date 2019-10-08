@@ -4,7 +4,6 @@ import com.auth0.jwt.JWTVerifier;
 import com.google.common.cache.Cache;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.Provider;
 import net.sf.zoftwhere.mule.data.Variable;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.AccountLocator;
@@ -34,10 +33,15 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import static com.google.common.collect.ImmutableMap.Builder;
 import static com.google.common.collect.ImmutableMap.Entry;
+import static net.sf.zoftwhere.mule.model.RoleModel.ADMIN;
+import static net.sf.zoftwhere.mule.model.RoleModel.CLIENT;
+import static net.sf.zoftwhere.mule.model.RoleModel.GUEST;
+import static net.sf.zoftwhere.mule.model.RoleModel.REGISTER;
+import static net.sf.zoftwhere.mule.model.RoleModel.SYSTEM;
+import static net.sf.zoftwhere.mule.model.RoleModel.values;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -96,6 +100,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		final var cacheProvider = guiceInjector.getProvider(loginCacheKey);
 		final var jwtVerifier = guiceInjector.getInstance(JWTVerifier.class);
 		final var cache = cacheProvider.get();
+		assertNotNull(cache);
 
 		registerTestAccountGroup();
 
@@ -104,11 +109,13 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			final var password = secretEntry.getValue();
 
 			final var accountPhase1 = accountLocator.getByUsername(username).orElseThrow();
+			assertNotNull(accountPhase1);
 
 			final var scheme = AuthenticationScheme.BASIC;
 			final var credentials = (username + ":" + password).getBytes(StandardCharsets.UTF_8);
 			final var header = scheme + " " + Base64.getEncoder().encodeToString(credentials);
 			final var login = resource.login(Collections.singletonList(header), null);
+			assertNotNull(login);
 			assertEquals(Status.OK.getStatusCode(), login.getStatus(), "OK: 200");
 
 			final var tokenModel = (JsonWebTokenModel) login.getEntity();
@@ -116,20 +123,11 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			final var jwtDecoded = jwtVerifier.verify(token);
 			final var uuid = UUID.fromString(jwtDecoded.getId());
 
-			final Provider<Optional<AccountPrincipal>> principalProvider = () -> {
-				try {
-					return Optional.of(cache.get(uuid, () -> new AccountPrincipal("", "")));
-				} catch (ExecutionException e) {
-					return Optional.empty();
-				}
-			};
-			final AccountPrincipal cached = principalProvider.get().orElse(null);
+			final AccountPrincipal cached = cache.getIfPresent(uuid);
+			assertNotNull(cached);
 
 			final var accountPhase2 = accountLocator.getByUsername(username).orElseThrow();
-
-			assertNotNull(login);
-			assertNotNull(cache);
-			assertNotNull(cached);
+			assertNotNull(accountPhase2);
 
 			assertNotNull(accountPhase1.getSalt());
 			assertNotNull(accountPhase1.getHash());
@@ -140,7 +138,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertFalse(arraysEqual(accountPhase1.getHash(), accountPhase2.getHash()));
 
 			assertEquals(username, cached.getUsername().orElse(null), "Username");
-			assertEquals("CLIENT", cached.getRole().orElse(null), "Role");
+			assertEquals(CLIENT_ROLE, cached.getRole().orElse(null), "Role");
 		}
 	}
 
@@ -176,7 +174,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		assertNotNull(principal);
 
 		assertEquals(principal.getUsername().orElse(null), account.getUsername(), "");
-		assertEquals(principal.getRole().orElse(null), RoleModel.GUEST.name(), "");
+		assertEquals(principal.getRole().orElse(null), GUEST.name(), "");
 	}
 
 	@Test
@@ -206,16 +204,32 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	void testResetRecovery() {
 		final var accountLocator = guiceInjector.getInstance(AccountLocator.class);
 		final var accountRoleLocator = guiceInjector.getInstance(AccountRoleLocator.class);
+		final var securityVariable = guiceInjector.getInstance(securityKey);
 
-		createAccount("test", "test@test.test", "123456", RoleModel.REGISTER);
+		final var username = "test";
+		final var email = "test@test.test";
+		final var password1 = "{Weak}[24:7]";
+		final var password2 = "B@d_Pa55w0RD";
+		final var role = CLIENT;
+
+		createAccount(username, email, password1, REGISTER);
 
 		final var account = accountLocator.getByUsername("test").orElseThrow();
-		final var oldRole = accountRoleLocator.getByKey(account, RoleModel.REGISTER).orElseThrow();
+		final var oldRole = accountRoleLocator.getByKey(account, REGISTER).orElseThrow();
 		oldRole.delete();
 		updateEntity(oldRole);
 
-		resource.reset("test", "123456");
-		final var newRole = accountRoleLocator.getByRoleName(account, RoleModel.CLIENT);
+		final var principal = new AccountPrincipal(username, role);
+		final var securityContext = StaticSecurityContext.withBuilder()
+				.secure(true)
+				.authenticationScheme(AuthenticationScheme.BEARER)
+				.role(role.name())
+				.userPrincipal(principal).build();
+
+		securityVariable.set(securityContext);
+
+		resource.reset(username, password2);
+		final var newRole = accountRoleLocator.getByRoleName(account, CLIENT);
 
 		assertNotNull(newRole);
 	}
@@ -223,9 +237,14 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	@Test
 	void testLogoutFailure() {
 		final var interchange = guiceInjector.getInstance(securityKey);
-		interchange.accept(StaticSecurityContext.withBuilder().secure(true).build());
+		interchange.set(StaticSecurityContext.withBuilder().secure(true).build());
 
-		createAccount("test", "test@test.test", "123456", RoleModel.ADMIN);
+		final var username = "test";
+		final var email = "test@test.test";
+		final var password = "123456";
+
+		createAccount(username, email, password, ADMIN);
+		resource.logout(null);
 	}
 
 	@Test
@@ -248,7 +267,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertNotNull(password);
 			assertNotNull(email);
 
-			createAccount(username, email, password, RoleModel.REGISTER);
+			createAccount(username, email, password, REGISTER);
 
 			final var account = accountLocator.getByUsername(username).orElseThrow();
 			final var accountRoleList = accountRoleLocator.getForAccount(account);
@@ -259,23 +278,23 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 			final var accountRole = accountRoleList.get(0);
 
-			assertEquals(RoleModel.REGISTER.name(), accountRole.getRole().getName());
+			assertEquals(REGISTER.name(), accountRole.getRole().getName());
 		}
 
 		for (var e : accountSecretMap.entrySet()) {
 
 			final var username = e.getKey();
 			final var password = e.getValue();
-			final var role = RoleModel.REGISTER.name();
+			final var role = REGISTER;
 
 			final var principal = new AccountPrincipal(username, role);
 			final var securityContext = StaticSecurityContext.withBuilder()
 					.secure(true)
 					.authenticationScheme(AuthenticationScheme.BEARER)
-					.role(role)
+					.role(role.name())
 					.userPrincipal(principal).build();
 
-			securityVariable.accept(securityContext);
+			securityVariable.set(securityContext);
 
 			final var reset = resource.reset(username, password);
 			final var status = reset.getStatus();
@@ -292,19 +311,19 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 			final var accountRole = accountRoleList.get(0);
 
-			assertEquals(RoleModel.CLIENT.name(), accountRole.getRole().getName());
+			assertEquals(CLIENT.name(), accountRole.getRole().getName());
 		}
 	}
 
 	private void populateRoles() {
 		final Map<String, Integer> priority = new Builder<String, Integer>()
-				.put(RoleModel.SYSTEM.name(), 100)
-				.put(RoleModel.ADMIN.name(), 80)
-				.put(RoleModel.CLIENT.name(), 60)
-				.put(RoleModel.REGISTER.name(), 40)
-				.put(RoleModel.GUEST.name(), 20)
+				.put(SYSTEM.name(), 100)
+				.put(ADMIN.name(), 80)
+				.put(CLIENT.name(), 60)
+				.put(REGISTER.name(), 40)
+				.put(GUEST.name(), 20)
 				.build();
-		final var roleModelArray = RoleModel.values();
+		final var roleModelArray = values();
 		for (var roleModel : roleModelArray) {
 			final var key = Role.getKey(roleModel);
 			final var name = roleModel.name();
@@ -334,7 +353,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 			assertNotNull(password);
 			assertNotNull(email);
 
-			createAccount(username, email, password, RoleModel.CLIENT);
+			createAccount(username, email, password, CLIENT);
 		}
 	}
 
