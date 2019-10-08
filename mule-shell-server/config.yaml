@@ -7,6 +7,8 @@ logging:
   level: INFO
   loggers:
     net.sf.zoftwhere.mule: INFO
+    org.hibernate:
+      level: WARN
     org.hibernate.SQL:
       level: WARN
   appenders:
@@ -30,10 +32,12 @@ server:
   applicationContextPath: /mule-shell
   applicationConnectors:
     - type: http
+      bindHost: 127.0.0.1
       port: 8080
   adminContextPath: /admin
   adminConnectors:
     - type: http
+      bindHost: 127.0.0.1
       port: 8081
 
 # Database settings.

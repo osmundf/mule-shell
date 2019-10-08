@@ -15,23 +15,20 @@ import lombok.Getter;
 import net.sf.zoftwhere.mule.model.DiagnosticModel;
 import net.sf.zoftwhere.mule.model.SnippetModel;
 import net.sf.zoftwhere.mule.model.SnippetTypeModel;
-import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.io.output.NullOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,65 +42,58 @@ public class MuleShell implements AutoCloseable {
 	private static final Logger logger = LoggerFactory.getLogger(MuleShell.class);
 
 	@Getter
+	private final UUID id;
+
+	@Getter
 	private boolean closed = false;
 
 	@Getter
 	private final PrintStream writeInput;
 
 	@Getter
-	private final InputStreamReader readOutput;
+	private final InputStreamReader readOutput = null;
+
+	private final ByteArrayOutputStream outputPrinterStream;
 
 	@Getter
 	private final JShell jShell;
 
-	private final Consumer<JShell> consumer = (JShell jShell) -> closeMule();
-
 	public MuleShell() {
-		this(builder -> builder);
+		this(UUID.randomUUID(), builder -> builder);
 	}
 
-	public MuleShell(Function<JShell.Builder, JShell.Builder> setting) {
+	public MuleShell(UUID id, Function<JShell.Builder, JShell.Builder> setting) {
+		this.id = id;
 		final var builder = setting.apply(JShell.builder());
-		OutputStream writeInput = new NullOutputStream();
-		InputStream readOutput = new NullInputStream(1024);
 
 		try {
-			final var inputPipe = new PipedInputStream();
-			final var outputPipe = new PipedOutputStream(inputPipe);
-			builder.in(inputPipe);
-			writeInput = outputPipe;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			final var inputReadPipe = new PipedInputStream();
+			final var inputWritePipe = new PipedOutputStream(inputReadPipe);
+			this.writeInput = new PrintStream(inputWritePipe);
 
-		try {
-			final var inputPipe = new PipedInputStream();
-			final var outputPipe = new PipedOutputStream(inputPipe);
-			builder.in(inputPipe);
-			writeInput = outputPipe;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			final var outputWriteStream = new ByteArrayOutputStream();
+			outputPrinterStream = outputWriteStream;
 
-		try {
-			final var inputPipe = new PipedInputStream();
-			final var outputPipe = new PipedOutputStream(inputPipe);
-			readOutput = inputPipe;
-			final var printer = new PrintStream(outputPipe);
+			final var printer = new PrintStream(outputWriteStream);
+
+			builder.in(inputReadPipe);
 			builder.out(printer);
 			builder.err(printer);
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 
-		this.writeInput = new PrintStream(writeInput, false, StandardCharsets.UTF_8);
-		this.readOutput = new InputStreamReader(readOutput, StandardCharsets.UTF_8);
 		this.jShell = builder.build();
-		this.jShell.onShutdown(consumer);
+		Consumer<JShell> closeConsumer = (JShell jShell) -> {
+			closeMule();
+			logger.debug("JShell for MuleShell {} closed.", id);
+		};
+		this.jShell.onShutdown(closeConsumer);
 	}
 
 	@Override
-	public void close() throws IOException, Exception {
+	public void close() throws Exception {
 		jShell.close();
 	}
 
@@ -117,6 +107,7 @@ public class MuleShell implements AutoCloseable {
 		writeInput.close();
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public MuleShellEvaluation analyzeCode(String inputCode) {
 		final var modelList = new ArrayList<SnippetModel>();
 
@@ -129,7 +120,7 @@ public class MuleShell implements AutoCloseable {
 		final var analyzer = jShell.sourceCodeAnalysis();
 		while (!Strings.isNullOrEmpty(remainingCode)) {
 			CompletionInfo info = analyzer.analyzeCompletion(remainingCode);
-			
+
 			if (info.completeness() == DEFINITELY_INCOMPLETE || info.completeness() == COMPLETE_WITH_SEMI) {
 				final var evaluationModelList = Lists.newCopyOnWriteArrayList(modelList);
 				return new MuleShellEvaluation(evaluationModelList, remainingCode, null);
@@ -147,9 +138,13 @@ public class MuleShell implements AutoCloseable {
 	}
 
 	/**
+	 * Source Code evaluation.
 	 * Special thanks to:
 	 * https://github.com/CSchoel/arbitrary-but-fixed/blob/master/_posts/2018-10-18-jshell-exceptions.md
 	 * https://arbitrary-but-fixed.net/teaching/java/jshell/2018/10/18/jshell-exceptions.html
+	 *
+	 * @param inputCode source code
+	 * @return MuleShellEvaluation
 	 */
 	public MuleShellEvaluation eval(String inputCode) {
 		if (closed) {
@@ -225,19 +220,13 @@ public class MuleShell implements AutoCloseable {
 			return Optional.empty();
 		}
 
-		StringBuilder builder = new StringBuilder();
-		try {
-			if (!readOutput.ready()) {
-				return Optional.empty();
-			}
-			while (readOutput.ready()) {
-				builder.appendCodePoint(readOutput.read());
-			}
-			return Optional.of(builder.toString());
-		} catch (IOException e) {
-			logger.error("Failed to retrieve all console output.", e);
+		if (outputPrinterStream.size() == 0) {
 			return Optional.empty();
 		}
+
+		final var output = new String(outputPrinterStream.toByteArray());
+		outputPrinterStream.reset();
+		return Optional.of(output);
 	}
 
 	public String varValue(VarSnippet varSnippet) {

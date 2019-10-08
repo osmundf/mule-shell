@@ -34,6 +34,8 @@ public class AbstractView extends View {
 	 *
 	 * @param viewClass The view class.
 	 * @param suffix    The file extension (eg. "ftl").
+	 * @param <V>       The view class type.
+	 * @return simple name.
 	 */
 	protected static <V extends View> String getTemplateName(Class<V> viewClass, String suffix) {
 		final var regex = "(.*)View";

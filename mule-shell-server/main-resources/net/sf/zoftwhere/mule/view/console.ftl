@@ -28,7 +28,7 @@
         <div class="p-2 flex-fill"></div>
 
         <nav class="nav nav-masthead justify-content-center">
-            <a class="nav-link" href="${contextPath}">Home</a>
+            <a class="nav-link" href="${contextPath}/">Home</a>
             <a class="nav-link" href="${contextPath}/intro">Intro</a>
             <a class="nav-link active" href="${contextPath}/console">Console</a>
             <a class="nav-link" href="${contextPath}">&nbsp;</a>
@@ -43,10 +43,10 @@
     </nav>
 </div>
 
-<div id="center" class="d-flex mb-auto flex-column box-shadow w-100" style="height: 100%; overflow: auto;">
+<div id="center" class="d-flex mb-auto flex-column box-shadow w-100 scroll-view-container">
     <!-- Empty div to fill the top (when needed). -->
     <div class="mb-auto w-100"></div>
-    <div class="w-100" style="overflow: none; padding: 2px;" id="console">
+    <div class="w-100 scroll-view-item" id="console">
     </div>
 </div>
 

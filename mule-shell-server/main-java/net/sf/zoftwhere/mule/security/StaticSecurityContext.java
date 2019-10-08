@@ -39,7 +39,7 @@ public class StaticSecurityContext implements SecurityContext {
 
 	@Getter
 	@Setter
-	@Accessors(chain = true, fluent = true)
+	@Accessors(fluent = true)
 	public static class Builder {
 
 		private boolean secure;

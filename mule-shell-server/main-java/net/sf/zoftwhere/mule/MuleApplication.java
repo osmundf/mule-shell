@@ -30,6 +30,7 @@ import net.sf.zoftwhere.dropwizard.ViewAssetPath;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
 import net.sf.zoftwhere.hibernate.MacroCaseNamingStrategy;
 import net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy;
+import net.sf.zoftwhere.mule.data.TryParse;
 import net.sf.zoftwhere.mule.data.Variable;
 import net.sf.zoftwhere.mule.function.PlaceHolder;
 import net.sf.zoftwhere.mule.jpa.Account;
@@ -57,22 +58,42 @@ import ru.vyarus.dropwizard.guice.GuiceBundle;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static java.lang.System.getProperty;
+import static net.sf.zoftwhere.mule.MuleApplicationBuilder.create;
 
 public class MuleApplication extends Application<MuleConfiguration> {
 
 	private static final Logger logger = LoggerFactory.getLogger(MuleApplication.class);
 
+	public static final String USER_CACHE_SIZE_PROPERTY = "MuleShellUserCacheSize";
+
+	public static final String SHELL_CACHE_SIZE_PROPERTY = "MuleShellShellCacheSize";
+
 	public static void main(String[] args) throws Exception {
 		long time = -System.nanoTime();
-		new MuleApplication("mule-shell-public").run(args);
+		create(MuleApplication::new)
+				.realm("mule-shell-public")
+				.userCacheSize(TryParse.toInteger(getProperty(USER_CACHE_SIZE_PROPERTY)).orElse(10))
+				.shellCacheSize(TryParse.toInteger(getProperty(SHELL_CACHE_SIZE_PROPERTY)).orElse(10))
+				.run(args);
 		time += System.nanoTime();
 		logger.info("Started: " + ((time / 1_000) / 1e3) + " ms");
 	}
 
+	private final ExecutorService executor;
+
 	private final HibernateBundle<MuleConfiguration> hibernateBundle;
 
 	private final String realm;
+
+	private final PlaceHolder<String> contextPath = new Variable<>();
+
+	private final PlaceHolder<ViewAssetPath> viewAssetPath = new Variable<>();
 
 	private final Cache<UUID, AccountPrincipal> principalCache;
 
@@ -82,15 +103,12 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 	private final PlaceHolder<JWTVerifier> jwtVerifier = new Variable<>();
 
-	private MuleApplication(final String realm) {
-		this(realm, 500, 500);
-	}
-
-	public MuleApplication(final String realm, int maximumUserCache, int maximumShellCache) {
-		this.realm = realm;
+	public <T extends MuleApplication> MuleApplication(MuleApplicationBuilder<T> builder) {
+		this.realm = builder.realm();
+		this.executor = getExecutor();
 		this.hibernateBundle = newHibernateBundle();
-		this.principalCache = newLoginAccountCache(maximumUserCache);
-		this.shellCache = newMuleShellCache(maximumShellCache);
+		this.principalCache = newLoginAccountCache(builder.userCacheSize());
+		this.shellCache = newMuleShellCache(builder.shellCacheSize());
 	}
 
 	@Override
@@ -130,8 +148,24 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		environment.getObjectMapper().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		environment.getObjectMapper().registerModule(new JavaTimeModule());
 
+		String base = environment.getApplicationContext().getContextPath();
+		base = base == null || "/".equals(base) ? "" : base;
+		contextPath.set(base);
+
+		final var map = new HashMap<String, String>();
+		for (var o : configuration.getViewAssetPath().entrySet()) {
+			final var key = o.getKey();
+			final var value = String.format(o.getValue(), base);
+			map.put(key, value);
+		}
+		viewAssetPath.set(new ViewAssetPath(map));
+
 		setupDatabaseData(hibernateBundle.getSessionFactory());
 		applySecurityFacet(configuration, environment);
+	}
+
+	protected ExecutorService getExecutor() {
+		return Executors.newSingleThreadExecutor();
 	}
 
 	private GuiceBundle.Builder<MuleConfiguration> newGuiceBuilder() {
@@ -146,6 +180,11 @@ public class MuleApplication extends Application<MuleConfiguration> {
 				final var sessionFactory = hibernateBundle.getSessionFactory();
 				bind(SessionFactory.class).toProvider(() -> sessionFactory).in(Singleton.class);
 				bind(Session.class).toProvider(sessionFactory::openSession);
+			}
+
+			@Provides
+			public ExecutorService getExecutorService() {
+				return executor;
 			}
 
 			@Provides
@@ -166,9 +205,10 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			}
 
 			@Provides
-			@Singleton
-			public ViewAssetPath getViewAssetPath(MuleConfiguration configuration) {
-				return configuration.getViewAssetPath();
+			//TODO
+			// @Singleton
+			public ViewAssetPath getViewAssetPath() {
+				return viewAssetPath.get();
 			}
 
 			@Provides
@@ -243,8 +283,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 				.build();
 
 		// Update signer and verifier placeholders.
-		jwtSigner.accept(signer);
-		jwtVerifier.accept(verifier);
+		jwtSigner.set(signer);
+		jwtVerifier.set(verifier);
 
 		// Create filter
 		final var filter = new AuthorizationAuthFilter.Builder<AccountPrincipal>()

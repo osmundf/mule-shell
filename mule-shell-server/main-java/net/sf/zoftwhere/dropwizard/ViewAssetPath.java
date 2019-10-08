@@ -3,6 +3,7 @@ package net.sf.zoftwhere.dropwizard;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class ViewAssetPath {
 
@@ -14,6 +15,10 @@ public class ViewAssetPath {
 
 	public ViewAssetPath(Map<String, String> map) {
 		this.map = map;
+	}
+
+	public Set<Map.Entry<String, String>> entrySet() {
+		return map.entrySet();
 	}
 
 	public Optional<String> get(String assetName) {

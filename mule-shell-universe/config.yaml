@@ -33,13 +33,15 @@ logging:
 
 # Server Settings
 server:
-  applicationContextPath: /mule-shell
+  applicationContextPath: /mule-shell-dev
   applicationConnectors:
     - type: http
+      bindHost: 127.0.0.1
       port: 8080
-  adminContextPath: /dev-admin
+  adminContextPath: /admin-dev
   adminConnectors:
     - type: http
+      bindHost: 127.0.0.1
       port: 8081
 
 # Database Settings
@@ -63,11 +65,11 @@ viewRendererConfiguration:
     whitespace_stripping: yes
 
 viewAssetPath:
-  bootstrapCSS: '<link rel="stylesheet" href="/mule-shell/assets/bootstrap-4.3.1.min.css">'
-  bootstrapJS: '<script src="/mule-shell/assets/bootstrap-4.3.1.min.js"></script>'
-  jQueryJS: '<script src="/mule-shell/assets/jquery-3.4.1.min.js"></script>'
-  jQuerySlimJS: '<script src="/mule-shell/assets/jquery-3.4.1.min.js"></script>'
-  popperJS: '<script src="/mule-shell/assets/popper-1.14.7.min.js"></script>'
+  bootstrapCSS: '<link rel="stylesheet" href="%s/assets/bootstrap-4.3.1.min.css">'
+  bootstrapJS: '<script src="%s/assets/bootstrap-4.3.1.min.js"></script>'
+  jQueryJS: '<script src="%s/assets/jquery-3.4.1.min.js"></script>'
+  jQuerySlimJS: '<script src="%s/assets/jquery-3.4.1.min.js"></script>'
+  popperJS: '<script src="%s/assets/popper-1.14.7.min.js"></script>'
 
 #metrics:
 #  reporters:

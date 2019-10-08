@@ -24,13 +24,8 @@ public class AccountAuthorizer implements Authorizer<AccountPrincipal> {
 			return false;
 		}
 
-		final var userRole = user.getRole().orElseThrow();
+		final var userRole = user.getRole().get();
 
-		//noinspection RedundantIfStatement
-		if (!Objects.equal(userRole, role)) {
-			return false;
-		}
-
-		return true;
+		return Objects.equal(userRole, role);
 	}
 }

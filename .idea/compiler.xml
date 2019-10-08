@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
+    <option name="USE_RELEASE_OPTION" value="false" />
     <annotationProcessing>
       <profile default="true" name="Default">
         <processorPath useClasspath="false" />
@@ -13,10 +14,11 @@
           <entry name="/Library/Apache/Maven-Repository-ZoftWhere/org/projectlombok/lombok/1.18.8/lombok-1.18.8.jar" />
         </processorPath>
         <module name="mule-shell-client" />
-        <module name="mule-shell-server" />
+        <module name="mule-shell-universe" />
+        <module name="mule-shell-debug" />
         <module name="mule-shell-model" />
         <module name="mule-shell-common" />
-        <module name="mule-shell-universe" />
+        <module name="mule-shell-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -24,16 +26,19 @@
       <module name="mule-shell-bom" target="11" />
       <module name="mule-shell-client" target="11" />
       <module name="mule-shell-common" target="11" />
+      <module name="mule-shell-debug" target="11" />
       <module name="mule-shell-model" target="11" />
       <module name="mule-shell-server" target="11" />
       <module name="mule-shell-universe" target="11" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
+    <option name="PREFER_TARGET_JDK_COMPILER" value="false" />
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="mule-shell-bom" options="" />
       <module name="mule-shell-client" options="-Xlint:all,-processing,-cast,-serial,-try" />
       <module name="mule-shell-common" options="-Xlint:all,-processing,-cast,-serial,-try" />
+      <module name="mule-shell-debug" options="-Xlint:all,-processing,-cast,-serial,-try" />
       <module name="mule-shell-model" options="-Xlint:all,-processing,-cast,-serial,-try" />
       <module name="mule-shell-server" options="-Xlint:all,-processing,-cast,-serial,-try" />
       <module name="mule-shell-universe" options="-Xlint:all,-processing,-cast,-serial,-try" />

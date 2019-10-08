@@ -223,7 +223,7 @@ definitions:
         type: string
       version:
         type: string
-        
+
   JsonWebToken:
     type: object
     properties:
@@ -252,9 +252,11 @@ definitions:
     type: object
     properties:
       account:
-        schema: '#/definitions/BasicAccount'
+        description: '-'
+        $ref: '#/definitions/BasicAccount'
       role:
-        schmea: '#/definitions/Role'
+        description: '-'
+        $ref: '#/definitions/Role'
 
   Expression:
     type: object

@@ -13,6 +13,15 @@
     <version>1.0.0-S</version>
 
     <properties>
+        <!-- > -->
+        <swagger.io.generate.phase>generate-sources</swagger.io.generate.phase>
+        <swagger.api.package>net.sf.zoftwhere.mule.core.api</swagger.api.package>
+        <swagger.model.package>net.sf.zoftwhere.mule.core.api</swagger.model.package>
+
+        <gson-version>2.8.5</gson-version>
+        <gson-fire-version>1.8.0</gson-fire-version>
+        <okhttp-version>2.7.5</okhttp-version>
+        <swagger-core-version>1.5.22</swagger-core-version>
     </properties>
 
     <dependencyManagement>
@@ -29,20 +38,70 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>net.sf.zoftwhere.mule</groupId>
             <artifactId>mule-shell-model</artifactId>
         </dependency>
 
         <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.5.22</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>2.7.5</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>logging-interceptor</artifactId>
+            <version>2.7.5</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.gsonfire</groupId>
+            <artifactId>gson-fire</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
+        <!--<dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.30.1</version>
+        </dependency>-->
+
+        <dependency>
+            <groupId>net.sf.zoftwhere.mule</groupId>
+            <artifactId>mule-shell-debug</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--<dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
+        </dependency>-->
+        <!-- Swagger build for test dependencies are not working. -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <optional>true</optional>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -72,6 +131,35 @@
                             <!--<files>${project.build.directory}/${project.build.finalName}-tests.jar</files>-->
                             <!--<types>jar</types>-->
                             <!--<classifiers>tests</classifiers>-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-codegen-maven-plugin</artifactId>
+                <version>2.4.5</version>
+                <executions>
+                    <execution>
+                        <id>main-generate</id>
+                        <!--<phase>${swagger.io.generate.phase}</phase>-->
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/../mule-shell-swagger/swagger.yaml</inputSpec>
+                            <configurationFile>${project.basedir}/../mule-shell-swagger/config.json</configurationFile>
+                            <ignoreFileOverride>${project.basedir}/../mule-shell-swagger/.swagger-codegen-ignore
+                            </ignoreFileOverride>
+                            <language>java</language>
+                            <library>okhttp-gson</library>
+                            <apiPackage>net.sf.zoftwhere.mule.client</apiPackage>
+                            <modelPackage>net.sf.zoftwhere.mule.model</modelPackage>
+                            <configOptions>
+                                <sourceFolder>main-java</sourceFolder>
+                            </configOptions>
+                            <modelNameSuffix>Model</modelNameSuffix>
                         </configuration>
                     </execution>
                 </executions>

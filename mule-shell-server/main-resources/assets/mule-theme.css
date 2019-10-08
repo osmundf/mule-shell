@@ -4,10 +4,24 @@ body {
     background-color: #222;
 }
 
-a,
-a:focus,
+.text-body {
+    color: #2a2a2a !important
+}
+
+.text-muted {
+    color: #999 !important
+}
+
+a {
+    color: #888;
+}
+
+a:focus {
+    color: #ddd;
+}
+
 a:hover {
-    color: #fff;
+    color: #aaa;
 }
 
 /* Custom default button */
@@ -29,22 +43,41 @@ a:hover {
     box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
     outline: 0;
 }
+
 .modal-backdrop {
     background-color: #000;
 }
+
 .modal-backdrop.fade {
     opacity: 0;
     filter: alpha(opacity=0);
 }
+
 .modal-backdrop.in {
     opacity: 0.5;
     filter: alpha(opacity=50);
 }
+
 .modal-header {
-    border-bottom-color: #1c1e22;
+    border-bottom-color: #1c1c1c;
 }
+
 .modal-footer {
-    border-top-color: #1c1e22;
+    border-top-color: #1c1c1c;
+}
+
+.card {
+    position: relative;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #111;
+    background-clip: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.125);
+    border-radius: 0.25rem;
 }
 
 /* TODO */

@@ -7,7 +7,11 @@ public class ContextPath implements Supplier<String> {
 	private final String contextPath;
 
 	public ContextPath(String contextPath) {
-		this.contextPath = contextPath;
+		if (contextPath == null || contextPath.equals("/")) {
+			this.contextPath = "";
+		} else {
+			this.contextPath = contextPath;
+		}
 	}
 
 	@Override
