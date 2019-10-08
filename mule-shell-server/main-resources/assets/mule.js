@@ -7,14 +7,14 @@ class MuleShellConsole {
         this.consoleLine = '<div class="line terminal"/>';
     }
 
-    scrollIntoView() {
-        this.consoleDiv[0].lastElementChild.scrollIntoView();
-    }
-
     static getPrompt(continuation) {
         const p1 = "$";
         const p2 = ">";
         return continuation === false ? p1 : p2;
+    }
+
+    scrollIntoView() {
+        this.consoleDiv[0].lastElementChild.scrollIntoView();
     }
 
     addOutput(text) {
