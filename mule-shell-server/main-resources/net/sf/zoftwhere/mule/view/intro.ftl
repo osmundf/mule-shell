@@ -33,9 +33,7 @@
             <a class="nav-link" href="${contextPath}/console">Console</a>
             <a class="nav-link" href="${contextPath}">&nbsp;</a>
             <div class="skinny">
-                <form class="form-inline my-2 my-lg-0 skinny">
-                    <button class="btn btn-outline-success my-2 my-sm-0" onclick="return false;">Login</button>
-                </form>
+                <button class="btn btn-outline-success" id="loadingButton">Login</button>
             </div>
         </nav>
     </nav>

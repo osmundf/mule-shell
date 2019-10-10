@@ -22,7 +22,7 @@
 <body class="d-flex align-items-start flex-column" style="height: 100vh; margin-bottom: 0; border: 0;">
 
 <div id="north" class="w-100">
-    <nav class="navbar navbar-expand-md fixed-top skinny">
+    <nav class="navbar navbar-expand-md skinny" style="border-bottom: 1px solid black">
         <a class="navbar-brand" style="padding-left: 10px;" href="${contextPath}"><b>Mule Shell</b></a>
 
         <div class="p-2 flex-fill"></div>
@@ -33,9 +33,7 @@
             <a class="nav-link" href="${contextPath}/console">Console</a>
             <a class="nav-link" href="${contextPath}">&nbsp;</a>
             <div class="skinny">
-                <form class="form-inline my-2 my-lg-0 skinny">
-                    <button class="btn btn-outline-success my-2 my-sm-0" onclick="return false;">Login</button>
-                </form>
+                <button class="btn btn-outline-success" id="loadingButton">Login</button>
             </div>
         </nav>
     </nav>
