@@ -33,11 +33,7 @@
             <a class="nav-link active" href="${contextPath}/console">Console</a>
             <a class="nav-link" href="${contextPath}">&nbsp;</a>
             <div class="skinny">
-                <button class="btn btn-outline-success disabled" id="loadingButton">Login</button>
-                <button class="btn btn-outline-success hidden" data-toggle="modal" data-target="#myModal"
-                        id="loginButton">Login
-                </button>
-                <button class="btn btn-outline-success hidden" id="guestButton">Guest</button>
+                <button class="btn btn-outline-success" id="loadingButton">Login</button>
             </div>
         </nav>
     </nav>
