@@ -10,8 +10,10 @@ class ExpressionResourceTest extends TestResource<ExpressionResource> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ExpressionResourceTest.class);
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final ExpressionResource resource;
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final Injector guiceInjector;
 
 	ExpressionResourceTest() {

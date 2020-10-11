@@ -28,6 +28,7 @@ public class AccountSigner {
 		return algorithm.digest(data);
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean validate(final byte[] data, final byte[] salt, final byte[] hash) {
 		algorithm.update(salt);
 		byte[] candidate = algorithm.digest(data);

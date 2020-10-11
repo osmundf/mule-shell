@@ -30,10 +30,13 @@ class SessionResourceTest extends TestResource<SessionResource> {
 		.put("test-egg", "test-egg-public-secret")
 		.build();
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final SessionResource resource;
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final Injector guiceInjector;
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final AccountLocator accountLocator;
 
 	SessionResourceTest() {
