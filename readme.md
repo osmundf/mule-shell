@@ -5,15 +5,15 @@ A cloud-based shell application with JDK JShell API.
 
 The project has the following (minimum) requirements to compile/run:
 
-1. Java Development Kit 11 
+1. Java Development Kit 11
 
     The project used Java Development Kit version 11 (Oracle) to compile the Java sources.
-    
+
     The project uses the JShell included in the JDK, so running the program under just the Java Runtime Environment will not work.
 
 2. Apache Maven 3.6
 
-    The project used Maven 3.6.1 to manage/build with dependencies. 
+    The project used Maven 3.6.1 to manage/build with dependencies.
 
 ## To run the demonstration project:
 
@@ -28,7 +28,7 @@ The project has the following (minimum) requirements to compile/run:
 4. Run the demo.jar file with JDK Java (The JDK is needed as the JRE does not have the JDK JShell modules):
 
         java -jar mule-shell-universe/demo.jar
-        
+
 5. Navigate to the local host in a browser:
 
         http://localhost:8080/mule-shell-demo
@@ -82,12 +82,12 @@ IntelliJ IDE does not (or shouldn't?) include the BOM POM as a resolved dependen
        clean package -pl=mule-shell-common,mule-shell-bom -f pom.xml
 
 3. Repackage mule-shell-model with resolve workspace dependencies selected:
-   
+
        clean package -pl=mule-shell-model,mule-shell-bom -f pom.xml
 
 4. Repackage mule-shell-client with resolve workspace dependencies selected:
 
-       clean package -pl=mule-shell-client,mule-shell-bom -f pom.xml
+        clean package -pl=mule-shell-client,mule-shell-bom -f pom.xml
 
 5. Repackage mule-shell-server with resolve workspace dependencies selected:
 
