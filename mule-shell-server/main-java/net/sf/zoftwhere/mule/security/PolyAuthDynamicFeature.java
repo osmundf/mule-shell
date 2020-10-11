@@ -9,7 +9,7 @@ import io.dropwizard.auth.PolymorphicAuthDynamicFeature;
 import io.dropwizard.auth.PolymorphicAuthValueFactoryProvider;
 import io.dropwizard.setup.Environment;
 import net.sf.zoftwhere.dropwizard.security.AuthorizationAuthFilter;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.hibernate.SessionFactory;
 
@@ -33,7 +33,8 @@ public class PolyAuthDynamicFeature extends PolymorphicAuthDynamicFeature<Accoun
 						.buildAuthFilter()));
 
 		final AbstractBinder binder = new PolymorphicAuthValueFactoryProvider.Binder<>(
-				ImmutableSet.of(AccountPrincipal.class));
+				ImmutableSet.of(AccountPrincipal.class)
+		);
 
 		environment.jersey().register(binder);
 		environment.jersey().register(RolesAllowedDynamicFeature.class);

@@ -108,7 +108,7 @@ public abstract class AbstractResource implements TransactionalSession {
 		return Optional.of(ZoneOffset.of(tz));
 	}
 
-	public Optional<ZoneOffset> tryAsZoneOffset(String tz) {
+	protected Optional<ZoneOffset> tryAsZoneOffset(String tz) {
 		if (Strings.isNullOrEmpty(tz)) {
 			return Optional.empty();
 		}
@@ -137,7 +137,7 @@ public abstract class AbstractResource implements TransactionalSession {
 		}
 	}
 
-	public static EntityNotFoundException entityNotFound(String name, String id) {
+	protected static EntityNotFoundException entityNotFound(String name, String id) {
 		return new EntityNotFoundException(String.format("Could not find %s entity with id (%s).", name, id));
 	}
 }

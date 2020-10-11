@@ -18,13 +18,12 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import javax.ws.rs.core.SecurityContext;
-import java.io.Closeable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.UUID;
 
-public abstract class TestInjection implements Closeable, AutoCloseable {
+public abstract class TestInjection {
 
 	public static Injector newTestGuiceInjector(final SessionFactory sessionFactory) {
 

@@ -224,13 +224,15 @@ class AccountResourceTest extends TestResource<AccountResource> {
 				.secure(true)
 				.authenticationScheme(AuthenticationScheme.BEARER)
 				.role(role.name())
-				.userPrincipal(principal).build();
+				.userPrincipal(principal)
+				.build();
 
 		securityVariable.set(securityContext);
 
-		resource.reset(username, password2);
+		final var response = resource.reset(username, password2);
 		final var newRole = accountRoleLocator.getByRoleName(account, CLIENT);
 
+		assertNotNull(response);
 		assertNotNull(newRole);
 	}
 

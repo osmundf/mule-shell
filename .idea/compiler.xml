@@ -3,7 +3,7 @@
   <component name="CompilerConfiguration">
     <option name="USE_RELEASE_OPTION" value="false" />
     <annotationProcessing>
-      <profile default="true" name="Default">
+      <profile default="true" name="Default" enabled="true">
         <processorPath useClasspath="false" />
       </profile>
       <profile name="Annotation profile for mule-shell" enabled="true">
@@ -11,14 +11,14 @@
         <sourceTestOutputDir name="_target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="/Library/Apache/Maven-Repository-ZoftWhere/org/projectlombok/lombok/1.18.8/lombok-1.18.8.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.8/lombok-1.18.8.jar" />
         </processorPath>
+        <module name="mule-shell-model" />
+        <module name="mule-shell-debug" />
+        <module name="mule-shell-server" />
         <module name="mule-shell-client" />
         <module name="mule-shell-universe" />
-        <module name="mule-shell-debug" />
-        <module name="mule-shell-model" />
         <module name="mule-shell-common" />
-        <module name="mule-shell-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

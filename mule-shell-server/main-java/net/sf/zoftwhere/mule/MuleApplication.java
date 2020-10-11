@@ -12,7 +12,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import io.dropwizard.Application;
-import io.dropwizard.Configuration;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -134,7 +133,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 		bootstrap.addBundle(hibernateBundle);
 
-		GuiceBundle<MuleConfiguration> guiceBundle = newGuiceBuilder()
+		GuiceBundle guiceBundle = newGuiceBuilder()
 				.modules(new SecureModule(jwtSigner, jwtVerifier))
 				.modules(serverModule())
 				.build();
@@ -168,7 +167,7 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		return Executors.newSingleThreadExecutor();
 	}
 
-	private GuiceBundle.Builder<MuleConfiguration> newGuiceBuilder() {
+	private GuiceBundle.Builder newGuiceBuilder() {
 		return MuleApplication.newGuiceBuilder(getClass().getPackage());
 	}
 
@@ -303,8 +302,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		return new AccountSigner(MessageDigest.getInstance("SHA-256"), 6);
 	}
 
-	public static <T extends Configuration> GuiceBundle.Builder<T> newGuiceBuilder(Package basePackage) {
-		return GuiceBundle.<T>builder().enableAutoConfig(basePackage.getName());
+	public static GuiceBundle.Builder newGuiceBuilder(Package basePackage) {
+		return GuiceBundle.builder().enableAutoConfig(basePackage.getName());
 	}
 
 	public static Cache<UUID, AccountPrincipal> newLoginAccountCache(int maximumSize) {

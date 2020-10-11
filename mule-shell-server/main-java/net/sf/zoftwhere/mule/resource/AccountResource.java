@@ -87,14 +87,15 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	@RolesAllowed({SYSTEM_ROLE})
 	@POST
 	@Path("/register")
-
 	public Response register(@QueryParam("user") String username, @QueryParam("email") String emailAddress) {
 		final var security = securityContextProvider.get();
 
 		// TODO: !security.isSecure()
-		if (security == null || security.getUserPrincipal() == null
-				|| !Objects.equals(username, security.getUserPrincipal().getName()))
-		{
+		if (security == null || security.getUserPrincipal() == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		if (!Objects.equals(username, security.getUserPrincipal().getName())) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
@@ -122,7 +123,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	}
 
 	/**
-	 * System only: register user.
+	 * System only: reset user password.
 	 *
 	 * @param username username
 	 * @param password password
@@ -135,9 +136,11 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		final var security = securityContextProvider.get();
 
 		// TODO: !security.isSecure()
-		if (security == null || security.getUserPrincipal() == null
-				|| !Objects.equals(username, security.getUserPrincipal().getName()) || password == null)
-		{
+		if (security == null || security.getUserPrincipal() == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		if (!Objects.equals(username, security.getUserPrincipal().getName()) || password == null) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
@@ -322,13 +325,12 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		return Response.ok().build();
 	}
 
-	public void updateAccountSaltHash(final Account account, final byte[] data) {
+	private void updateAccountSaltHash(final Account account, final byte[] data) {
 		final var digest = accountSignerProvider.get();
 		account.updateHash(digest, data);
 		updateEntity(account);
 	}
 
-	@SuppressWarnings("SameParameterValue")
 	private void setupRegisteredAccount(Account account, RoleModel roleModel) {
 		// Check if account has this as an active role.
 		if (accountRoleLocator.getByKey(account, roleModel).isEmpty()) {
