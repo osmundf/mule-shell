@@ -343,7 +343,7 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		}).orElse(0L);
 
 		assertNotNull(count);
-		assertEquals((long) roleModelArray.length, (long) count, "");
+		assertEquals(roleModelArray.length, (long) count, "");
 	}
 
 	private void registerTestAccountGroup() {
