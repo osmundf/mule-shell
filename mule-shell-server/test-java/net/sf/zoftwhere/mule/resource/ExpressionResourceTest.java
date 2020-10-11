@@ -29,7 +29,8 @@ class ExpressionResourceTest extends TestResource<ExpressionResource> {
 		// Close the session factory when we are done.
 		try {
 			super.close();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.warn("There was an exception while closing.", e);
 		}
 	}

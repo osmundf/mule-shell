@@ -43,7 +43,7 @@ public class SnakeCaseNamingStrategy implements PhysicalNamingStrategy {
 	@SuppressWarnings("WeakerAccess")
 	protected String snakeCase(String input) {
 		return input.replaceAll("([a-z])([A-Z])", "$1_$2")
-				.replaceAll("([A-Z])([A-Z][a-z])", "$1_$2")
-				.toLowerCase();
+			.replaceAll("([A-Z])([A-Z][a-z])", "$1_$2")
+			.toLowerCase();
 	}
 }

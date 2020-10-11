@@ -1,5 +1,17 @@
 package net.sf.zoftwhere.mule.resource;
 
+import java.time.ZoneOffset;
+import java.util.UUID;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
 import com.google.common.cache.Cache;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -18,18 +30,6 @@ import net.sf.zoftwhere.mule.model.VariableSnippetModel;
 import net.sf.zoftwhere.mule.shell.MuleShell;
 import net.sf.zoftwhere.mule.shell.MuleSnippet;
 import org.hibernate.Session;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.time.ZoneOffset;
-import java.util.UUID;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static net.sf.zoftwhere.mule.jpa.ShellSession.asSessionModel;
 
@@ -103,8 +103,8 @@ public class SessionResource extends AbstractResource implements SessionApi {
 		final var sessionList = shellSessionLocator.getForAccount(account);
 
 		final var list = sessionList.stream()
-				.map(shellSession -> asSessionModel(shellSession, ZoneOffset.UTC))
-				.collect(Collectors.toList());
+			.map(shellSession -> asSessionModel(shellSession, ZoneOffset.UTC))
+			.collect(Collectors.toList());
 
 		return Response.ok(list).build();
 	}
@@ -113,8 +113,8 @@ public class SessionResource extends AbstractResource implements SessionApi {
 	@Override
 	public Response getSessionSnippetArray(@Nonnull String sessionId, @Nullable String snippetId) {
 		Function<MuleShell, Stream<Snippet>> getList = snippetId == null
-				? MuleShell::snippets
-				: muleShell -> muleShell.snippets().filter(s -> snippetId.equals(s.id()));
+			? MuleShell::snippets
+			: muleShell -> muleShell.snippets().filter(s -> snippetId.equals(s.id()));
 
 		return this.getModelList(sessionId, getList, MuleSnippet::generalSnippet);
 	}
@@ -129,12 +129,12 @@ public class SessionResource extends AbstractResource implements SessionApi {
 	@Override
 	public Response getSessionVariableArray(@Nonnull String sessionId, @Nullable String variableName) {
 		Function<MuleShell, Stream<VarSnippet>> getStream = (variableName == null)
-				? MuleShell::variables
-				: muleShell -> muleShell.variables().filter(s -> variableName.equals(s.name()));
+			? MuleShell::variables
+			: muleShell -> muleShell.variables().filter(s -> variableName.equals(s.name()));
 
 		BiFunction<MuleShell, VarSnippet, VariableSnippetModel> toModel = (variableName == null)
-				? (muleShell, snippet) -> MuleSnippet.variableSnippet(snippet, null)
-				: (muleShell, snippet) -> MuleSnippet.variableSnippet(snippet, muleShell.varValue(snippet));
+			? (muleShell, snippet) -> MuleSnippet.variableSnippet(snippet, null)
+			: (muleShell, snippet) -> MuleSnippet.variableSnippet(snippet, muleShell.varValue(snippet));
 
 		return this.getModelList(sessionId, getStream, toModel);
 	}
@@ -143,11 +143,11 @@ public class SessionResource extends AbstractResource implements SessionApi {
 	@Override
 	public Response getSessionMethodArray(@Nonnull String sessionId, @Nullable String methodName) {
 		Function<MuleShell, Stream<MethodSnippet>> getStream = methodName == null
-				? MuleShell::methods
-				: muleShell -> muleShell.methods().filter(s -> methodName.equals(s.name()));
+			? MuleShell::methods
+			: muleShell -> muleShell.methods().filter(s -> methodName.equals(s.name()));
 
 		BiFunction<MuleShell, MethodSnippet, MethodSnippetModel> toModel =
-				(m, snippet) -> MuleSnippet.methodSnippet(snippet);
+			(m, snippet) -> MuleSnippet.methodSnippet(snippet);
 
 		return this.getModelList(sessionId, getStream, toModel);
 	}
@@ -156,16 +156,18 @@ public class SessionResource extends AbstractResource implements SessionApi {
 	@Override
 	public Response getSessionTypeArray(@Nonnull String sessionId, @Nullable String typeName) {
 		Function<MuleShell, Stream<TypeDeclSnippet>> getStream = typeName == null
-				? MuleShell::types
-				: muleShell -> muleShell.types().filter(s -> typeName.equals(s.name()));
+			? MuleShell::types
+			: muleShell -> muleShell.types().filter(s -> typeName.equals(s.name()));
 
 		BiFunction<MuleShell, TypeDeclSnippet, TypeSnippetModel> toModel =
-				(m, snippet) -> MuleSnippet.typeSnippet(snippet);
+			(m, snippet) -> MuleSnippet.typeSnippet(snippet);
 
 		return this.getModelList(sessionId, getStream, toModel);
 	}
 
-	public <S, M> Response getModelList(String shellId, Function<MuleShell, Stream<S>> getStream, BiFunction<MuleShell, S, M> toModel) {
+	public <S, M> Response getModelList(String shellId, Function<MuleShell, Stream<S>> getStream,
+		BiFunction<MuleShell, S, M> toModel)
+	{
 		final var username = securityContextProvider.get().getUserPrincipal().getName();
 		return wrapMuleShell(shellCache, username, shellId, (MuleShell shell) -> {
 			if (shell == null) {

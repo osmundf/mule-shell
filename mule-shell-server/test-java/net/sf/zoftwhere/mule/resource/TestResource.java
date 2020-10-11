@@ -1,5 +1,10 @@
 package net.sf.zoftwhere.mule.resource;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Function;
+
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import lombok.Getter;
@@ -13,14 +18,11 @@ import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.List;
-import java.util.function.Function;
-
 import static net.sf.zoftwhere.hibernate.HibernateLoader.getH2DatabaseConfiguration;
 
-public abstract class TestResource<TestClass extends AbstractResource> extends AbstractResource implements AutoCloseable, Closeable {
+public abstract class TestResource<TestClass extends AbstractResource> extends AbstractResource
+	implements AutoCloseable, Closeable
+{
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractResource.class);
 
@@ -50,7 +52,8 @@ public abstract class TestResource<TestClass extends AbstractResource> extends A
 	public void close() throws IOException {
 		try {
 			sessionFactory.close();
-		} catch (HibernateException e) {
+		}
+		catch (HibernateException e) {
 			logger.warn("Exception occurred.", e);
 			throw new IOException(e);
 		}

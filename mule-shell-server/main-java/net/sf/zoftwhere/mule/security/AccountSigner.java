@@ -1,9 +1,9 @@
 package net.sf.zoftwhere.mule.security;
 
-import lombok.Getter;
-
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+
+import lombok.Getter;
 
 public class AccountSigner {
 

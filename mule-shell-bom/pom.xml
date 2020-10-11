@@ -13,8 +13,7 @@
     <version>1.0.0-S</version>
     <packaging>pom</packaging>
 
-    <properties>
-    </properties>
+    <properties/>
 
     <dependencyManagement>
         <dependencies>

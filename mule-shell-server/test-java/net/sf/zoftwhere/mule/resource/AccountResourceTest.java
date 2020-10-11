@@ -1,5 +1,14 @@
 package net.sf.zoftwhere.mule.resource;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
+
 import com.auth0.jwt.JWTVerifier;
 import com.google.common.cache.Cache;
 import com.google.inject.Injector;
@@ -25,15 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
 import static com.google.common.collect.ImmutableMap.Builder;
 import static com.google.common.collect.ImmutableMap.Entry;
 import static net.sf.zoftwhere.mule.model.RoleModel.ADMIN;
@@ -52,22 +52,22 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccountResourceTest.class);
 
-	private static final Key<Cache<UUID, AccountPrincipal>> loginCacheKey = new Key<>() {};
-	private static final Key<Variable<SecurityContext>> securityKey = new Key<>() {};
+	private static final Key<Cache<UUID, AccountPrincipal>> loginCacheKey = new Key<>() { };
+	private static final Key<Variable<SecurityContext>> securityKey = new Key<>() { };
 
 	private static final Map<String, String> accountSecretMap = new Builder<String, String>()
-			.put("test-bob", "test-bob-public-secret")
-			.put("test-cat", "test-cat-public-secret")
-			.put("test-dot", "test-dot-public-secret")
-			.put("test-egg", "test-egg-public-secret")
-			.build();
+		.put("test-bob", "test-bob-public-secret")
+		.put("test-cat", "test-cat-public-secret")
+		.put("test-dot", "test-dot-public-secret")
+		.put("test-egg", "test-egg-public-secret")
+		.build();
 
 	private static final Map<String, String> accountEmailMap = new Builder<String, String>()
-			.put("test-bob", "bob@test.test")
-			.put("test-cat", "cat@test.test")
-			.put("test-dot", "dot@test.test")
-			.put("test-egg", "egg@test.test")
-			.build();
+		.put("test-bob", "bob@test.test")
+		.put("test-cat", "cat@test.test")
+		.put("test-dot", "dot@test.test")
+		.put("test-egg", "egg@test.test")
+		.build();
 
 	private final AccountResource resource;
 
@@ -89,7 +89,8 @@ class AccountResourceTest extends TestResource<AccountResource> {
 		// Close the session factory when we are done.
 		try {
 			super.close();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.warn("There was an exception while closing.", e);
 		}
 	}
@@ -180,12 +181,12 @@ class AccountResourceTest extends TestResource<AccountResource> {
 	@Test
 	void testLoginFail() {
 		final var scheme = AuthenticationScheme.BASIC;
-		final var openJoin = new String[]{
-				"fake:thisPasswordIsLongEnough",
-				"test:2tiny",
-				"test:wrongPassword",
-				"spammer:This Password Is Long Enough To Cause The Encoder To Take Longer Than Needed To Decode And Check, " +
-						"so the limit is set to a feasible limit to stop spamming of long authorization headers.",
+		final var openJoin = new String[] {
+			"fake:thisPasswordIsLongEnough",
+			"test:2tiny",
+			"test:wrongPassword",
+			"spammer:This Password Is Long Enough To Cause The Encoder To Take Longer Than Needed To Decode And Check, " +
+				"so the limit is set to a feasible limit to stop spamming of long authorization headers.",
 		};
 
 		registerTestAccountGroup();
@@ -221,11 +222,11 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 		final var principal = new AccountPrincipal(username, role);
 		final var securityContext = StaticSecurityContext.withBuilder()
-				.secure(true)
-				.authenticationScheme(AuthenticationScheme.BEARER)
-				.role(role.name())
-				.userPrincipal(principal)
-				.build();
+			.secure(true)
+			.authenticationScheme(AuthenticationScheme.BEARER)
+			.role(role.name())
+			.userPrincipal(principal)
+			.build();
 
 		securityVariable.set(securityContext);
 
@@ -291,10 +292,10 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 			final var principal = new AccountPrincipal(username, role);
 			final var securityContext = StaticSecurityContext.withBuilder()
-					.secure(true)
-					.authenticationScheme(AuthenticationScheme.BEARER)
-					.role(role.name())
-					.userPrincipal(principal).build();
+				.secure(true)
+				.authenticationScheme(AuthenticationScheme.BEARER)
+				.role(role.name())
+				.userPrincipal(principal).build();
 
 			securityVariable.set(securityContext);
 
@@ -319,12 +320,12 @@ class AccountResourceTest extends TestResource<AccountResource> {
 
 	private void populateRoles() {
 		final Map<String, Integer> priority = new Builder<String, Integer>()
-				.put(SYSTEM.name(), 100)
-				.put(ADMIN.name(), 80)
-				.put(CLIENT.name(), 60)
-				.put(REGISTER.name(), 40)
-				.put(GUEST.name(), 20)
-				.build();
+			.put(SYSTEM.name(), 100)
+			.put(ADMIN.name(), 80)
+			.put(CLIENT.name(), 60)
+			.put(REGISTER.name(), 40)
+			.put(GUEST.name(), 20)
+			.build();
 		final var roleModelArray = values();
 		for (var roleModel : roleModelArray) {
 			final var key = Role.getKey(roleModel);

@@ -1,11 +1,11 @@
 package net.sf.zoftwhere.mule.security;
 
+import java.util.function.Supplier;
+
 import com.auth0.jwt.JWTVerifier;
 import com.google.inject.Provides;
 import net.sf.zoftwhere.mule.MuleConfiguration;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
-
-import java.util.function.Supplier;
 
 public class SecureModule extends DropwizardAwareModule<MuleConfiguration> {
 

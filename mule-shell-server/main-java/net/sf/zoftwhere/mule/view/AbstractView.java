@@ -1,13 +1,13 @@
 package net.sf.zoftwhere.mule.view;
 
-import io.dropwizard.views.View;
-import lombok.Getter;
-import net.sf.zoftwhere.dropwizard.ContextPath;
-
-import javax.annotation.Nonnull;
 import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Optional;
+import javax.annotation.Nonnull;
+
+import io.dropwizard.views.View;
+import lombok.Getter;
+import net.sf.zoftwhere.dropwizard.ContextPath;
 
 @SuppressWarnings({"unused", "WeakerAccess", "RedundantSuppression"})
 public class AbstractView extends View {
@@ -16,18 +16,6 @@ public class AbstractView extends View {
 	public static final String FTLH_SUFFIX = "ftlh";
 	public static final String FTLX_SUFFIX = "ftlx";
 	public static final String MUSTACHE_SUFFIX = "mustache";
-
-	@Getter
-	private final String contextPath;
-
-	private AbstractView(String name, ContextPath contextPath) {
-		this(name, null, contextPath);
-	}
-
-	protected AbstractView(String name, Charset charset, ContextPath contextPath) {
-		super(name, charset);
-		this.contextPath = contextPath.get();
-	}
 
 	/**
 	 * Helper for package deployed views.
@@ -43,8 +31,22 @@ public class AbstractView extends View {
 		return viewClass.getSimpleName().replaceFirst(regex, replacement) + '.' + suffix;
 	}
 
-	protected static <V extends View> String getTemplateName(Class<V> viewClass, String suffix, String regex, String replacement) {
+	protected static <V extends View> String getTemplateName(Class<V> viewClass, String suffix, String regex,
+		String replacement)
+	{
 		return viewClass.getSimpleName().replaceFirst(regex, replacement) + '.' + suffix;
+	}
+
+	@Getter
+	private final String contextPath;
+
+	private AbstractView(String name, ContextPath contextPath) {
+		this(name, null, contextPath);
+	}
+
+	protected AbstractView(String name, Charset charset, ContextPath contextPath) {
+		super(name, charset);
+		this.contextPath = contextPath.get();
 	}
 
 	public static class HtmlTag {
@@ -58,17 +60,15 @@ public class AbstractView extends View {
 			composed = compose(name, attributeMap, hasEndTag, null);
 		}
 
-		@Override
-		public String toString() {
-			return composed;
-		}
-
-		private String compose(String name, LinkedHashMap<String, Optional<String>> attributeMap, boolean hasEndTag, String content) {
+		private String compose(String name, LinkedHashMap<String, Optional<String>> attributeMap, boolean hasEndTag,
+			String content)
+		{
 			final var basicString = basicString(name, attributeMap);
 
 			if (!hasEndTag) {
 				return basicString.append(">").toString();
-			} else if (content == null) {
+			}
+			else if (content == null) {
 				return basicString.append("/>").toString();
 			}
 
@@ -84,9 +84,18 @@ public class AbstractView extends View {
 			});
 			return builder;
 		}
+
+		@Override
+		public String toString() {
+			return composed;
+		}
 	}
 
 	public static class HtmlTagBuilder {
+		public static HtmlTagBuilder name(@Nonnull String name) {
+			return new HtmlTagBuilder(name);
+		}
+
 		private final String name;
 		private final LinkedHashMap<String, Optional<String>> attributeMap;
 
@@ -116,10 +125,6 @@ public class AbstractView extends View {
 
 		public HtmlTag build(String content) {
 			return new HtmlTag(name, attributeMap, content);
-		}
-
-		public static HtmlTagBuilder name(@Nonnull String name) {
-			return new HtmlTagBuilder(name);
 		}
 	}
 }

@@ -16,7 +16,9 @@ class TryParseTest {
 		try {
 			TryParse.toInteger("not.an.integer").orElseThrow();
 			fail();
-		} catch (Exception ignore) { }
+		}
+		catch (Exception ignore) {
+		}
 	}
 
 	@Test
@@ -25,7 +27,9 @@ class TryParseTest {
 		try {
 			TryParse.toInteger("not.a.long").orElseThrow();
 			fail();
-		} catch (Exception ignore) { }
+		}
+		catch (Exception ignore) {
+		}
 	}
 
 }

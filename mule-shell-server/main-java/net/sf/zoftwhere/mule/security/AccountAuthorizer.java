@@ -1,11 +1,11 @@
 package net.sf.zoftwhere.mule.security;
 
+import javax.annotation.Nullable;
+import javax.ws.rs.container.ContainerRequestContext;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import io.dropwizard.auth.Authorizer;
-
-import javax.annotation.Nullable;
-import javax.ws.rs.container.ContainerRequestContext;
 
 public class AccountAuthorizer implements Authorizer<AccountPrincipal> {
 

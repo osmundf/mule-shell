@@ -1,5 +1,11 @@
 package net.sf.zoftwhere.mule.shell;
 
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import jdk.jshell.ErroneousSnippet;
 import jdk.jshell.ExpressionSnippet;
 import jdk.jshell.ImportSnippet;
@@ -15,12 +21,6 @@ import net.sf.zoftwhere.mule.model.SnippetStatusModel;
 import net.sf.zoftwhere.mule.model.TypeSnippetModel;
 import net.sf.zoftwhere.mule.model.VariableSnippetModel;
 
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static net.sf.zoftwhere.mule.model.SnippetTypeModel.ERROR;
 import static net.sf.zoftwhere.mule.model.SnippetTypeModel.EXPRESSION;
 import static net.sf.zoftwhere.mule.model.SnippetTypeModel.IMPORT;
@@ -32,7 +32,9 @@ import static net.sf.zoftwhere.mule.model.SnippetTypeModel.VARIABLE;
 
 public abstract class MuleSnippet {
 
-	public static <S, M> List<M> getModelList(MuleShell shell, Function<MuleShell, Stream<S>> getList, BiFunction<MuleShell, S, M> toModel) {
+	public static <S, M> List<M> getModelList(MuleShell shell, Function<MuleShell, Stream<S>> getList,
+		BiFunction<MuleShell, S, M> toModel)
+	{
 		return getList.apply(shell).map(s -> toModel.apply(shell, s)).collect(Collectors.toList());
 	}
 
@@ -59,49 +61,52 @@ public abstract class MuleSnippet {
 			result.setTypeName(snippet.getClass().getTypeName());
 			result.setFullName(snippet.getClass().getName());
 			result.error("snippet.error");
-
-		} else if (snippet instanceof ExpressionSnippet) {
+		}
+		else if (snippet instanceof ExpressionSnippet) {
 			result.setType(EXPRESSION);
 			final var var = (ExpressionSnippet) snippet;
 			result.setTypeName(var.typeName());
 			result.setName(var.name());
-
-		} else if (snippet instanceof ImportSnippet) {
+		}
+		else if (snippet instanceof ImportSnippet) {
 			result.setType(IMPORT);
 			final var var = (ImportSnippet) snippet;
 			result.setName(var.name());
-
-		} else if (snippet instanceof MethodSnippet) {
+		}
+		else if (snippet instanceof MethodSnippet) {
 			result.setType(METHOD);
 			final var var = (MethodSnippet) snippet;
 			result.setName(var.name());
 			result.setFullName(var.name() + "(" + var.parameterTypes() + ")");
 			result.setSignature(var.signature());
-
-		} else if (snippet instanceof StatementSnippet) {
+		}
+		else if (snippet instanceof StatementSnippet) {
 			result.setType(STATEMENT);
-
-		} else if (snippet instanceof TypeDeclSnippet) {
+		}
+		else if (snippet instanceof TypeDeclSnippet) {
 			result.type(TYPE);
 			final var var = (TypeDeclSnippet) snippet;
 			result.setName(var.name());
 			if (var.subKind() == Snippet.SubKind.ANNOTATION_TYPE_SUBKIND) {
 				result.setTypeName("annotation");
-			} else if (var.subKind() == Snippet.SubKind.CLASS_SUBKIND) {
+			}
+			else if (var.subKind() == Snippet.SubKind.CLASS_SUBKIND) {
 				result.setTypeName("class");
-			} else if (var.subKind() == Snippet.SubKind.ENUM_SUBKIND) {
+			}
+			else if (var.subKind() == Snippet.SubKind.ENUM_SUBKIND) {
 				result.setTypeName("enum");
-			} else if (var.subKind() == Snippet.SubKind.INTERFACE_SUBKIND) {
+			}
+			else if (var.subKind() == Snippet.SubKind.INTERFACE_SUBKIND) {
 				result.setTypeName("interface");
 			}
-
-		} else if (snippet instanceof VarSnippet) {
+		}
+		else if (snippet instanceof VarSnippet) {
 			result.setType(VARIABLE);
 			final var var = (VarSnippet) snippet;
 			result.setTypeName(var.typeName());
 			result.setName(var.name());
-
-		} else {
+		}
+		else {
 			result.setType(OTHER);
 			result.setTypeName(snippet.getClass().getSimpleName());
 			result.setFullName(snippet.getClass().getName());

@@ -1,11 +1,11 @@
 package net.sf.zoftwhere.mule.shell;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import com.google.common.cache.Cache;
 import net.sf.zoftwhere.mule.jpa.Account;
 import net.sf.zoftwhere.mule.jpa.ShellSessionLocator;
-
-import java.util.Optional;
-import java.util.UUID;
 
 public class MuleShellManager {
 

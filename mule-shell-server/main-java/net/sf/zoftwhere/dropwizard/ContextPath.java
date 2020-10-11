@@ -9,7 +9,8 @@ public class ContextPath implements Supplier<String> {
 	public ContextPath(String contextPath) {
 		if (contextPath == null || contextPath.equals("/")) {
 			this.contextPath = "";
-		} else {
+		}
+		else {
 			this.contextPath = contextPath;
 		}
 	}

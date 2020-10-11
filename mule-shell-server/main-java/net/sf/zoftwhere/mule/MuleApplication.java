@@ -1,5 +1,13 @@
 package net.sf.zoftwhere.mule;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -54,52 +62,68 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import static java.lang.System.getProperty;
 import static net.sf.zoftwhere.mule.MuleApplicationBuilder.create;
 
 public class MuleApplication extends Application<MuleConfiguration> {
 
-	private static final Logger logger = LoggerFactory.getLogger(MuleApplication.class);
-
 	public static final String USER_CACHE_SIZE_PROPERTY = "MuleShellUserCacheSize";
-
 	public static final String SHELL_CACHE_SIZE_PROPERTY = "MuleShellShellCacheSize";
 
 	public static void main(String[] args) throws Exception {
 		long time = -System.nanoTime();
 		create(MuleApplication::new)
-				.realm("mule-shell-public")
-				.userCacheSize(TryParse.toInteger(getProperty(USER_CACHE_SIZE_PROPERTY)).orElse(10))
-				.shellCacheSize(TryParse.toInteger(getProperty(SHELL_CACHE_SIZE_PROPERTY)).orElse(10))
-				.run(args);
+			.realm("mule-shell-public")
+			.userCacheSize(TryParse.toInteger(getProperty(USER_CACHE_SIZE_PROPERTY)).orElse(10))
+			.shellCacheSize(TryParse.toInteger(getProperty(SHELL_CACHE_SIZE_PROPERTY)).orElse(10))
+			.run(args);
 		time += System.nanoTime();
 		logger.info("Started: " + ((time / 1_000) / 1e3) + " ms");
 	}
 
+	private static final Logger logger = LoggerFactory.getLogger(MuleApplication.class);
+
+	protected static AccountSigner newAccountSigner() throws NoSuchAlgorithmException {
+		return new AccountSigner(MessageDigest.getInstance("SHA-256"), 6);
+	}
+
+	public static GuiceBundle.Builder newGuiceBuilder(Package basePackage) {
+		return GuiceBundle.builder().enableAutoConfig(basePackage.getName());
+	}
+
+	public static Cache<UUID, AccountPrincipal> newLoginAccountCache(int maximumSize) {
+		return CacheBuilder.newBuilder()
+			.maximumSize(maximumSize)
+			.expireAfterWrite(Duration.ofMinutes(30))
+			.build();
+	}
+
+	public static Cache<UUID, MuleShell> newMuleShellCache(int maximumSize) {
+		return CacheBuilder.newBuilder()
+			.maximumSize(maximumSize)
+			.expireAfterWrite(Duration.ofMinutes(30))
+			.build();
+	}
+
+	public static Class<?>[] persistenceEntities() {
+		return new Class<?>[] {
+			Account.class,
+			AccountRole.class,
+			Role.class,
+			Setting.class,
+			ShellSession.class,
+			Token.class,
+		};
+	}
+
 	private final ExecutorService executor;
-
 	private final HibernateBundle<MuleConfiguration> hibernateBundle;
-
 	private final String realm;
-
 	private final PlaceHolder<String> contextPath = new Variable<>();
-
 	private final PlaceHolder<ViewAssetPath> viewAssetPath = new Variable<>();
-
 	private final Cache<UUID, AccountPrincipal> principalCache;
-
 	private final Cache<UUID, MuleShell> shellCache;
-
 	private final PlaceHolder<JWTSigner> jwtSigner = new Variable<>();
-
 	private final PlaceHolder<JWTVerifier> jwtVerifier = new Variable<>();
 
 	public <T extends MuleApplication> MuleApplication(MuleApplicationBuilder<T> builder) {
@@ -119,10 +143,10 @@ public class MuleApplication extends Application<MuleConfiguration> {
 	public void initialize(Bootstrap<MuleConfiguration> bootstrap) {
 		// Enable variable substitution with environment variables.
 		bootstrap.setConfigurationSourceProvider(
-				new SubstitutingSourceProvider(
-						bootstrap.getConfigurationSourceProvider(),
-						new EnvironmentVariableSubstitutor(false)
-				)
+			new SubstitutingSourceProvider(
+				bootstrap.getConfigurationSourceProvider(),
+				new EnvironmentVariableSubstitutor(false)
+			)
 		);
 
 		// Make static assets available if they're present.
@@ -134,9 +158,9 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		bootstrap.addBundle(hibernateBundle);
 
 		GuiceBundle guiceBundle = newGuiceBuilder()
-				.modules(new SecureModule(jwtSigner, jwtVerifier))
-				.modules(serverModule())
-				.build();
+			.modules(new SecureModule(jwtSigner, jwtVerifier))
+			.modules(serverModule())
+			.build();
 
 		bootstrap.addBundle(guiceBundle);
 	}
@@ -214,7 +238,8 @@ public class MuleApplication extends Application<MuleConfiguration> {
 			public AccountSigner getAccountSigner() {
 				try {
 					return newAccountSigner();
-				} catch (NoSuchAlgorithmException e) {
+				}
+				catch (NoSuchAlgorithmException e) {
 					throw new RuntimeException(e);
 				}
 			}
@@ -247,10 +272,13 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 				if (SnakeCaseNamingStrategy.class.getName().equals(namingStrategy)) {
 					configuration.setPhysicalNamingStrategy(new SnakeCaseNamingStrategy());
-				} else if (MacroCaseNamingStrategy.class.getName().equals(namingStrategy)) {
+				}
+				else if (MacroCaseNamingStrategy.class.getName().equals(namingStrategy)) {
 					configuration.setPhysicalNamingStrategy(new MacroCaseNamingStrategy());
-				} else {
-					logger.warn("The following naming strategy may not have been loaded: {}", new Object[]{namingStrategy});
+				}
+				else {
+					logger.warn("The following naming strategy may not have been loaded: {}",
+						new Object[] {namingStrategy});
 				}
 			}
 		};
@@ -265,21 +293,21 @@ public class MuleApplication extends Application<MuleConfiguration> {
 		final var settingLocator = new SettingLocator(sessionFactory::openSession);
 
 		final var jwtIssuerSetting = settingLocator.getByKey("mule-shell-jwt-issuer")
-				.orElseThrow(RuntimeException::new);
+			.orElseThrow(RuntimeException::new);
 
 		final var jwtHashSecret = settingLocator.getByKey("mule-shell-jwt-hash-key")
-				.orElseThrow(RuntimeException::new);
+			.orElseThrow(RuntimeException::new);
 
 		final var issuer = jwtIssuerSetting.getValue();
 		final var algorithm = Algorithm.HMAC256(jwtHashSecret.getValue());
 		final var signer = new JWTSigner(issuer, algorithm);
 
 		JWTVerifier verifier = JWT.require(algorithm)
-				.withIssuer(issuer)
-				.acceptIssuedAt(0)
-				.acceptNotBefore(0)
-				.acceptExpiresAt(0)
-				.build();
+			.withIssuer(issuer)
+			.acceptIssuedAt(0)
+			.acceptNotBefore(0)
+			.acceptExpiresAt(0)
+			.build();
 
 		// Update signer and verifier placeholders.
 		jwtSigner.set(signer);
@@ -287,47 +315,14 @@ public class MuleApplication extends Application<MuleConfiguration> {
 
 		// Create filter
 		final var filter = new AuthorizationAuthFilter.Builder<AccountPrincipal>()
-				.setAuthorizer(new AccountAuthorizer())
-				.setAuthenticator(new AccountAuthenticator(principalCache, jwtVerifier.get(), sessionFactory::openSession))
-				.setPrefix(AuthenticationScheme.BEARER)
-				.setRealm(realm)
-				.buildAuthFilter();
+			.setAuthorizer(new AccountAuthorizer())
+			.setAuthenticator(new AccountAuthenticator(principalCache, jwtVerifier.get(), sessionFactory::openSession))
+			.setPrefix(AuthenticationScheme.BEARER)
+			.setRealm(realm)
+			.buildAuthFilter();
 
 		// Add AuthFilters and Roles.
 		environment.jersey().register(new AuthDynamicFeature(filter));
 		environment.jersey().register(RolesAllowedDynamicFeature.class);
-	}
-
-	protected static AccountSigner newAccountSigner() throws NoSuchAlgorithmException {
-		return new AccountSigner(MessageDigest.getInstance("SHA-256"), 6);
-	}
-
-	public static GuiceBundle.Builder newGuiceBuilder(Package basePackage) {
-		return GuiceBundle.builder().enableAutoConfig(basePackage.getName());
-	}
-
-	public static Cache<UUID, AccountPrincipal> newLoginAccountCache(int maximumSize) {
-		return CacheBuilder.newBuilder()
-				.maximumSize(maximumSize)
-				.expireAfterWrite(Duration.ofMinutes(30))
-				.build();
-	}
-
-	public static Cache<UUID, MuleShell> newMuleShellCache(int maximumSize) {
-		return CacheBuilder.newBuilder()
-				.maximumSize(maximumSize)
-				.expireAfterWrite(Duration.ofMinutes(30))
-				.build();
-	}
-
-	public static Class<?>[] persistenceEntities() {
-		return new Class<?>[]{
-				Account.class,
-				AccountRole.class,
-				Role.class,
-				Setting.class,
-				ShellSession.class,
-				Token.class,
-		};
 	}
 }

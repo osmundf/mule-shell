@@ -1,16 +1,16 @@
 package net.sf.zoftwhere.dropwizard.security;
 
-import io.dropwizard.auth.AuthFilter;
-import io.dropwizard.auth.Authenticator;
-
+import java.security.Principal;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
-import java.security.Principal;
-import java.util.Optional;
+
+import io.dropwizard.auth.AuthFilter;
+import io.dropwizard.auth.Authenticator;
 
 @Priority(Priorities.AUTHENTICATION)
 public class AuthorizationAuthFilter<P extends Principal> extends AuthFilter<String, P> {
@@ -60,7 +60,8 @@ public class AuthorizationAuthFilter<P extends Principal> extends AuthFilter<Str
 	 * @param <P> the type of the principal
 	 */
 	public static class Builder<P extends Principal>
-			extends AuthFilterBuilder<String, P, AuthorizationAuthFilter<P>> {
+		extends AuthFilterBuilder<String, P, AuthorizationAuthFilter<P>>
+	{
 
 		@Override
 		protected AuthorizationAuthFilter<P> newInstance() {

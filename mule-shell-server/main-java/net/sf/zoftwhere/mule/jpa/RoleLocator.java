@@ -1,16 +1,16 @@
 package net.sf.zoftwhere.mule.jpa;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.AbstractLocator;
 import net.sf.zoftwhere.mule.model.RoleModel;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
 
 public class RoleLocator extends AbstractLocator<Role, UUID> {
 

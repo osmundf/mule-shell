@@ -1,14 +1,18 @@
 package net.sf.zoftwhere.mule.security;
 
+import java.security.Principal;
+import java.util.Objects;
+import javax.ws.rs.core.SecurityContext;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import javax.ws.rs.core.SecurityContext;
-import java.security.Principal;
-import java.util.Objects;
-
 public class StaticSecurityContext implements SecurityContext {
+
+	public static Builder withBuilder() {
+		return new Builder();
+	}
 
 	@Getter
 	private final boolean secure;
@@ -31,10 +35,6 @@ public class StaticSecurityContext implements SecurityContext {
 	@Override
 	public boolean isUserInRole(String desiredRole) {
 		return Objects.equals(role, desiredRole);
-	}
-
-	public static Builder withBuilder() {
-		return new Builder();
 	}
 
 	@Getter

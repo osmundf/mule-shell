@@ -139,7 +139,6 @@
     </footer>
 </div>
 
-
 <#-- Preverse the order of these JavaScript libraries for Bootstrap to work. -->
 ${JQueryJS?no_esc}
 ${popperJS?no_esc}

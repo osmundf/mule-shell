@@ -1,11 +1,11 @@
 package net.sf.zoftwhere.dropwizard.scope;
 
+import java.util.ArrayList;
+
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.AbstractResource;
 import org.hibernate.Session;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -45,5 +45,4 @@ class AbstractResourceTest {
 			assertEquals(message, "Could not find TestEntity entity with id (0).");
 		}
 	}
-
 }

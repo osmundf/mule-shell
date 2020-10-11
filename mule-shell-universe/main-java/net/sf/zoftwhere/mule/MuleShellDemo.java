@@ -1,5 +1,11 @@
 package net.sf.zoftwhere.mule;
 
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
+
 import com.google.inject.Provider;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
@@ -20,28 +26,21 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.UUID;
-
 public class MuleShellDemo extends MuleApplication {
-
-	private static final Logger logger = LoggerFactory.getLogger(MuleShellDemo.class);
 
 	public static void main(String[] arguments) throws Exception {
 		long time = -System.nanoTime();
 		MuleApplicationBuilder.create(MuleShellDemo::new)
-				.realm("mule-shell-demo")
-				.userCacheSize(10)
-				.shellCacheSize(10)
-				.run(arguments);
+			.realm("mule-shell-demo")
+			.userCacheSize(10)
+			.shellCacheSize(10)
+			.run(arguments);
 		time += System.nanoTime();
 		logger.info("Started: " + ((time / 1_000) / 1e3) + " ms");
 		new ServerSocket().bind(new InetSocketAddress("localhost", 0));
 	}
 
+	private static final Logger logger = LoggerFactory.getLogger(MuleShellDemo.class);
 	private final Variable<ConfigurationSourceProvider> sourceProviderVariable = new Variable<>();
 
 	public MuleShellDemo(MuleApplicationBuilder<MuleShellDemo> builder) {
@@ -114,7 +113,7 @@ public class MuleShellDemo extends MuleApplication {
 		}
 
 		final var accountLocator = new AccountLocator(sessionProvider);
-		final var usernameArray = new String[]{"guest"};
+		final var usernameArray = new String[] {"guest"};
 		for (var username : usernameArray) {
 			if (accountLocator.getByUsername(username).isPresent()) {
 				continue;
@@ -123,7 +122,8 @@ public class MuleShellDemo extends MuleApplication {
 			final AccountSigner signer;
 			try {
 				signer = newAccountSigner();
-			} catch (NoSuchAlgorithmException e) {
+			}
+			catch (NoSuchAlgorithmException e) {
 				throw new RuntimeException(e);
 			}
 

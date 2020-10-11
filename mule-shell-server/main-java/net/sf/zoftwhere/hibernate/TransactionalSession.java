@@ -1,11 +1,11 @@
 package net.sf.zoftwhere.hibernate;
 
-import com.google.inject.Provider;
-import org.hibernate.Session;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import com.google.inject.Provider;
+import org.hibernate.Session;
 
 public interface TransactionalSession {
 

@@ -1,9 +1,9 @@
 package net.sf.zoftwhere.hibernate;
 
-import org.hibernate.cfg.Configuration;
-
 import java.util.List;
 import java.util.Map;
+
+import org.hibernate.cfg.Configuration;
 
 public class HibernateLoader {
 
@@ -17,7 +17,8 @@ public class HibernateLoader {
 	public static Configuration getH2DatabaseConfiguration(List<Class<?>> entityList) {
 		final Configuration configuration = new Configuration();
 		entityList.forEach(configuration::addAnnotatedClass);
-		configuration.setProperty("hibernate.connection.url", "jdbc:h2:mem:test;mode=PostgreSQL;database_to_lower=true");
+		configuration.setProperty("hibernate.connection.url",
+			"jdbc:h2:mem:test;mode=PostgreSQL;database_to_lower=true");
 		configuration.getProperties().setProperty("hibernate.connection.username", "admin");
 		configuration.getProperties().setProperty("hibernate.connection.password", "");
 		configuration.setProperty("hibernate.connection.driver_class", org.h2.Driver.class.getName());

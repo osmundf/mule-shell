@@ -1,5 +1,21 @@
 package net.sf.zoftwhere.mule.shell;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import jdk.jshell.Diag;
@@ -18,22 +34,6 @@ import net.sf.zoftwhere.mule.model.SnippetTypeModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static jdk.jshell.SourceCodeAnalysis.Completeness.COMPLETE_WITH_SEMI;
 import static jdk.jshell.SourceCodeAnalysis.Completeness.DEFINITELY_INCOMPLETE;
 
@@ -41,20 +41,27 @@ public class MuleShell implements AutoCloseable {
 
 	private static final Logger logger = LoggerFactory.getLogger(MuleShell.class);
 
+	public static DiagnosticModel getDiagnosticModel(Snippet snippet, Diag diagnostic) {
+		final var model = new DiagnosticModel();
+		final var locale = Locale.getDefault();
+		model.setInput(snippet.source());
+		model.setLocal(locale.getDisplayName());
+		model.setMessage(diagnostic.getMessage(locale));
+		model.setPosition(Long.toString(diagnostic.getPosition()));
+		model.setStart(Long.toString(diagnostic.getStartPosition()));
+		model.setEnd(Long.toString(diagnostic.getEndPosition()));
+		return model;
+	}
+
 	@Getter
 	private final UUID id;
-
 	@Getter
 	private boolean closed = false;
-
 	@Getter
 	private final PrintStream writeInput;
-
 	@Getter
 	private final InputStreamReader readOutput = null;
-
 	private final ByteArrayOutputStream outputPrinterStream;
-
 	@Getter
 	private final JShell jShell;
 
@@ -79,7 +86,8 @@ public class MuleShell implements AutoCloseable {
 			builder.in(inputReadPipe);
 			builder.out(printer);
 			builder.err(printer);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
@@ -101,7 +109,8 @@ public class MuleShell implements AutoCloseable {
 		this.closed = true;
 		try {
 			readOutput.close();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 		writeInput.close();
@@ -138,9 +147,7 @@ public class MuleShell implements AutoCloseable {
 	}
 
 	/**
-	 * Source Code evaluation.
-	 * Special thanks to:
-	 * https://github.com/CSchoel/arbitrary-but-fixed/blob/master/_posts/2018-10-18-jshell-exceptions.md
+	 * Source Code evaluation. Special thanks to: https://github.com/CSchoel/arbitrary-but-fixed/blob/master/_posts/2018-10-18-jshell-exceptions.md
 	 * https://arbitrary-but-fixed.net/teaching/java/jshell/2018/10/18/jshell-exceptions.html
 	 *
 	 * @param inputCode source code
@@ -170,7 +177,8 @@ public class MuleShell implements AutoCloseable {
 			final List<SnippetEvent> eventList;
 			try {
 				eventList = jShell.eval(code);
-			} catch (RuntimeException e) {
+			}
+			catch (RuntimeException e) {
 				final var evaluationModelList = Lists.newCopyOnWriteArrayList(modelList);
 				return new MuleShellEvaluation(evaluationModelList, remainingCode, "error.code.analysis", null, e);
 			}
@@ -204,8 +212,8 @@ public class MuleShell implements AutoCloseable {
 					errorCode = "code.analysis.diagnostic";
 				}
 			}
-
-		} while (!Strings.isNullOrEmpty(remainingCode) && errorCode == null);
+		}
+		while (!Strings.isNullOrEmpty(remainingCode) && errorCode == null);
 
 		readConsoleBuffer().ifPresent(s -> {
 			modelList.add(new SnippetModel().type(SnippetTypeModel.CONSOLE).value(s));
@@ -255,17 +263,5 @@ public class MuleShell implements AutoCloseable {
 
 	public Snippet.Status status(Snippet snippet) {
 		return this.jShell.status(snippet);
-	}
-
-	public static DiagnosticModel getDiagnosticModel(Snippet snippet, Diag diagnostic) {
-		final var model = new DiagnosticModel();
-		final var locale = Locale.getDefault();
-		model.setInput(snippet.source());
-		model.setLocal(locale.getDisplayName());
-		model.setMessage(diagnostic.getMessage(locale));
-		model.setPosition(Long.toString(diagnostic.getPosition()));
-		model.setStart(Long.toString(diagnostic.getStartPosition()));
-		model.setEnd(Long.toString(diagnostic.getEndPosition()));
-		return model;
 	}
 }

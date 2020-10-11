@@ -1,5 +1,11 @@
 package net.sf.zoftwhere.dropwizard;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.util.UUID;
+import javax.ws.rs.core.SecurityContext;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -17,12 +23,6 @@ import net.sf.zoftwhere.mule.security.JWTSigner;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import javax.ws.rs.core.SecurityContext;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.util.UUID;
-
 public abstract class TestInjection {
 
 	public static Injector newTestGuiceInjector(final SessionFactory sessionFactory) {
@@ -32,11 +32,11 @@ public abstract class TestInjection {
 		final var issuer = "mule-server-test";
 		final var signer = new JWTSigner(issuer, algorithm);
 		final var verifier = JWT.require(algorithm)
-				.withIssuer(issuer)
-				.acceptIssuedAt(0)
-				.acceptNotBefore(0)
-				.acceptExpiresAt(0)
-				.build();
+			.withIssuer(issuer)
+			.acceptIssuedAt(0)
+			.acceptNotBefore(0)
+			.acceptExpiresAt(0)
+			.build();
 
 		return Guice.createInjector(new AbstractModule() {
 			@Override
@@ -46,26 +46,27 @@ public abstract class TestInjection {
 				bind(JWTVerifier.class).toInstance(verifier);
 				bind(JWTSigner.class).toInstance(signer);
 
-				final var cacheKey = new Key<Cache<UUID, AccountPrincipal>>() {};
+				final var cacheKey = new Key<Cache<UUID, AccountPrincipal>>() { };
 				bind(cacheKey).toProvider(this::getLoginCache).in(Singleton.class);
 				bind(AccountSigner.class).toProvider(this::getAccountSigner);
 
-				final var securityKey = new Key<Variable<SecurityContext>>() {};
+				final var securityKey = new Key<Variable<SecurityContext>>() { };
 				bind(securityKey).toInstance(securityContext);
 				bind(SecurityContext.class).toProvider(securityContext::get);
 			}
 
 			private Cache<UUID, AccountPrincipal> getLoginCache() {
 				return CacheBuilder.newBuilder()
-						.maximumSize(10000)
-						.expireAfterWrite(Duration.ofMinutes(30))
-						.build();
+					.maximumSize(10000)
+					.expireAfterWrite(Duration.ofMinutes(30))
+					.build();
 			}
 
 			private AccountSigner getAccountSigner() {
 				try {
 					return new AccountSigner(MessageDigest.getInstance("SHA-256"), 6);
-				} catch (NoSuchAlgorithmException e) {
+				}
+				catch (NoSuchAlgorithmException e) {
 					return null;
 				}
 			}

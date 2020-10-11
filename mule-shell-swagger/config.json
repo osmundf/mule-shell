@@ -1,5 +1,5 @@
 {
-  "dateLibrary": "java8",
-  "interfaceOnly": true,
-  "returnResponse": true
+    "dateLibrary": "java8",
+    "interfaceOnly": true,
+    "returnResponse": true
 }

@@ -1,8 +1,8 @@
 package net.sf.zoftwhere.text;
 
-import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
+
+import org.junit.jupiter.api.Test;
 
 import static net.sf.zoftwhere.text.UTF_8.codePointCount;
 import static org.junit.jupiter.api.Assertions.assertEquals;
