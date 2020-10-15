@@ -1,14 +1,8 @@
 package net.sf.zoftwhere.mule.jpa;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.sf.zoftwhere.dropwizard.AbstractEntity;
-import net.sf.zoftwhere.mule.model.SessionModel;
-import net.sf.zoftwhere.mule.model.SystemModel;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,9 +13,15 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.UUID;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.sf.zoftwhere.dropwizard.AbstractEntity;
+import net.sf.zoftwhere.mule.model.SessionModel;
+import net.sf.zoftwhere.mule.model.SystemModel;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import static net.sf.zoftwhere.time.Instants.withZoneOffset;
 
@@ -31,6 +31,19 @@ import static net.sf.zoftwhere.time.Instants.withZoneOffset;
 @NamedQuery(name = "ShellSession.byIdAndAccountId", query = "select o from ShellSession o where o.id = :id and o.owner.id = :accountId and o.deletedAt is null")
 @Accessors(chain = true)
 public class ShellSession extends AbstractEntity<UUID> {
+
+	public static SessionModel asSessionModel(ShellSession session, ZoneOffset zoneOffset) {
+		String jvmVersion = System.getProperty("java.version");
+		SessionModel model = new SessionModel();
+		model.setId(session.getId());
+
+		model.setSystem(new SystemModel().type("Java").version(jvmVersion));
+		model.setCreatedAt(withZoneOffset(session.getCreatedAt(), zoneOffset));
+		model.setClosedAt(withZoneOffset(session.getDeletedAt(), zoneOffset));
+		model.setSuspendedAt(withZoneOffset(session.getSuspendedAt(), zoneOffset));
+
+		return model;
+	}
 
 	@Id
 	@Generated(value = GenerationTime.INSERT)
@@ -54,18 +67,5 @@ public class ShellSession extends AbstractEntity<UUID> {
 
 	public ShellSession(Account owner) {
 		this.owner = owner;
-	}
-
-	public static SessionModel asSessionModel(ShellSession session, ZoneOffset zoneOffset) {
-		String jvmVersion = System.getProperty("java.version");
-		SessionModel model = new SessionModel();
-		model.setId(session.getId());
-
-		model.setSystem(new SystemModel().type("Java").version(jvmVersion));
-		model.setCreatedAt(withZoneOffset(session.getCreatedAt(), zoneOffset));
-		model.setClosedAt(withZoneOffset(session.getDeletedAt(), zoneOffset));
-		model.setSuspendedAt(withZoneOffset(session.getSuspendedAt(), zoneOffset));
-
-		return model;
 	}
 }

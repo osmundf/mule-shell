@@ -1,5 +1,24 @@
 package net.sf.zoftwhere.mule.resource;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import javax.annotation.Nonnull;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
 import com.auth0.jwt.JWT;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -27,25 +46,6 @@ import net.sf.zoftwhere.time.Instants;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 
 public class AccountResource extends AbstractResource implements AccountApi {
 
@@ -87,14 +87,15 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	@RolesAllowed({SYSTEM_ROLE})
 	@POST
 	@Path("/register")
-
 	public Response register(@QueryParam("user") String username, @QueryParam("email") String emailAddress) {
 		final var security = securityContextProvider.get();
 
 		// TODO: !security.isSecure()
-		if (security == null || security.getUserPrincipal() == null
-				|| !Objects.equals(username, security.getUserPrincipal().getName()))
-		{
+		if (security == null || security.getUserPrincipal() == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		if (!Objects.equals(username, security.getUserPrincipal().getName())) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
@@ -122,7 +123,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 	}
 
 	/**
-	 * System only: register user.
+	 * System only: reset user password.
 	 *
 	 * @param username username
 	 * @param password password
@@ -135,9 +136,11 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		final var security = securityContextProvider.get();
 
 		// TODO: !security.isSecure()
-		if (security == null || security.getUserPrincipal() == null
-				|| !Objects.equals(username, security.getUserPrincipal().getName()) || password == null)
-		{
+		if (security == null || security.getUserPrincipal() == null) {
+			return Response.status(Response.Status.UNAUTHORIZED).build();
+		}
+
+		if (!Objects.equals(username, security.getUserPrincipal().getName()) || password == null) {
 			return Response.status(Response.Status.UNAUTHORIZED).build();
 		}
 
@@ -158,7 +161,8 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		if (security.isUserInRole(REGISTER_ROLE)) {
 			try {
 				setupRegisteredAccount(account, RoleModel.CLIENT);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				logger.error("Error setting up registered account.", e);
 			}
 		}
@@ -235,7 +239,8 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			if (accountRole == null) {
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
-		} else {
+		}
+		else {
 			final var accountRoleList = accountRoleLocator.getForAccount(account);
 
 			if (accountRoleList.size() == 0) {
@@ -275,7 +280,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		final var account = new Account(username, email);
 		final var shellSession = new ShellSession(account);
 		final var guestRole = roleLocator.getByKey(RoleModel.GUEST).orElseThrow(
-				() -> new RuntimeException("Could not get role.")
+			() -> new RuntimeException("Could not get role.")
 		);
 		final var accountRole = new AccountRole(account, guestRole, guestRole.getValue());
 		final var accessToken = new Token(accountRole);
@@ -290,8 +295,8 @@ public class AccountResource extends AbstractResource implements AccountApi {
 
 	private Response activeLogin(Account account, Token accessToken, Duration duration) {
 		final var tokenBuilder = JWT.create()
-				.withJWTId(accessToken.getId().toString())
-				.withExpiresAt(new Date(Instant.now().plus(duration).toEpochMilli()));
+			.withJWTId(accessToken.getId().toString())
+			.withExpiresAt(new Date(Instant.now().plus(duration).toEpochMilli()));
 
 		final var signer = signerProvider.get();
 		final var jwtToken = signer.sign(tokenBuilder);
@@ -322,13 +327,12 @@ public class AccountResource extends AbstractResource implements AccountApi {
 		return Response.ok().build();
 	}
 
-	public void updateAccountSaltHash(final Account account, final byte[] data) {
+	private void updateAccountSaltHash(final Account account, final byte[] data) {
 		final var digest = accountSignerProvider.get();
 		account.updateHash(digest, data);
 		updateEntity(account);
 	}
 
-	@SuppressWarnings("SameParameterValue")
 	private void setupRegisteredAccount(Account account, RoleModel roleModel) {
 		// Check if account has this as an active role.
 		if (accountRoleLocator.getByKey(account, roleModel).isEmpty()) {
@@ -357,7 +361,7 @@ public class AccountResource extends AbstractResource implements AccountApi {
 			return Optional.empty();
 		}
 
-		final String[] split = new String[]{header.substring(0, index), header.substring(index + 1)};
+		final String[] split = new String[] {header.substring(0, index), header.substring(index + 1)};
 		return Optional.of(split);
 	}
 

@@ -1,5 +1,8 @@
 package net.sf.zoftwhere.mule.resource;
 
+import java.util.Map;
+import java.util.UUID;
+
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Injector;
@@ -12,28 +15,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.UUID;
-
 class SessionResourceTest extends TestResource<SessionResource> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionResourceTest.class);
 
-	private static final Key<Cache<UUID, AccountPrincipal>> principalCacheKey = new Key<>() {};
+	private static final Key<Cache<UUID, AccountPrincipal>> principalCacheKey = new Key<>() { };
 
-	private static final Key<Cache<UUID, MuleShell>> shellCacheKey = new Key<>() {};
+	private static final Key<Cache<UUID, MuleShell>> shellCacheKey = new Key<>() { };
 
 	private Map<String, String> accountSecretMap = new ImmutableMap.Builder<String, String>()
-			.put("test-bob", "test-bob-public-secret")
-			.put("test-cat", "test-cat-public-secret")
-			.put("test-dot", "test-dot-public-secret")
-			.put("test-egg", "test-egg-public-secret")
-			.build();
+		.put("test-bob", "test-bob-public-secret")
+		.put("test-cat", "test-cat-public-secret")
+		.put("test-dot", "test-dot-public-secret")
+		.put("test-egg", "test-egg-public-secret")
+		.build();
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final SessionResource resource;
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final Injector guiceInjector;
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private final AccountLocator accountLocator;
 
 	SessionResourceTest() {
@@ -52,7 +55,8 @@ class SessionResourceTest extends TestResource<SessionResource> {
 		// Close the session factory when we are done.
 		try {
 			super.close();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.warn("There was an exception while closing.", e);
 		}
 	}

@@ -1,5 +1,13 @@
 package net.sf.zoftwhere.mule.resource;
 
+import java.net.URI;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import net.sf.zoftwhere.dropwizard.ContextPath;
@@ -9,14 +17,6 @@ import net.sf.zoftwhere.mule.model.RoleModel;
 import net.sf.zoftwhere.mule.view.ConsoleView;
 import net.sf.zoftwhere.mule.view.IndexView;
 import net.sf.zoftwhere.mule.view.IntroView;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URI;
 
 @Path("/")
 public class WebResource {

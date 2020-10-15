@@ -17,11 +17,9 @@
         <automatic.module.name>zoftwhere.mule.shell.debug</automatic.module.name>
     </properties>
 
-    <dependencyManagement>
-    </dependencyManagement>
+    <dependencyManagement/>
 
-    <dependencies>
-    </dependencies>
+    <dependencies/>
 
     <build>
         <plugins>

@@ -1,8 +1,9 @@
-package net.sf.zoftwhere.hibernate;
+package net.sf.zoftwhere.dropwizard.scope;
 
 import java.util.List;
 import java.util.Map;
 
+import net.sf.zoftwhere.hibernate.SnakeCaseNamingStrategy;
 import org.hibernate.cfg.Configuration;
 
 public class HibernateLoader {
@@ -14,7 +15,7 @@ public class HibernateLoader {
 		return configuration;
 	}
 
-	public static Configuration getH2DatabaseConfiguration(List<Class<?>> entityList) {
+	static Configuration getH2DatabaseConfiguration(List<Class<?>> entityList) {
 		final Configuration configuration = new Configuration();
 		entityList.forEach(configuration::addAnnotatedClass);
 		configuration.setProperty("hibernate.connection.url",

@@ -1,11 +1,11 @@
 package net.sf.zoftwhere.mule.view;
 
+import java.nio.charset.StandardCharsets;
+
 import lombok.Getter;
 import net.sf.zoftwhere.dropwizard.ContextPath;
 import net.sf.zoftwhere.dropwizard.MuleInfo;
 import net.sf.zoftwhere.dropwizard.ViewAssetPath;
-
-import java.nio.charset.StandardCharsets;
 
 public class IndexView extends BootStrapView {
 

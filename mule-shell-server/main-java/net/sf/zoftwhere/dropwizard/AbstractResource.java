@@ -1,5 +1,14 @@
 package net.sf.zoftwhere.dropwizard;
 
+import java.time.DateTimeException;
+import java.time.ZoneOffset;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
+
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.inject.Provider;
@@ -10,15 +19,6 @@ import net.sf.zoftwhere.mule.shell.MuleShell;
 import net.sf.zoftwhere.mule.shell.MuleShellManager;
 import org.hibernate.Session;
 
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.NoResultException;
-import java.time.DateTimeException;
-import java.time.ZoneOffset;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 public abstract class AbstractResource implements TransactionalSession {
 
 	public static final String ADMIN_ROLE = "ADMIN";
@@ -26,6 +26,10 @@ public abstract class AbstractResource implements TransactionalSession {
 	public static final String GUEST_ROLE = "GUEST";
 	public static final String REGISTER_ROLE = "REGISTER";
 	public static final String SYSTEM_ROLE = "SYSTEM";
+
+	protected static EntityNotFoundException entityNotFound(String name, String id) {
+		return new EntityNotFoundException(String.format("Could not find %s entity with id (%s).", name, id));
+	}
 
 	private final Provider<Session> sessionProvider;
 
@@ -41,7 +45,9 @@ public abstract class AbstractResource implements TransactionalSession {
 		return TransactionalSession.wrapSession(sessionProvider, function);
 	}
 
-	protected <T> T wrapMuleShell(Cache<UUID, MuleShell> shellCache, String username, String sessionId, Function<MuleShell, T> function) {
+	protected <T> T wrapMuleShell(Cache<UUID, MuleShell> shellCache, String username, String sessionId,
+		Function<MuleShell, T> function)
+	{
 		final var accountLocator = new AccountLocator(sessionProvider);
 		final var shellSessionLocator = new ShellSessionLocator(sessionProvider);
 
@@ -83,7 +89,8 @@ public abstract class AbstractResource implements TransactionalSession {
 
 		try {
 			return Optional.of(Integer.valueOf(value));
-		} catch (NumberFormatException e) {
+		}
+		catch (NumberFormatException e) {
 			return Optional.empty();
 		}
 	}
@@ -95,7 +102,8 @@ public abstract class AbstractResource implements TransactionalSession {
 
 		try {
 			return Optional.of(UUID.fromString(value));
-		} catch (RuntimeException e) {
+		}
+		catch (RuntimeException e) {
 			return Optional.empty();
 		}
 	}
@@ -108,14 +116,15 @@ public abstract class AbstractResource implements TransactionalSession {
 		return Optional.of(ZoneOffset.of(tz));
 	}
 
-	public Optional<ZoneOffset> tryAsZoneOffset(String tz) {
+	protected Optional<ZoneOffset> tryAsZoneOffset(String tz) {
 		if (Strings.isNullOrEmpty(tz)) {
 			return Optional.empty();
 		}
 
 		try {
 			return Optional.of(ZoneOffset.of(tz));
-		} catch (DateTimeException e) {
+		}
+		catch (DateTimeException e) {
 			return Optional.empty();
 		}
 	}
@@ -124,20 +133,21 @@ public abstract class AbstractResource implements TransactionalSession {
 		return Optional.ofNullable(toEntity.apply(value)).map(toModel);
 	}
 
-	protected <E, I> E fetchEntity(String value, final Function<String, Optional<I>> parser, final Function<I, E> fetcher) {
+	protected <E, I> E fetchEntity(String value, final Function<String, Optional<I>> parser,
+		final Function<I, E> fetcher)
+	{
 		final var name = fetcher.getClass().getGenericSuperclass().getTypeName();
 		return parser.apply(value).map(fetcher).orElseThrow(() -> entityNotFound(name, value));
 	}
 
-	protected <V, E, I> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser, final Function<I, Optional<E>> fetcher) {
+	protected <V, E, I> Optional<E> tryFetchEntity(V value, final Function<V, Optional<I>> parser,
+		final Function<I, Optional<E>> fetcher)
+	{
 		try {
 			return parser.apply(value).map(fetcher).get();
-		} catch (NoResultException ignore) {
+		}
+		catch (NoResultException ignore) {
 			return Optional.empty();
 		}
-	}
-
-	public static EntityNotFoundException entityNotFound(String name, String id) {
-		return new EntityNotFoundException(String.format("Could not find %s entity with id (%s).", name, id));
 	}
 }

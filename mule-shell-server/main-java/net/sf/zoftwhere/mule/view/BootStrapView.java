@@ -1,10 +1,10 @@
 package net.sf.zoftwhere.mule.view;
 
+import java.nio.charset.Charset;
+
 import lombok.Getter;
 import net.sf.zoftwhere.dropwizard.ContextPath;
 import net.sf.zoftwhere.dropwizard.ViewAssetPath;
-
-import java.nio.charset.Charset;
 
 public abstract class BootStrapView extends AbstractView {
 
@@ -22,36 +22,36 @@ public abstract class BootStrapView extends AbstractView {
 
 	static {
 		DEFAULT_BOOTSTRAP_CSS = HtmlTagBuilder.name("link")
-				.with("rel", "stylesheet")
-				.with("href", "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css")
-				.build(false)
-				.toString();
+			.with("rel", "stylesheet")
+			.with("href", "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css")
+			.build(false)
+			.toString();
 
 		DEFAULT_BOOTSTRAP_JS = HtmlTagBuilder.name("script")
-				.with("src", "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js")
-				.with("integrity", "sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM")
-				.with("crossorigin", "anonymous")
-				.build("")
-				.toString();
+			.with("src", "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js")
+			.with("integrity", "sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM")
+			.with("crossorigin", "anonymous")
+			.build("")
+			.toString();
 
 		DEFAULT_JQUERY_JS = HtmlTagBuilder.name("script")
-				.with("src", "https://code.jquery.com/jquery-3.4.1.min.js")
-				.build("")
-				.toString();
+			.with("src", "https://code.jquery.com/jquery-3.4.1.min.js")
+			.build("")
+			.toString();
 
 		DEFAULT_JQUERY_SLIM_JS = HtmlTagBuilder.name("script")
-				.with("src", "https://code.jquery.com/jquery-3.3.1.slim.min.js")
-				.with("integrity", "sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo")
-				.with("crossorigin", "anonymous")
-				.build("")
-				.toString();
+			.with("src", "https://code.jquery.com/jquery-3.3.1.slim.min.js")
+			.with("integrity", "sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo")
+			.with("crossorigin", "anonymous")
+			.build("")
+			.toString();
 
 		DEFAULT_POPPER_JS = HtmlTagBuilder.name("script")
-				.with("src", "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js")
-				.with("integrity", "sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1")
-				.with("crossorigin", "anonymous")
-				.build("")
-				.toString();
+			.with("src", "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js")
+			.with("integrity", "sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1")
+			.with("crossorigin", "anonymous")
+			.build("")
+			.toString();
 	}
 
 	@Getter

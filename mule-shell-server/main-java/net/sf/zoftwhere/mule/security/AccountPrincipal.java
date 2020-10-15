@@ -1,10 +1,10 @@
 package net.sf.zoftwhere.mule.security;
 
-import net.sf.zoftwhere.mule.jpa.Role;
-import net.sf.zoftwhere.mule.model.RoleModel;
-
 import java.security.Principal;
 import java.util.Optional;
+
+import net.sf.zoftwhere.mule.jpa.Role;
+import net.sf.zoftwhere.mule.model.RoleModel;
 
 public class AccountPrincipal implements Principal {
 

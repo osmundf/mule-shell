@@ -1,8 +1,8 @@
 package net.sf.zoftwhere.mule.view;
 
-import net.sf.zoftwhere.dropwizard.ContextPath;
-
 import java.nio.charset.StandardCharsets;
+
+import net.sf.zoftwhere.dropwizard.ContextPath;
 
 public class LogInView extends AbstractView {
 

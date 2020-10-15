@@ -1,12 +1,12 @@
 package net.sf.zoftwhere.mule.shell;
 
-import lombok.Getter;
-import net.sf.zoftwhere.mule.model.SnippetModel;
-import net.sf.zoftwhere.mule.model.StackTraceElementModel;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import lombok.Getter;
+import net.sf.zoftwhere.mule.model.SnippetModel;
+import net.sf.zoftwhere.mule.model.StackTraceElementModel;
 
 public class MuleShellEvaluation {
 
@@ -41,7 +41,9 @@ public class MuleShellEvaluation {
 		this.exceptionStackTrace = getStackTrace(exception);
 	}
 
-	public MuleShellEvaluation(List<SnippetModel> snippetList, String remainingCode, String errorCode, Locale locale, Exception exception) {
+	public MuleShellEvaluation(List<SnippetModel> snippetList, String remainingCode, String errorCode, Locale locale,
+		Exception exception)
+	{
 		this.snippetList = snippetList;
 		this.remainingCode = remainingCode;
 		this.errorCode = errorCode;

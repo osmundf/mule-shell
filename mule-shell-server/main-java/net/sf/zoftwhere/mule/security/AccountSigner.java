@@ -1,9 +1,9 @@
 package net.sf.zoftwhere.mule.security;
 
-import lombok.Getter;
-
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+
+import lombok.Getter;
 
 public class AccountSigner {
 
@@ -28,6 +28,7 @@ public class AccountSigner {
 		return algorithm.digest(data);
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean validate(final byte[] data, final byte[] salt, final byte[] hash) {
 		algorithm.update(salt);
 		byte[] candidate = algorithm.digest(data);

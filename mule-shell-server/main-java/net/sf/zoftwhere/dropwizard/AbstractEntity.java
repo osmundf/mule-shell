@@ -1,13 +1,13 @@
 package net.sf.zoftwhere.dropwizard;
 
-import lombok.Getter;
-
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+
+import lombok.Getter;
 
 import static java.util.Objects.requireNonNull;
 
@@ -36,15 +36,19 @@ public abstract class AbstractEntity<ID extends Serializable> {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (!(o instanceof AbstractEntity)) { return false; }
-		AbstractEntity<?> that = (AbstractEntity<?>) o;
-		return getId().equals(that.getId());
+	public int hashCode() {
+		return Objects.hash(getId());
 	}
 
 	@Override
-	public int hashCode() {
-		return Objects.hash(getId());
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof AbstractEntity)) {
+			return false;
+		}
+		AbstractEntity<?> that = (AbstractEntity<?>) o;
+		return getId().equals(that.getId());
 	}
 }

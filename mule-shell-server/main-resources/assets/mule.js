@@ -4,7 +4,7 @@ class MuleShellConsole {
         this.consoleDiv = consoleDiv;
         this.continuation = false;
         this.remainingCode = "";
-        this.consoleLine = '<div class="line terminal"/>';
+        this.consoleLine = '<div class="line terminal"></div>';
     }
 
     static getPrompt(continuation) {

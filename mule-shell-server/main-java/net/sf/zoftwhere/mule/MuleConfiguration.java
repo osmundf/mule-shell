@@ -1,15 +1,15 @@
 package net.sf.zoftwhere.mule;
 
+import java.util.Collections;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.db.DataSourceFactory;
 import net.sf.zoftwhere.dropwizard.DatabaseConfiguration;
 import net.sf.zoftwhere.dropwizard.MuleInfo;
 import net.sf.zoftwhere.dropwizard.ViewAssetPath;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
-import java.util.Map;
 
 public class MuleConfiguration extends DatabaseConfiguration {
 

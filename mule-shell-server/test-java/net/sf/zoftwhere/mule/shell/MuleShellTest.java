@@ -1,5 +1,9 @@
 package net.sf.zoftwhere.mule.shell;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.UUID;
+
 import com.google.common.base.Strings;
 import net.sf.zoftwhere.mule.model.SnippetTypeModel;
 import org.junit.jupiter.api.AfterEach;
@@ -7,10 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,17 +28,18 @@ class MuleShellTest extends MuleShell implements AutoCloseable {
 	@BeforeEach
 	void setUp() {
 		shell = new MuleShell(UUID.randomUUID(), builder -> builder
-				.out(new PrintStream(out))
-				.err(new PrintStream(err))
-				.compilerOptions("-Xlint:all")
-				.remoteVMOptions("-Xms32m", "-Xmx64m"));
+			.out(new PrintStream(out))
+			.err(new PrintStream(err))
+			.compilerOptions("-Xlint:all")
+			.remoteVMOptions("-Xms32m", "-Xmx64m"));
 	}
 
 	@AfterEach
 	void tearDown() {
 		try {
 			this.close();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.warn("There was an exception while closing.", e);
 		}
 	}
@@ -60,8 +61,8 @@ class MuleShellTest extends MuleShell implements AutoCloseable {
 			assertNotNull(eval);
 			assertTrue(Strings.isNullOrEmpty(eval.getRemainingCode()));
 			assertTrue(shell.isClosed());
-
-		} finally {
+		}
+		finally {
 			// Restore changes.
 			System.setErr(oldError);
 		}
@@ -70,10 +71,10 @@ class MuleShellTest extends MuleShell implements AutoCloseable {
 	@Test
 	void testCompilerWarning() {
 		final var eval = shell.eval("" +
-				"public int abuseLong() {\n" +
-				"  String s = (String) \"redundant\";\n" +
-				"  return 0xfffff;\n" +
-				"}\n");
+			"public int abuseLong() {\n" +
+			"  String s = (String) \"redundant\";\n" +
+			"  return 0xfffff;\n" +
+			"}\n");
 		assertNotNull(eval);
 		assertTrue(Strings.isNullOrEmpty(eval.getRemainingCode()));
 		assertNotNull(eval.getSnippetList());

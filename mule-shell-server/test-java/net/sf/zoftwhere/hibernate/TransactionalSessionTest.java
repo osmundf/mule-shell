@@ -1,5 +1,10 @@
 package net.sf.zoftwhere.hibernate;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 import com.google.inject.Provider;
 import net.sf.zoftwhere.mule.MuleApplication;
 import org.hibernate.Session;
@@ -9,11 +14,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,7 +39,8 @@ class TransactionalSessionTest implements TransactionalSession {
 	void tearDown() {
 		try {
 			sessionFactory.close();
-		} catch (RuntimeException e) {
+		}
+		catch (RuntimeException e) {
 			logger.warn("Exception while closing session factory.", e);
 		}
 	}

@@ -1,12 +1,6 @@
 package net.sf.zoftwhere.mule.jpa;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import net.sf.zoftwhere.dropwizard.AbstractEntity;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-
+import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,7 +11,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
-import java.util.UUID;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import net.sf.zoftwhere.dropwizard.AbstractEntity;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 @Entity(name = "AccountRole")
 @NamedQuery(name = "AccountRole.all", query = "select o from AccountRole o")

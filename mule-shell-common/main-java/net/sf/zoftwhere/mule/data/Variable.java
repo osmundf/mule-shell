@@ -1,9 +1,9 @@
 package net.sf.zoftwhere.mule.data;
 
-import net.sf.zoftwhere.mule.function.PlaceHolder;
-
 import java.util.NoSuchElementException;
 import java.util.Optional;
+
+import net.sf.zoftwhere.mule.function.PlaceHolder;
 
 /**
  * Variable.

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="JAVA_MODULE" version="4">
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
     <output url="file://$MODULE_DIR$/_target/main-classes" />
     <output-test url="file://$MODULE_DIR$/_target/test-classes" />
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/_target" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-bom" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-client" />
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-common" />
+      <excludeFolder url="file://$MODULE_DIR$/mule-shell-debug" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-model" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-server" />
       <excludeFolder url="file://$MODULE_DIR$/mule-shell-universe" />
-      <excludeFolder url="file://$MODULE_DIR$/_target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -56,7 +56,7 @@
 <div id="south" class="w-100" style="padding: 5px; background-color: #222;">
     <footer class="footer">
         <div class="container w-100 text-center">
-            <span class="text-muted">{ Mule Shell v${version} – 2019 }</span>
+            <span class="text-muted">{ Mule Shell v${version} – 2020 }</span>
         </div>
     </footer>
 </div>

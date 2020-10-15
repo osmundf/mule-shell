@@ -1,16 +1,16 @@
 package net.sf.zoftwhere.mule.jpa;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import net.sf.zoftwhere.dropwizard.AbstractLocator;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import net.sf.zoftwhere.dropwizard.AbstractLocator;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 public class ShellSessionLocator extends AbstractLocator<ShellSession, UUID> {
 
